@@ -102,6 +102,8 @@
   nav button { flex: 1; background: none; border: none; color: var(--text3); font-size: 0.65rem; font-weight: 600; font-family: var(--sans); padding: 0.4rem 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; transition: color 0.2s; }
   nav button.active { color: var(--accent2); }
   nav button svg { width: 22px; height: 22px; }
+  .type-btn { flex:1; padding:0.6rem 0.25rem; border:0.5px solid var(--border2); background:var(--surface); color:var(--text2); border-radius:var(--r-sm); font-size:0.78rem; font-weight:600; font-family:var(--sans); cursor:pointer; transition:all 0.2s; }
+  .type-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); box-shadow:0 2px 12px var(--accent-glow); }
 </style>
 </head>
 <body>
@@ -112,11 +114,17 @@
   </header>
 
   <div class="page active" id="page-calc">
+    <!-- Sélecteur type bouteille -->
+    <div style="display:flex;gap:6px;margin-bottom:1rem;">
+      <button class="type-btn active" id="type-75" onclick="setType('75')">🍷 75cl</button>
+      <button class="type-btn" id="type-375" onclick="setType('375')">🍾 37,5cl</button>
+      <button class="type-btn" id="type-pet" onclick="setType('pet')">✨ Pétillant</button>
+    </div>
     <div class="card">
-      <div class="card-title">Nouveau calcul</div>
+      <div class="card-title" id="calc-title">Bouteille 75cl · frais +1€</div>
       <div class="field">
-        <label>Nom du produit</label>
-        <input type="text" id="nom" placeholder="Ex: Câble USB-C" autocomplete="off"/>
+        <label>Nom du vin</label>
+        <input type="text" id="nom" placeholder="Ex: Château Margaux 2019" autocomplete="off"/>
       </div>
       <div class="field">
         <label>Prix d'achat HTVA (€)</label>
@@ -180,7 +188,8 @@
         </div>
       </div>
       <div class="formula" style="margin-top:1rem;">
-        <strong>Base = PA + 1€</strong><br/>
+        <strong>Base = PA + frais selon type</strong><br/>
+        🍷 75cl → +1€ &nbsp;|&nbsp; 🍾 37,5cl → +0.5€ &nbsp;|&nbsp; ✨ Pétillant → +2€<br/>
         <strong>Si base ≤ 10€ :</strong> base × 1.714<br/>
         <strong>Si base > 10€ :</strong> (10 × 1.714) + (base−10) × 1.5<br/>
         <strong>Arrondi</strong> au 10 centimes
@@ -244,6 +253,23 @@ let products = [];
 let editId = null;
 let syncing = false;
 
+const TYPES = {
+  '75':  { label: '75cl',      frais: 1.0, emoji: '🍷' },
+  '375': { label: '37,5cl',   frais: 0.5, emoji: '🍾' },
+  'pet': { label: 'Pétillant', frais: 2.0, emoji: '✨' }
+};
+let currentType = '75';
+
+function setType(t) {
+  currentType = t;
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('type-'+t).classList.add('active');
+  const cfg = TYPES[t];
+  document.getElementById('calc-title').textContent = `${cfg.emoji} ${cfg.label} · frais +${cfg.frais}€`;
+  // Recalculer si un PA est déjà saisi
+  document.getElementById('pa').dispatchEvent(new Event('input'));
+}
+
 function showSync(msg, color) {
   let el = document.getElementById('sync-status');
   if (!el) {
@@ -304,19 +330,20 @@ function showPage(p) {
   if (p === 'info') renderExemples();
 }
 
-function calc(pa) {
-  const base = pa + 1;
+function calc(pa, type) {
+  const frais = TYPES[type || currentType].frais;
+  const base = pa + frais;
   let htvaRaw, detail;
   if (base <= 10) {
     htvaRaw = base * 1.714;
-    detail = `(${pa.toFixed(2)}+1) × 1.714`;
+    detail = `(${pa.toFixed(2)}+${frais}) × 1.714`;
   } else {
     htvaRaw = 10 * 1.714 + (base - 10) * 1.5;
     detail = `(10×1.714) + (${(base-10).toFixed(2)}×1.5)`;
   }
   const htva = Math.round(htvaRaw * 10) / 10;
   const pct = ((htva - pa) / pa * 100);
-  return { htva, detail, pct, base };
+  return { htva, detail, pct, base, frais };
 }
 
 function fmtDate(ts) {
@@ -334,16 +361,17 @@ document.getElementById('pa').addEventListener('input', function() {
   document.getElementById('r-htva').textContent = htva.toFixed(1) + '€';
   document.getElementById('r-pct').textContent = '+' + pct.toFixed(1) + '%';
   document.getElementById('r-formula').innerHTML =
-    `<strong>Base :</strong> ${pa.toFixed(2)}+1 = ${base.toFixed(2)}€<br><strong>→</strong> ${detail} = <strong>${htva.toFixed(1)}€</strong>`;
+    `<strong>Base :</strong> ${pa.toFixed(2)}+${TYPES[currentType].frais} = ${base.toFixed(2)}€<br><strong>→</strong> ${detail} = <strong>${htva.toFixed(1)}€</strong>`;
 });
 
 function addProduct() {
   const pa = parseFloat(document.getElementById('pa').value);
-  const nom = document.getElementById('nom').value.trim() || 'Produit sans nom';
+  const nom = document.getElementById('nom').value.trim() || 'Vin sans nom';
   if (isNaN(pa) || pa < 0) return;
   const {htva, pct} = calc(pa);
   const ts = Date.now();
-  products.unshift({ id: ts, nom, pa, htva, pct, historique: [{ ts, pa, htva }] });
+  const cfg = TYPES[currentType];
+  products.unshift({ id: ts, nom, pa, htva, pct, type: currentType, typeLabel: cfg.emoji + ' ' + cfg.label, historique: [{ ts, pa, htva }] });
   save();
   document.getElementById('nom').value = '';
   document.getElementById('pa').value = '';
@@ -411,7 +439,7 @@ function renderList() {
       <div class="prod-row">
         <div class="prod-info">
           <div class="prod-name">${escHtml(p.nom)}</div>
-          <div class="prod-detail">PA: ${p.pa.toFixed(2)}€ · Marge: +${p.pct.toFixed(1)}%</div>
+          <div class="prod-detail">PA: ${p.pa.toFixed(2)}€ · Marge: +${p.pct.toFixed(1)}% · <span style="color:var(--accent2);">${p.typeLabel || '🍷 75cl'}</span></div>
           ${augHTML}
         </div>
         <div class="prod-prices">
@@ -447,7 +475,8 @@ function updateEditPreview() {
   const pa = parseFloat(document.getElementById('edit-pa').value);
   const prev = document.getElementById('edit-preview');
   if (isNaN(pa) || pa < 0) { prev.innerHTML = ''; return; }
-  const {htva, detail, pct} = calc(pa);
+  const p = products.find(x => x.id === editId);
+  const {htva, detail, pct} = calc(pa, p ? p.type : '75');
   prev.innerHTML = `<strong>${detail}</strong> = <strong>${htva.toFixed(1)}€ TTC</strong> &nbsp;|&nbsp; +${pct.toFixed(1)}%`;
 }
 document.getElementById('edit-pa').addEventListener('input', updateEditPreview);
@@ -458,7 +487,7 @@ function saveEdit() {
   if (isNaN(pa) || pa < 0) return;
   const p = products.find(x => x.id === editId);
   if (!p) return;
-  const {htva, pct} = calc(pa);
+  const {htva, pct} = calc(pa, p.type || '75');
   if (!p.historique) p.historique = [{ ts: p.id, pa: p.pa, htva: p.htva }];
   if (pa !== p.pa) p.historique.unshift({ ts: Date.now(), pa, htva });
   if (nom) p.nom = nom;
