@@ -2,557 +2,550 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<meta name="theme-color" content="#1a1a2e"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#16100f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Prix de vente"/>
 <title>Prix de Vente – Une Autre Clé du Paradis</title>
 <link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="icon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<link rel="preload" href="calcul.js" as="script"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<!-- Polices chargées sans bloquer l'affichage (repli : polices du système). -->
+<link rel="stylesheet" media="print" onload="this.media='all'"
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap"/>
 <style>
   :root {
-    --bg: #0f0f1a;
-    --surface: #1a1a2e;
-    --surface2: #22223b;
-    --border: #2e2e4a;
-    --accent: #c9a96e;
-    --accent2: #e8c99a;
-    --text: #f0ece4;
-    --text2: #a09880;
-    --danger: #e07070;
-    --success: #6ec994;
-    --inter: #9b72cf;
-    --inter-bg: #2a1f3d;
-    --radius: 12px;
-    --radius-sm: 8px;
+    --bg: #16100f;
+    --surface: #211817;
+    --surface2: #2b201e;
+    --surface3: #362826;
+    --border: #3d2e2b;
+    --border-fort: #574240;
+    --text: #f5eee6;
+    --text2: #b8a898;
+    --text3: #8a7a6c;
+    --accent: #d4ad6a;
+    --accent-texte: #1b120c;
+    --danger: #ec8a80;
+    --success: #7fd19b;
+    --attente: #e6b85c;
+    --radius: 18px;
+    --radius-sm: 12px;
+    --ombre: 0 10px 30px -12px rgba(0, 0, 0, .6);
+    --serif: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+    --sans: 'DM Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --haut: env(safe-area-inset-top, 0px);
+    --bas: env(safe-area-inset-bottom, 0px);
+    color-scheme: dark;
   }
+  /* Couleur de chaque catégorie */
+  [data-cat="tranquille"]        { --c: #e0848c; }
+  [data-cat="mousseux"]          { --c: #e8c97c; }
+  [data-cat="magnum_tranquille"] { --c: #c9607a; }
+  [data-cat="magnum_mousseux"]   { --c: #d9b05a; }
+  [data-cat="demie"]             { --c: #86c2ad; }
+  [data-cat="intermediaire"]     { --c: #b196e8; }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--sans);
     background: var(--bg);
+    background-image: radial-gradient(120% 60% at 50% -10%, #3a1d22 0%, transparent 60%);
+    background-attachment: fixed;
     color: var(--text);
     min-height: 100vh;
+    min-height: 100dvh;
     font-size: 15px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .visuellement-cache {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
   }
 
-  /* HEADER */
+  /* EN-TÊTE */
   header {
-    background: var(--surface);
+    position: sticky; top: 0; z-index: 50;
+    padding: calc(12px + var(--haut)) 16px 12px;
+    background: rgba(22, 16, 15, .82);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    backdrop-filter: saturate(160%) blur(14px);
     border-bottom: 1px solid var(--border);
-    padding: 16px 20px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky;
-    top: 0;
-    z-index: 100;
   }
-  header h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 18px;
-    color: var(--accent);
-    letter-spacing: 0.02em;
+  .entete {
+    max-width: 560px; margin: 0 auto;
+    display: flex; align-items: center; gap: 12px;
   }
-  header span {
-    font-size: 11px;
-    color: var(--text2);
-    font-weight: 300;
+  .marque { flex: 1; min-width: 0; }
+  .marque h1 {
+    font-family: var(--serif); font-weight: 400;
+    font-size: 21px; line-height: 1.1; color: var(--accent);
   }
-
-  /* TABS */
-  .tabs {
-    display: flex;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
+  .marque p {
+    font-size: 11px; color: var(--text3);
+    letter-spacing: .08em; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .tab {
-    flex: 1;
-    padding: 12px 8px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--text2);
-    cursor: pointer;
-    border-bottom: 2px solid transparent;
-    transition: all 0.2s;
-    white-space: nowrap;
+  .pastille {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 99px; padding: 6px 11px;
+    font-size: 12px; color: var(--text2); white-space: nowrap;
   }
-  .tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
+  .point { width: 8px; height: 8px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+  [data-etat="ok"] .point { background: var(--success); box-shadow: 0 0 0 3px rgba(127, 209, 155, .15); }
+  [data-etat="encours"] .point { background: var(--attente); animation: pulse 1s ease-in-out infinite; }
+  [data-etat="erreur"] .point { background: var(--danger); }
+  @keyframes pulse { 50% { opacity: .35; } }
+  .icone-btn {
+    width: 36px; height: 36px; flex-shrink: 0;
+    display: grid; place-items: center;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 50%; color: var(--text2);
   }
+  .icone-btn svg { width: 17px; height: 17px; }
 
   /* PAGES */
-  .page { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
-  .page.active { display: block; }
+  main { padding: 16px 16px calc(96px + var(--bas)); }
+  .page { display: none; max-width: 560px; margin: 0 auto; }
+  .page.active { display: block; animation: apparition .22s ease-out; }
+  @keyframes apparition { from { opacity: 0; transform: translateY(6px); } }
 
-  /* CALCULATOR */
-  .calc-card {
+  .carte {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 16px;
+    padding: 18px;
+    margin-bottom: 14px;
   }
-  .calc-card h2 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 16px;
-    color: var(--accent);
-    margin-bottom: 16px;
+  .carte-titre {
+    font-size: 12px; font-weight: 600; color: var(--text2);
+    text-transform: uppercase; letter-spacing: .09em;
+    margin-bottom: 12px;
   }
 
-  /* CATEGORY SELECTOR */
-  .cat-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-bottom: 16px;
-  }
-  .cat-btn {
-    padding: 10px 8px;
+  .alerte {
+    border: 1px solid var(--border-fort);
+    background: var(--surface2);
     border-radius: var(--radius-sm);
+    padding: 12px 14px; margin-bottom: 14px;
+    font-size: 13px; color: var(--text2);
+  }
+  .alerte strong { color: var(--text); }
+  .alerte.danger { border-color: rgba(236, 138, 128, .5); }
+  .alerte button {
+    background: none; border: 0; padding: 0;
+    color: var(--accent); font-weight: 600; text-decoration: underline;
+  }
+
+  /* CATÉGORIES */
+  .groupe + .groupe { margin-top: 14px; }
+  .groupe-titre { font-size: 12px; color: var(--text3); margin-bottom: 7px; }
+  .cats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .cat {
+    position: relative; text-align: left;
+    background: var(--surface2);
     border: 1.5px solid var(--border);
-    background: var(--surface2);
-    color: var(--text2);
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s;
-    line-height: 1.3;
-  }
-  .cat-btn.selected {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: rgba(201,169,110,0.08);
-  }
-  .cat-btn.inter.selected {
-    border-color: var(--inter);
-    color: var(--inter);
-    background: var(--inter-bg);
-  }
-  .cat-badge {
-    display: block;
-    font-size: 10px;
-    font-weight: 300;
-    color: var(--text2);
-    margin-top: 2px;
-  }
-  .cat-btn.inter .cat-badge { color: var(--inter); opacity: 0.7; }
-
-  /* FRAIS INFO */
-  .frais-info {
-    background: var(--surface2);
-    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    font-size: 12px;
-    color: var(--text2);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    padding: 11px 12px 10px 14px;
+    min-height: 62px;
+    transition: border-color .15s, background-color .15s, transform .1s;
+    overflow: hidden;
   }
-  .frais-info.inter {
-    border-color: var(--inter);
-    background: var(--inter-bg);
-    color: var(--inter);
+  .cat::before {
+    content: ''; position: absolute; left: 0; top: 10px; bottom: 10px;
+    width: 3px; border-radius: 0 3px 3px 0; background: var(--c); opacity: .55;
   }
-  .frais-info strong { color: var(--text); }
-  .frais-info.inter strong { color: var(--inter); }
+  .cat:active { transform: scale(.98); }
+  .cat[aria-pressed="true"] {
+    border-color: var(--c);
+    background: color-mix(in srgb, var(--c) 13%, var(--surface2));
+  }
+  .cat[aria-pressed="true"]::before { opacity: 1; }
+  .cat-nom { display: block; font-weight: 600; font-size: 14px; line-height: 1.25; }
+  .cat[aria-pressed="true"] .cat-nom { color: var(--c); }
+  .cat-info { display: block; font-size: 11.5px; color: var(--text3); margin-top: 3px; }
+  .cat-info.manque { color: var(--danger); }
 
-  /* INPUT */
-  label {
-    display: block;
-    font-size: 12px;
-    color: var(--text2);
-    margin-bottom: 6px;
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  input[type="number"], input[type="text"], select {
+  /* SAISIE */
+  .champ { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 7px; }
+  input[type="text"], input[type="password"], input[type="search"] {
     width: 100%;
     background: var(--surface2);
-    border: 1px solid var(--border);
+    border: 1.5px solid var(--border);
     border-radius: var(--radius-sm);
     color: var(--text);
-    font-family: 'DM Sans', sans-serif;
+    font-family: var(--sans);
     font-size: 16px;
     padding: 12px 14px;
-    margin-bottom: 14px;
     outline: none;
-    transition: border-color 0.2s;
-    -webkit-appearance: none;
+    transition: border-color .15s;
+    -webkit-appearance: none; appearance: none;
   }
-  input:focus, select:focus { border-color: var(--accent); }
-  select option { background: var(--surface2); }
-
-  /* RESULT */
-  .result-box {
-    background: linear-gradient(135deg, rgba(201,169,110,0.12), rgba(201,169,110,0.04));
-    border: 1.5px solid var(--accent);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-top: 8px;
-    text-align: center;
+  input:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--text3); }
+  .prix-saisie { position: relative; }
+  .prix-saisie input {
+    font-family: var(--serif); font-size: 34px; line-height: 1;
+    padding: 14px 52px 14px 16px;
   }
-  .result-box.inter {
-    background: linear-gradient(135deg, rgba(155,114,207,0.15), rgba(155,114,207,0.04));
-    border-color: var(--inter);
-  }
-  .result-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text2);
-    margin-bottom: 6px;
-  }
-  .result-price {
-    font-family: 'DM Serif Display', serif;
-    font-size: 42px;
-    color: var(--accent);
-    line-height: 1;
-  }
-  .result-box.inter .result-price { color: var(--inter); }
-  .result-detail {
-    margin-top: 14px;
-    border-top: 1px solid var(--border);
-    padding-top: 14px;
-  }
-  .detail-row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 12px;
-    color: var(--text2);
-    margin-bottom: 5px;
-  }
-  .detail-row.total {
-    color: var(--text);
-    font-weight: 600;
-    font-size: 13px;
-    border-top: 1px solid var(--border);
-    padding-top: 8px;
-    margin-top: 4px;
+  .prix-saisie span {
+    position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+    font-family: var(--serif); font-size: 26px; color: var(--text3); pointer-events: none;
   }
 
-  /* BUTTON */
+  /* RÉSULTAT */
+  .resultat {
+    border-color: color-mix(in srgb, var(--c) 55%, var(--border));
+    background:
+      radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--c) 16%, transparent) 0%, transparent 60%),
+      var(--surface);
+    box-shadow: var(--ombre);
+  }
+  .resultat-haut { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .resultat-libelle { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .09em; }
+  .resultat-cat { font-size: 13px; color: var(--c); margin-top: 2px; }
+  .resultat-prix {
+    font-family: var(--serif); font-size: 50px; line-height: 1;
+    color: var(--c); white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  details.detail { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
+  details.detail summary {
+    list-style: none; cursor: pointer;
+    font-size: 13px; color: var(--text2);
+    display: flex; align-items: center; gap: 6px;
+  }
+  details.detail summary::-webkit-details-marker { display: none; }
+  details.detail summary::before {
+    content: ''; width: 6px; height: 6px;
+    border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+    transform: rotate(-45deg); transition: transform .15s;
+  }
+  details.detail[open] summary::before { transform: rotate(45deg); }
+  details.detail[open] summary { margin-bottom: 8px; }
+  .ligne {
+    display: flex; justify-content: space-between; gap: 12px;
+    font-size: 13px; color: var(--text2); padding: 3px 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .ligne span:last-child { color: var(--text); white-space: nowrap; }
+  .ligne.total {
+    border-top: 1px solid var(--border); margin-top: 5px; padding-top: 8px;
+    font-weight: 600; color: var(--text);
+  }
+  .enregistrer { margin-top: 16px; display: flex; gap: 8px; }
+  .enregistrer input { flex: 1; min-width: 0; }
+
+  /* BOUTONS */
   .btn {
-    width: 100%;
-    padding: 14px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 13px 18px;
     border-radius: var(--radius-sm);
-    border: none;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    margin-top: 12px;
-  }
-  .btn-primary {
-    background: var(--accent);
-    color: #0f0f1a;
-  }
-  .btn-primary:active { opacity: 0.85; }
-  .btn-secondary {
-    background: var(--surface2);
-    color: var(--text2);
-    border: 1px solid var(--border);
-  }
-  .btn-danger {
-    background: transparent;
-    color: var(--danger);
-    border: 1px solid var(--danger);
-    font-size: 12px;
-    padding: 10px;
-    margin-top: 6px;
-  }
-
-  /* PRODUCT LIST */
-  .product-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: border-color 0.2s;
-  }
-  .product-card:active { border-color: var(--accent); }
-  .product-card.inter { border-left: 3px solid var(--inter); }
-  .product-name {
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 4px;
-  }
-  .product-meta {
-    font-size: 12px;
-    color: var(--text2);
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-  }
-  .product-price {
-    font-family: 'DM Serif Display', serif;
-    font-size: 20px;
-    color: var(--accent);
-    float: right;
-  }
-  .product-card.inter .product-price { color: var(--inter); }
-  .tag {
-    display: inline-block;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 99px;
-    background: rgba(201,169,110,0.12);
-    color: var(--accent);
-    font-weight: 500;
-  }
-  .tag.inter {
-    background: var(--inter-bg);
-    color: var(--inter);
-  }
-
-  /* HISTORY */
-  .history-item {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    margin-bottom: 8px;
-    font-size: 12px;
-  }
-  .history-item .hi-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
-  .history-item .hi-meta { color: var(--text2); display: flex; gap: 10px; flex-wrap: wrap; }
-  .history-item .hi-price { color: var(--accent); font-weight: 600; }
-  .history-item.inter .hi-price { color: var(--inter); }
-
-  /* SEARCH */
-  .search-bar {
-    position: relative;
-    margin-bottom: 14px;
-  }
-  .search-bar input {
-    padding-left: 36px;
-    margin-bottom: 0;
-  }
-  .search-bar::before {
-    content: '🔍';
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 13px;
-  }
-
-  /* MODAL */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 200;
-    align-items: flex-end;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--surface);
-    border-radius: var(--radius) var(--radius) 0 0;
-    padding: 24px 20px;
-    width: 100%;
-    max-height: 90vh;
-    overflow-y: auto;
-    border-top: 1px solid var(--border);
-  }
-  .modal h3 {
-    font-family: 'DM Serif Display', serif;
-    font-size: 18px;
-    color: var(--accent);
-    margin-bottom: 16px;
-  }
-
-  /* EMPTY */
-  .empty {
-    text-align: center;
-    color: var(--text2);
-    padding: 40px 20px;
-    font-size: 13px;
-  }
-  .empty-icon { font-size: 36px; margin-bottom: 10px; }
-
-  .section-title {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--text2);
-    margin-bottom: 10px;
-    margin-top: 4px;
-  }
-
-  /* SYNC */
-  .sync-bar {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    margin-bottom: 14px;
-    font-size: 12px;
-    color: var(--text2);
-  }
-  .sync-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--success);
-    flex-shrink: 0;
-  }
-  .sync-dot.off { background: var(--text2); }
-
-  /* PIN / CONFIG */
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .btn-pin {
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    color: var(--text2);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 11px;
-    padding: 5px 9px;
-    cursor: pointer;
+    border: 1px solid transparent;
+    font-size: 15px; font-weight: 600;
+    transition: opacity .15s, transform .1s, background-color .15s;
     white-space: nowrap;
   }
-  .modal-overlay.center { align-items: center; }
-  .modal-overlay.center .modal { border-radius: var(--radius); margin: 0 16px; }
-  .pin-msg { font-size: 12px; color: var(--danger); min-height: 16px; margin-top: 8px; }
-  .config-manquante {
-    background: var(--surface2);
-    border: 1px solid var(--danger);
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn-principal { background: var(--accent); color: var(--accent-texte); }
+  .btn-secondaire { background: var(--surface2); border-color: var(--border); color: var(--text); }
+  .btn-danger { background: transparent; border-color: rgba(236, 138, 128, .5); color: var(--danger); }
+  .btn-large { width: 100%; }
+  .btn-petit { padding: 7px 12px; font-size: 13px; }
+
+  /* LISTE */
+  .recherche { position: relative; margin-bottom: 10px; }
+  .recherche svg {
+    position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+    width: 17px; height: 17px; color: var(--text3); pointer-events: none;
+  }
+  .recherche input { padding-left: 40px; }
+  .filtres {
+    display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none;
+    margin: 0 -16px 12px; padding: 2px 16px;
+  }
+  .filtres::-webkit-scrollbar { display: none; }
+  .filtre {
+    flex-shrink: 0;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 99px; padding: 6px 12px;
+    font-size: 13px; color: var(--text2);
+  }
+  .filtre small { color: var(--text3); margin-left: 3px; }
+  .filtre[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--c, var(--accent)) 16%, var(--surface));
+    border-color: var(--c, var(--accent)); color: var(--text);
+  }
+  .compte { font-size: 12px; color: var(--text3); margin: 0 2px 8px; }
+
+  .produit {
+    display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+    background: var(--surface);
+    border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    color: var(--text);
-    padding: 12px 14px;
-    margin-bottom: 16px;
-    font-size: 13px;
-    text-align: center;
+    padding: 12px 14px 12px 16px;
+    margin-bottom: 8px;
+    position: relative; overflow: hidden;
+    transition: border-color .15s;
+    content-visibility: auto;
+    contain-intrinsic-size: auto 70px;
+  }
+  .produit::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--c);
+  }
+  .produit:hover { border-color: var(--border-fort); }
+  .produit-corps { flex: 1; min-width: 0; }
+  .produit-nom { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .produit-meta { font-size: 12px; color: var(--text3); display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 3px; }
+  .produit-prix { font-family: var(--serif); font-size: 22px; color: var(--c); white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .etiquette { color: var(--c); font-weight: 500; }
+  .statut-attente { color: var(--attente); }
+  .statut-refus { color: var(--danger); }
+
+  .vide { text-align: center; color: var(--text3); padding: 48px 20px; font-size: 14px; }
+  .vide svg { width: 40px; height: 40px; color: var(--border-fort); margin-bottom: 10px; }
+
+  /* HISTORIQUE */
+  .synchro { display: flex; align-items: center; gap: 10px; }
+  .synchro p { flex: 1; font-size: 13px; color: var(--text2); }
+  .histo {
+    display: grid; grid-template-columns: 1fr auto; gap: 2px 12px;
+    padding: 10px 2px 10px 14px; border-bottom: 1px solid var(--border);
+    position: relative; content-visibility: auto; contain-intrinsic-size: auto 56px;
+  }
+  .histo::before { content: ''; position: absolute; left: 0; top: 14px; width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
+  .histo-nom { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .histo-prix { font-weight: 600; color: var(--c); text-align: right; font-variant-numeric: tabular-nums; }
+  .histo-meta { grid-column: 1 / -1; font-size: 12px; color: var(--text3); }
+
+  /* NAVIGATION DU BAS */
+  nav.onglets {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+    background: rgba(28, 20, 19, .9);
+    -webkit-backdrop-filter: saturate(160%) blur(14px);
+    backdrop-filter: saturate(160%) blur(14px);
+    border-top: 1px solid var(--border);
+    padding: 6px 8px calc(6px + var(--bas));
+  }
+  .onglets-rang { max-width: 560px; margin: 0 auto; display: flex; }
+  .onglet {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: none; border: 0; padding: 6px 4px;
+    font-size: 11.5px; font-weight: 500; color: var(--text3);
+    border-radius: var(--radius-sm);
+    position: relative;
+  }
+  .onglet svg { width: 23px; height: 23px; }
+  .onglet[aria-selected="true"] { color: var(--accent); }
+  .onglet .badge {
+    position: absolute; top: 2px; left: calc(50% + 6px);
+    min-width: 17px; height: 17px; padding: 0 5px; border-radius: 9px;
+    background: var(--attente); color: var(--accent-texte);
+    font-size: 10.5px; font-weight: 700; line-height: 17px; text-align: center;
+  }
+
+  /* FENÊTRES */
+  .voile {
+    position: fixed; inset: 0; z-index: 100;
+    background: rgba(8, 5, 5, .66);
+    display: none; align-items: flex-end; justify-content: center;
+  }
+  .voile.ouvert { display: flex; animation: fondu .18s ease-out; }
+  .voile.centre { align-items: center; padding: 16px; }
+  @keyframes fondu { from { opacity: 0; } }
+  .fenetre {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px 22px 0 0;
+    padding: 10px 20px calc(20px + var(--bas));
+    width: 100%; max-width: 560px;
+    max-height: 90vh; overflow-y: auto;
+    box-shadow: var(--ombre);
+    animation: monte .24s cubic-bezier(.2, .8, .2, 1);
+  }
+  .voile.centre .fenetre { border-radius: 22px; padding: 22px 20px 20px; max-width: 420px; }
+  @keyframes monte { from { transform: translateY(24px); opacity: .6; } }
+  .poignee { width: 38px; height: 4px; border-radius: 2px; background: var(--border-fort); margin: 0 auto 14px; }
+  .fenetre h2 { font-family: var(--serif); font-weight: 400; font-size: 24px; line-height: 1.15; margin-bottom: 4px; }
+  .fenetre .sous-titre { font-size: 13px; color: var(--c, var(--text2)); margin-bottom: 14px; }
+  .fenetre .prix-fiche { font-family: var(--serif); font-size: 40px; color: var(--c); line-height: 1; margin: 6px 0 14px; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 18px; }
+  .actions .btn-large { grid-column: 1 / -1; }
+  .pile > * + * { margin-top: 12px; }
+  .pin-msg { font-size: 13px; color: var(--danger); min-height: 18px; }
+
+  /* MESSAGE FLOTTANT */
+  .toast {
+    position: fixed; left: 50%; bottom: calc(86px + var(--bas)); z-index: 150;
+    transform: translate(-50%, 20px); opacity: 0; pointer-events: none;
+    background: var(--surface3); border: 1px solid var(--border-fort);
+    color: var(--text); border-radius: 99px;
+    padding: 10px 16px; font-size: 14px; box-shadow: var(--ombre);
+    display: flex; align-items: center; gap: 12px;
+    transition: opacity .2s, transform .2s;
+    width: max-content; max-width: calc(100vw - 32px);
+  }
+  .toast.visible { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .toast button { background: none; border: 0; color: var(--accent); font-weight: 600; }
+
+  @media (min-width: 700px) {
+    main { padding-top: 28px; }
+    .resultat-prix { font-size: 58px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
   }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>🍷 Prix de Vente</h1>
-  <div class="header-right">
-    <span>Une Autre Clé du Paradis</span>
-    <button class="btn-pin" onclick="ouvrirPin()">Changer de PIN</button>
+  <div class="entete">
+    <div class="marque">
+      <h1>Prix de vente</h1>
+      <p>Une Autre Clé du Paradis</p>
+    </div>
+    <button class="pastille" id="pastille" data-etat="off" data-action="onglet" data-onglet="history" aria-label="État de la synchronisation">
+      <span class="point"></span><span id="pastille-texte">Hors ligne</span>
+    </button>
+    <button class="icone-btn" data-action="pin" title="Changer de PIN" aria-label="Changer de PIN">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M16 7l3 3M19 4l2 2"/></svg>
+    </button>
   </div>
 </header>
 
-<div class="tabs">
-  <div class="tab active" onclick="switchTab('calc')">Calculer</div>
-  <div class="tab" onclick="switchTab('list')">Produits</div>
-  <div class="tab" onclick="switchTab('history')">Historique</div>
-</div>
+<main>
+  <!-- ===== CALCULER ===== -->
+  <section class="page active" id="page-calc" role="tabpanel" aria-labelledby="onglet-calc">
+    <div class="alerte danger" id="config-manquante" hidden>
+      <strong>Connecte-toi une première fois avec ton PIN</strong> pour charger les frais et coefficients.
+      <button data-action="pin">Entrer mon PIN</button>
+    </div>
 
-<!-- ===== CALCULATEUR ===== -->
-<div class="page active" id="page-calc">
+    <div class="carte">
+      <div class="carte-titre">Catégorie</div>
+      <div id="categories"></div>
+    </div>
 
-  <div class="config-manquante" id="config-manquante" style="display:none">
-    Connecte-toi une première fois avec ton PIN
-  </div>
-
-  <div class="calc-card">
-    <h2>Catégorie</h2>
-    <div class="cat-grid">
-      <div class="cat-btn selected" data-cat="tranquille" onclick="selectCat(this)">
-        Vin tranquille
-        <span class="cat-badge frais"></span>
-      </div>
-      <div class="cat-btn" data-cat="mousseux" onclick="selectCat(this)">
-        Vin mousseux / pétillant
-        <span class="cat-badge frais"></span>
-      </div>
-      <div class="cat-btn" data-cat="demie" onclick="selectCat(this)">
-        37,5 cl
-        <span class="cat-badge frais"></span>
-      </div>
-      <div class="cat-btn inter" data-cat="intermediaire" onclick="selectCat(this)">
-        Produit intermédiaire
-        <span class="cat-badge">Maury, Porto, VDN… 75cl</span>
-        <span class="cat-badge frais"></span>
+    <div class="carte">
+      <label class="champ" for="input-prix">Prix d'achat HT</label>
+      <div class="prix-saisie">
+        <input type="text" id="input-prix" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="0,00"/>
+        <span aria-hidden="true">€</span>
       </div>
     </div>
 
-    <div class="frais-info" id="frais-info-box">
-      Frais inclus dans le calcul : <strong id="frais-label">—</strong>
-    </div>
-  </div>
+    <div class="alerte" id="cat-manquante" hidden></div>
 
-  <div class="calc-card">
-    <h2>Prix d'achat</h2>
-    <label>Prix d'achat HT (€)</label>
-    <input type="number" id="input-prix" placeholder="ex: 10.80" step="0.01" min="0" oninput="calculer()"/>
-
-    <div id="result-zone" style="display:none">
-      <div class="result-box" id="result-box">
-        <div class="result-label">Prix de vente conseillé TTC</div>
-        <div class="result-price" id="result-price">—</div>
-        <div class="result-detail" id="result-detail"></div>
+    <div class="carte resultat" id="resultat" hidden aria-live="polite">
+      <div class="resultat-haut">
+        <div>
+          <div class="resultat-libelle">Prix de vente TTC</div>
+          <div class="resultat-cat" id="resultat-cat"></div>
+        </div>
+        <div class="resultat-prix" id="resultat-prix">—</div>
       </div>
-
-      <label style="margin-top:16px">Nom du produit (pour l'enregistrer)</label>
-      <input type="text" id="input-nom" placeholder="ex: Maury Grenat 2022"/>
-      <button class="btn btn-primary" onclick="sauvegarder()">💾 Enregistrer ce produit</button>
+      <details class="detail" id="detail">
+        <summary>Détail du calcul</summary>
+        <div id="resultat-detail"></div>
+      </details>
+      <form class="enregistrer" id="form-enregistrer" autocomplete="off">
+        <label class="visuellement-cache" for="input-nom">Nom du produit</label>
+        <input type="text" id="input-nom" placeholder="Nom du produit" enterkeyhint="send"/>
+        <button class="btn btn-principal" type="submit">Enregistrer</button>
+      </form>
     </div>
-  </div>
-</div>
+  </section>
 
-<!-- ===== LISTE PRODUITS ===== -->
-<div class="page" id="page-list">
-  <div class="search-bar">
-    <input type="text" id="search-input" placeholder="Rechercher un produit…" oninput="renderList()"/>
-  </div>
-  <div id="product-list"></div>
-</div>
+  <!-- ===== PRODUITS ===== -->
+  <section class="page" id="page-list" role="tabpanel" aria-labelledby="onglet-list">
+    <div class="recherche">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label class="visuellement-cache" for="search-input">Rechercher</label>
+      <input type="search" id="search-input" placeholder="Rechercher un produit ou un SKU" autocomplete="off"/>
+    </div>
+    <div class="filtres" id="filtres"></div>
+    <div class="compte" id="compte"></div>
+    <div id="product-list"></div>
+  </section>
 
-<!-- ===== HISTORIQUE ===== -->
-<div class="page" id="page-history">
-  <div class="sync-bar">
-    <div class="sync-dot off" id="sync-dot"></div>
-    <span id="sync-status">Non synchronisé</span>
-    <button class="btn btn-secondary" style="width:auto;padding:6px 12px;margin:0;font-size:11px" onclick="syncNow()">Sync</button>
-  </div>
-  <div id="history-list"></div>
-</div>
+  <!-- ===== HISTORIQUE ===== -->
+  <section class="page" id="page-history" role="tabpanel" aria-labelledby="onglet-history">
+    <div class="carte synchro">
+      <p id="sync-status">Non synchronisé</p>
+      <button class="btn btn-secondaire btn-petit" data-action="sync">Synchroniser</button>
+    </div>
+    <div class="carte-titre">Derniers calculs enregistrés</div>
+    <div id="history-list"></div>
+  </section>
+</main>
 
-<!-- MODAL PRODUIT -->
-<div class="modal-overlay" id="modal" onclick="closeModal(event)">
-  <div class="modal">
-    <h3 id="modal-title">Produit</h3>
+<nav class="onglets" aria-label="Sections">
+  <div class="onglets-rang" role="tablist">
+    <button class="onglet" id="onglet-calc" role="tab" aria-selected="true" data-action="onglet" data-onglet="calc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M8.5 6.5h7M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5h.01M8.5 18h.01M12 18h.01M15.5 18h.01"/></svg>
+      Calculer
+    </button>
+    <button class="onglet" id="onglet-list" role="tab" aria-selected="false" data-action="onglet" data-onglet="list">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5h4v4.2c0 .9.4 1.7 1.1 2.3 1.2 1 1.9 2.4 1.9 4V20a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20v-7c0-1.6.7-3 1.9-4 .7-.6 1.1-1.4 1.1-2.3z"/><path d="M7 14h10"/></svg>
+      Produits
+      <span class="badge" id="badge-attente" hidden></span>
+    </button>
+    <button class="onglet" id="onglet-history" role="tab" aria-selected="false" data-action="onglet" data-onglet="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
+      Historique
+    </button>
+  </div>
+</nav>
+
+<!-- FICHE PRODUIT -->
+<div class="voile" id="modal">
+  <div class="fenetre" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="poignee"></div>
+    <h2 id="modal-title">Produit</h2>
     <div id="modal-content"></div>
-    <button class="btn btn-secondary" style="margin-top:8px" onclick="closeModalDirect()">Fermer</button>
-    <button class="btn btn-danger" id="modal-delete-btn">🗑 Supprimer</button>
+    <div class="actions">
+      <button class="btn btn-secondaire" id="modal-modifier">Recalculer</button>
+      <button class="btn btn-danger" id="modal-delete-btn">Supprimer</button>
+      <button class="btn btn-secondaire btn-large" data-action="fermer">Fermer</button>
+    </div>
   </div>
 </div>
 
-<!-- MODAL PIN -->
-<div class="modal-overlay center" id="pin-modal">
-  <div class="modal">
-    <h3>Ton PIN</h3>
-    <div id="pin-url-zone" style="display:none">
-      <label>Adresse du script Google (…/exec)</label>
+<!-- PIN -->
+<div class="voile centre" id="pin-modal">
+  <form class="fenetre pile" id="form-pin" role="dialog" aria-modal="true" aria-labelledby="pin-titre" autocomplete="off">
+    <h2 id="pin-titre">Ton PIN</h2>
+    <div id="pin-url-zone" hidden>
+      <label class="champ" for="pin-url">Adresse du script Google (…/exec)</label>
       <input type="text" id="pin-url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec"/>
     </div>
-    <label>PIN</label>
-    <input type="password" id="pin-input" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')validerPin()"/>
-    <div class="pin-msg" id="pin-msg"></div>
-    <button class="btn btn-primary" id="pin-ok" onclick="validerPin()">Valider</button>
-    <button class="btn btn-secondary" onclick="fermerPin()">Plus tard</button>
-  </div>
+    <div>
+      <label class="champ" for="pin-input">PIN</label>
+      <input type="password" id="pin-input" inputmode="numeric" autocomplete="off"/>
+    </div>
+    <div class="pin-msg" id="pin-msg" role="alert"></div>
+    <button class="btn btn-principal btn-large" id="pin-ok" type="submit">Valider</button>
+    <button class="btn btn-secondaire btn-large" type="button" data-action="fermer-pin">Plus tard</button>
+  </form>
 </div>
+
+<div class="toast" id="toast" role="status"><span id="toast-texte"></span><button id="toast-action" hidden></button></div>
 
 <script src="calcul.js"></script>
 <script>
+'use strict';
 // ===========================
 // SCRIPT GOOGLE
 // ===========================
@@ -564,62 +557,108 @@ const SCRIPT_URL = '';
 // CATÉGORIES
 // ===========================
 // Frais, tranches et coefficients : uniquement dans la config du script,
-// mise en cache dans localStorage (pv_config).
+// mise en cache dans localStorage (pv_config). Une catégorie absente de la
+// config reste visible mais ne peut pas être calculée.
 const CATEGORIES = {
-  tranquille:    { label: 'Vin tranquille' },
-  mousseux:      { label: 'Vin mousseux / pétillant' },
-  demie:         { label: '37,5 cl' },
-  intermediaire: { label: 'Produit intermédiaire 75cl' },
+  tranquille:        { label: 'Vin tranquille',             nom: 'Tranquille',     court: 'Tranquille' },
+  mousseux:          { label: 'Vin mousseux / pétillant',   nom: 'Pétillant',      court: 'Pétillant' },
+  magnum_tranquille: { label: 'Magnum vin tranquille',      nom: 'Tranquille',     court: 'Magnum tranquille' },
+  magnum_mousseux:   { label: 'Magnum pétillant',           nom: 'Pétillant',      court: 'Magnum pétillant' },
+  demie:             { label: '37,5 cl',                    nom: 'Demi-bouteille', court: '37,5 cl', info: '37,5 cl' },
+  intermediaire:     { label: 'Produit intermédiaire 75cl', nom: 'Intermédiaire',  court: 'Intermédiaire', info: 'Maury, Porto, VDN…' },
 };
+const GROUPES = [
+  ['Bouteille 75 cl', ['tranquille', 'mousseux']],
+  ['Magnum 150 cl', ['magnum_tranquille', 'magnum_mousseux']],
+  ['Autres formats', ['demie', 'intermediaire']],
+];
+function categorie(cle) { return CATEGORIES[cle] || CATEGORIES.tranquille; }
+function cleValide(cle) { return CATEGORIES[cle] ? cle : 'tranquille'; }
 
-function fmt(n) { return n.toFixed(2).replace('.', ',') + ' €'; }
+// Erreurs propres à un produit : les autres envois continuent.
+const ERREURS_PRODUIT = ['nom', 'categorie', 'prix', 'sku', 'introuvable', 'format', 'action'];
+const TAILLE_LOT = 40;
+const HISTORIQUE_MAX = 300;
+
+// ===========================
+// OUTILS
+// ===========================
+const $ = id => document.getElementById(id);
+const fmtNombre = new Intl.NumberFormat('fr-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function fmt(n) { return fmtNombre.format(n) + ' €'; }
 function fmtCoef(n) { return n.toFixed(3).replace('.', ','); }
 function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 function normNom(s) { return String(s).trim().toLowerCase().replace(/\s+/g, ' '); }
-
-function lireJSON(cle, defaut) {
-  try {
-    const v = localStorage.getItem(cle);
-    return v ? JSON.parse(v) : defaut;
-  } catch { return defaut; }
+// Accepte « 10,80 », « 10.80 » et « 10,80 € ».
+function lireMontant(s) {
+  const n = parseFloat(String(s).replace(/\s|€/g, '').replace(',', '.'));
+  return isFinite(n) && n > 0 ? n : NaN;
 }
+
+const stockage = {
+  lire(cle, defaut) {
+    try { const v = localStorage.getItem(cle); return v === null ? defaut : v; } catch { return defaut; }
+  },
+  ecrire(cle, valeur) {
+    try { localStorage.setItem(cle, valeur); } catch { toast('Mémoire de l\'appareil pleine : donnée non enregistrée'); }
+  },
+  json(cle, defaut) {
+    try { const v = localStorage.getItem(cle); return v ? JSON.parse(v) : defaut; } catch { return defaut; }
+  },
+};
 
 // ===========================
 // ÉTAT
 // ===========================
-let currentCat = 'tranquille';
-let produits = lireJSON('pv_produits_v2', []);
-let historique = lireJSON('pv_historique', []);
-let retraits = lireJSON('pv_retraits', []);   // produits supprimés à retirer côté feuille
-let config = lireJSON('pv_config', null);
+let currentCat = cleValide(stockage.lire('pv_categorie', 'tranquille'));
+let filtreCat = 'tous';
+let produits = stockage.json('pv_produits_v2', []);
+let historique = stockage.json('pv_historique', []);
+let retraits = stockage.json('pv_retraits', []);   // produits supprimés à retirer côté feuille
+let config = stockage.json('pv_config', null);
 if (!Calcul.configValide(config)) config = null;
+let ongletActif = 'calc';
+const aRedessiner = { list: true, history: true };
 
-function sauverProduits() { localStorage.setItem('pv_produits_v2', JSON.stringify(produits)); }
-function sauverHistorique() { localStorage.setItem('pv_historique', JSON.stringify(historique)); }
-function sauverRetraits() { localStorage.setItem('pv_retraits', JSON.stringify(retraits)); }
+function sauverProduits() { stockage.ecrire('pv_produits_v2', JSON.stringify(produits)); aRedessiner.list = true; }
+function sauverHistorique() {
+  if (historique.length > HISTORIQUE_MAX) historique.length = HISTORIQUE_MAX;
+  stockage.ecrire('pv_historique', JSON.stringify(historique));
+  aRedessiner.history = true;
+}
+function sauverRetraits() { stockage.ecrire('pv_retraits', JSON.stringify(retraits)); }
 
-function scriptUrl() { return SCRIPT_URL || localStorage.getItem('pv_url') || ''; }
-function lirePin() { return localStorage.getItem('pv_pin') || ''; }
+function scriptUrl() { return SCRIPT_URL || stockage.lire('pv_url', ''); }
+function lirePin() { return stockage.lire('pv_pin', ''); }
+
+// Redessine les pages visibles seulement ; les autres le seront à l'ouverture.
+function rafraichir() {
+  if (ongletActif === 'list' && aRedessiner.list) renderList();
+  if (ongletActif === 'history' && aRedessiner.history) renderHistory();
+  afficherBadge();
+}
 
 // ===========================
 // APPEL DU SCRIPT
 // ===========================
 // Content-Type text/plain : pas de requête préalable CORS, et la réponse
 // JSON est lue. Toute erreur renvoie { ok:false, error }.
-async function appelScript(action, donnees, acces) {
+async function appelScript(action, donnees, acces, delai) {
   const url = (acces && acces.url) || scriptUrl();
   const pin = (acces && acces.pin) || lirePin();
   if (!url || !pin) return { ok: false, error: 'pin' };
+  if (navigator.onLine === false) return { ok: false, error: 'reseau' };
   const ctrl = new AbortController();
-  const minuteur = setTimeout(() => ctrl.abort(), 20000);
+  const minuteur = setTimeout(() => ctrl.abort(), delai || 20000);
   try {
     const rep = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(Object.assign({}, donnees, { action, pin })),
       signal: ctrl.signal,
+      cache: 'no-store',
     });
     if (!rep.ok) return { ok: false, error: 'http' };
     const json = await rep.json();
@@ -631,14 +670,19 @@ async function appelScript(action, donnees, acces) {
   }
 }
 
+function appliquerConfig(c) {
+  if (!Calcul.configValide(c)) return false;
+  const texte = JSON.stringify(c);
+  if (config && texte === JSON.stringify(config)) return true;
+  config = c;
+  stockage.ecrire('pv_config', texte);
+  afficherConfig();
+  return true;
+}
+
 async function chargerConfig(acces) {
   const rep = await appelScript('config', {}, acces);
-  if (rep.ok === true) {
-    if (!Calcul.configValide(rep.config)) return { ok: false, error: 'config' };
-    config = rep.config;
-    localStorage.setItem('pv_config', JSON.stringify(config));
-    afficherConfig();
-  }
+  if (rep.ok === true && !appliquerConfig(rep.config)) return { ok: false, error: 'config' };
   return rep;
 }
 
@@ -646,33 +690,33 @@ async function chargerConfig(acces) {
 // PIN
 // ===========================
 function ouvrirPin(message) {
-  document.getElementById('pin-url-zone').style.display = SCRIPT_URL ? 'none' : 'block';
-  document.getElementById('pin-url').value = localStorage.getItem('pv_url') || '';
-  document.getElementById('pin-input').value = '';
-  document.getElementById('pin-msg').textContent = message || '';
-  document.getElementById('pin-modal').classList.add('open');
-  document.getElementById('pin-input').focus();
-}
-function fermerPin() {
-  document.getElementById('pin-modal').classList.remove('open');
+  $('pin-url-zone').hidden = !!SCRIPT_URL;
+  $('pin-url').value = stockage.lire('pv_url', '');
+  $('pin-input').value = '';
+  $('pin-msg').textContent = message || '';
+  ouvrir('pin-modal');
+  (SCRIPT_URL || $('pin-url').value ? $('pin-input') : $('pin-url')).focus();
 }
 
 async function validerPin() {
-  const pin = document.getElementById('pin-input').value.trim();
-  const url = SCRIPT_URL || document.getElementById('pin-url').value.trim();
-  const msg = document.getElementById('pin-msg');
+  const pin = $('pin-input').value.trim();
+  const url = SCRIPT_URL || $('pin-url').value.trim();
+  const msg = $('pin-msg');
   if (!url) { msg.textContent = 'Colle l\'adresse du script.'; return; }
   if (!pin) { msg.textContent = 'Entre ton PIN.'; return; }
-  const bouton = document.getElementById('pin-ok');
+  const bouton = $('pin-ok');
   bouton.disabled = true;
-  msg.textContent = 'Vérification…';
+  bouton.textContent = 'Vérification…';
+  msg.textContent = '';
   const rep = await chargerConfig({ url, pin });
   bouton.disabled = false;
+  bouton.textContent = 'Valider';
   if (rep.ok === true || rep.error === 'reseau') {
     // Hors ligne : le PIN est gardé et sera vérifié au retour du réseau.
-    localStorage.setItem('pv_pin', pin);
-    if (!SCRIPT_URL) localStorage.setItem('pv_url', url);
-    fermerPin();
+    stockage.ecrire('pv_pin', pin);
+    if (!SCRIPT_URL) stockage.ecrire('pv_url', url);
+    fermer('pin-modal');
+    if (rep.ok === true) toast('Connecté');
     syncNow();
     return;
   }
@@ -685,79 +729,97 @@ function messageErreur(error) {
     case 'bloque': return 'Trop d\'essais de PIN : réessaie dans 15 minutes';
     case 'reseau': return 'hors ligne';
     case 'pin': return 'PIN manquant';
+    case 'categorie': return 'catégorie inconnue du script (mets Code.gs à jour)';
+    case 'nom': return 'nom manquant';
+    case 'prix': return 'prix invalide';
+    case 'sku': return 'SKU invalide';
     default: return 'erreur du script (' + (error || 'réponse invalide') + ')';
   }
 }
 
 // ===========================
-// SÉLECTION CATÉGORIE
+// CATÉGORIES
 // ===========================
-function selectCat(el) {
-  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
-  el.classList.add('selected');
-  currentCat = el.dataset.cat;
-  afficherFrais();
+function renderCategories() {
+  $('categories').innerHTML = GROUPES.map(([titre, cles]) => `
+    <div class="groupe">
+      <div class="groupe-titre">${esc(titre)}</div>
+      <div class="cats">${cles.map(cle => {
+        const cat = CATEGORIES[cle];
+        const conf = config && config.categories[cle];
+        const info = conf ? '+' + fmt(conf.frais) + ' de frais' + (cat.info ? ' · ' + cat.info : '')
+          : (config ? 'frais à configurer' : (cat.info || ''));
+        return `<button type="button" class="cat" data-cat="${cle}" data-action="categorie" aria-pressed="${cle === currentCat}">
+          <span class="cat-nom">${esc(cat.nom)}</span>
+          <span class="cat-info${config && !conf ? ' manque' : ''}">${esc(info)}</span>
+        </button>`;
+      }).join('')}</div>
+    </div>`).join('');
+}
+
+function selectCat(cle) {
+  currentCat = cleValide(cle);
+  stockage.ecrire('pv_categorie', currentCat);
+  document.querySelectorAll('.cat').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cat === currentCat)));
   calculer();
 }
 
 function afficherConfig() {
-  document.getElementById('config-manquante').style.display = config ? 'none' : 'block';
-  document.querySelectorAll('.cat-btn').forEach(b => {
-    const cat = config && config.categories[b.dataset.cat];
-    b.querySelector('.cat-badge.frais').textContent = cat ? 'frais : +' + fmt(cat.frais) : '';
-  });
-  afficherFrais();
+  $('config-manquante').hidden = !!config;
+  renderCategories();
   calculer();
-}
-
-function afficherFrais() {
-  const cat = config && config.categories[currentCat];
-  document.getElementById('frais-label').textContent = cat ? (cat.detail || fmt(cat.frais)) : '—';
-  document.getElementById('frais-info-box').className = 'frais-info' + (currentCat === 'intermediaire' ? ' inter' : '');
+  aRedessiner.list = true;
 }
 
 // ===========================
 // CALCUL
 // ===========================
-function detailHtml(prixAchat, categorie) {
-  const frais = Calcul.frais(categorie, config);
+function detailHtml(prixAchat, cle) {
+  const frais = Calcul.frais(cle, config);
   const base = prixAchat + frais;
+  const conf = config.categories[cle];
   let html = '';
-  html += `<div class="detail-row"><span>Prix d'achat HT</span><span>${fmt(prixAchat)}</span></div>`;
-  html += `<div class="detail-row"><span>Frais fixes (${esc(CATEGORIES[categorie].label)})</span><span>+${fmt(frais)}</span></div>`;
-  html += `<div class="detail-row"><span>Base de calcul</span><span>${fmt(base)}</span></div>`;
+  html += `<div class="ligne"><span>Prix d'achat HT</span><span>${fmt(prixAchat)}</span></div>`;
+  html += `<div class="ligne"><span>Frais fixes${conf.detail ? ' (' + esc(conf.detail) + ')' : ''}</span><span>+ ${fmt(frais)}</span></div>`;
+  html += `<div class="ligne"><span>Base de calcul</span><span>${fmt(base)}</span></div>`;
   Calcul.detailTranches(base, config).forEach(t => {
-    html += `<div class="detail-row"><span>${fmt(t.debut)} → ${fmt(t.fin)} × ${fmtCoef(t.coef)}</span><span>${fmt(t.montant)}</span></div>`;
+    html += `<div class="ligne"><span>${fmt(t.debut)} → ${fmt(t.fin)} × ${fmtCoef(t.coef)}</span><span>${fmt(t.montant)}</span></div>`;
   });
   return html;
 }
 
 function calculer() {
-  const val = parseFloat(document.getElementById('input-prix').value);
-  const zone = document.getElementById('result-zone');
-  if (!config || isNaN(val) || val <= 0) { zone.style.display = 'none'; return; }
+  const val = lireMontant($('input-prix').value);
+  const zone = $('resultat');
+  const manque = $('cat-manquante');
+  const conf = config && config.categories[currentCat];
+  manque.hidden = !config || !!conf;
+  if (config && !conf) {
+    manque.innerHTML = `<strong>${esc(categorie(currentCat).label)}</strong> : les frais ne sont pas encore dans la config du script. ` +
+      `Ajoute <code>${esc(currentCat)}</code> dans la propriété CONFIG (voir INSTALL.md).`;
+  }
+  if (!conf || isNaN(val)) { zone.hidden = true; return; }
 
   const prixTTC = Calcul.prixTTC(val, currentCat, config);
-  zone.style.display = 'block';
-
-  const box = document.getElementById('result-box');
-  box.className = 'result-box' + (currentCat === 'intermediaire' ? ' inter' : '');
-  document.getElementById('result-price').textContent = fmt(prixTTC);
-
-  let html = detailHtml(val, currentCat);
-  html += `<div class="detail-row total"><span>Prix de vente TTC</span><span>${fmt(prixTTC)}</span></div>`;
-  document.getElementById('result-detail').innerHTML = html;
+  zone.hidden = false;
+  zone.dataset.cat = currentCat;
+  $('resultat-cat').textContent = categorie(currentCat).label;
+  $('resultat-prix').textContent = fmt(prixTTC);
+  $('resultat-detail').innerHTML = detailHtml(val, currentCat) +
+    `<div class="ligne total"><span>Prix de vente TTC</span><span>${fmt(prixTTC)}</span></div>`;
 }
 
 // ===========================
 // SAUVEGARDER
 // ===========================
 function sauvegarder() {
-  const nom = document.getElementById('input-nom').value.trim();
-  const prixAchat = parseFloat(document.getElementById('input-prix').value);
-  if (!config) { alert('Connecte-toi une première fois avec ton PIN'); return; }
-  if (!nom) { alert('Donne un nom au produit'); return; }
-  if (isNaN(prixAchat) || prixAchat <= 0) return;
+  const champNom = $('input-nom');
+  const nom = champNom.value.trim();
+  const prixAchat = lireMontant($('input-prix').value);
+  if (!config) { ouvrirPin('Connecte-toi une première fois avec ton PIN'); return; }
+  if (!config.categories[currentCat]) { toast('Frais de cette catégorie absents de la config'); return; }
+  if (isNaN(prixAchat)) { $('input-prix').focus(); return; }
+  if (!nom) { toast('Donne un nom au produit'); champNom.focus(); return; }
 
   const prixTTC = Calcul.prixTTC(prixAchat, currentCat, config);
   const date = new Date().toLocaleDateString('fr-BE');
@@ -771,6 +833,7 @@ function sauvegarder() {
     prod = { id: Date.now(), sku: '', nom, categorie: currentCat, prixAchat, prixTTC, date };
   }
   prod.synced = false;
+  delete prod.erreur;
   prod.rev = (prod.rev || 0) + 1;
   produits.unshift(prod);
   historique.unshift({ id: prod.id, nom, categorie: currentCat, prixAchat, prixTTC, date });
@@ -780,151 +843,220 @@ function sauvegarder() {
   sauverHistorique();
   sauverRetraits();
 
-  document.getElementById('input-nom').value = '';
-  renderList();
-  renderHistory();
+  champNom.value = '';
+  champNom.blur();
+  toast(`${nom} enregistré · ${fmt(prixTTC)}`, 'Voir', () => switchTab('list'));
+  afficherBadge();
   syncNow();
-
-  switchTab('list');
 }
 
 // ===========================
 // LISTE PRODUITS
 // ===========================
+function renderFiltres() {
+  const comptes = {};
+  produits.forEach(p => { const c = cleValide(p.categorie); comptes[c] = (comptes[c] || 0) + 1; });
+  const cles = Object.keys(CATEGORIES).filter(c => comptes[c]);
+  if (filtreCat !== 'tous' && !comptes[filtreCat]) filtreCat = 'tous';
+  $('filtres').innerHTML = cles.length < 2 ? '' :
+    `<button class="filtre" data-action="filtre" data-filtre="tous" aria-pressed="${filtreCat === 'tous'}">Tous<small>${produits.length}</small></button>` +
+    cles.map(c => `<button class="filtre" data-cat="${c}" data-action="filtre" data-filtre="${c}" aria-pressed="${filtreCat === c}">${esc(categorie(c).court)}<small>${comptes[c]}</small></button>`).join('');
+}
+
+function statutProduit(p) {
+  if (p.erreur) return `<span class="statut-refus">⚠ refusé : ${esc(messageErreur(p.erreur))}</span>`;
+  if (p.synced === false) return '<span class="statut-attente">en attente d\'envoi</span>';
+  return '';
+}
+
 function renderList() {
-  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
-  const filtered = produits.filter(p => p.nom.toLowerCase().includes(q));
-  const el = document.getElementById('product-list');
+  aRedessiner.list = false;
+  renderFiltres();
+  const q = normNom($('search-input').value);
+  const filtered = produits.filter(p =>
+    (filtreCat === 'tous' || cleValide(p.categorie) === filtreCat) &&
+    (!q || normNom(p.nom).includes(q) || (p.sku && p.sku.toLowerCase().includes(q))));
+  const el = $('product-list');
+  $('compte').textContent = produits.length ? `${filtered.length} produit${filtered.length > 1 ? 's' : ''}` : '';
 
   if (!filtered.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">🍾</div>Aucun produit enregistré</div>';
+    el.innerHTML = `<div class="vide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5h4v4.2c0 .9.4 1.7 1.1 2.3 1.2 1 1.9 2.4 1.9 4V20a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20v-7c0-1.6.7-3 1.9-4 .7-.6 1.1-1.4 1.1-2.3z"/></svg>
+      <div>${produits.length ? 'Aucun produit ne correspond' : 'Aucun produit enregistré'}</div></div>`;
     return;
   }
 
   el.innerHTML = filtered.map(p => {
-    const cat = CATEGORIES[p.categorie] || CATEGORIES.tranquille;
-    const isInter = p.categorie === 'intermediaire';
-    return `
-    <div class="product-card ${isInter ? 'inter' : ''}" onclick="openModal(${Number(p.id)})">
-      <span class="product-price">${fmt(p.prixTTC)}</span>
-      <div class="product-name">${esc(p.nom)}</div>
-      <div class="product-meta">
-        <span class="tag ${isInter ? 'inter' : ''}">${esc(cat.label)}</span>
-        <span>Achat : ${fmt(p.prixAchat)}</span>
-        ${p.sku ? `<span>${esc(p.sku)}</span>` : ''}
-        ${p.synced === false ? '<span>⏳ en attente</span>' : ''}
-        <span>${esc(p.date)}</span>
+    const cle = cleValide(p.categorie);
+    return `<button class="produit" data-cat="${cle}" data-action="fiche" data-id="${Number(p.id)}">
+      <div class="produit-corps">
+        <div class="produit-nom">${esc(p.nom)}</div>
+        <div class="produit-meta">
+          <span class="etiquette">${esc(categorie(cle).label)}</span>
+          <span>Achat ${fmt(p.prixAchat)}</span>
+          ${p.sku ? `<span>${esc(p.sku)}</span>` : ''}
+          ${statutProduit(p)}
+        </div>
       </div>
-    </div>`;
+      <div class="produit-prix">${fmt(p.prixTTC)}</div>
+    </button>`;
   }).join('');
+}
+
+function afficherBadge() {
+  const n = produits.filter(p => p.synced === false).length;
+  const badge = $('badge-attente');
+  badge.hidden = !n;
+  badge.textContent = n;
 }
 
 // ===========================
 // HISTORIQUE
 // ===========================
 function renderHistory() {
-  const el = document.getElementById('history-list');
+  aRedessiner.history = false;
+  const el = $('history-list');
   if (!historique.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>Aucun historique</div>';
+    el.innerHTML = '<div class="vide">Aucun historique</div>';
     return;
   }
-  el.innerHTML = historique.slice(0, 50).map(p => {
-    const cat = CATEGORIES[p.categorie] || CATEGORIES.tranquille;
-    const isInter = p.categorie === 'intermediaire';
-    return `
-    <div class="history-item ${isInter ? 'inter' : ''}">
-      <div class="hi-name">${esc(p.nom)}</div>
-      <div class="hi-meta">
-        <span class="tag ${isInter ? 'inter' : ''}">${esc(cat.label)}</span>
-        <span>Achat : ${fmt(p.prixAchat)}</span>
-        <span class="hi-price">${fmt(p.prixTTC)} TTC</span>
-        <span>${esc(p.date)}</span>
-      </div>
+  el.innerHTML = historique.slice(0, 100).map(p => {
+    const cle = cleValide(p.categorie);
+    return `<div class="histo" data-cat="${cle}">
+      <div class="histo-nom">${esc(p.nom)}</div>
+      <div class="histo-prix">${fmt(p.prixTTC)}</div>
+      <div class="histo-meta">${esc(categorie(cle).label)} · achat ${fmt(p.prixAchat)} · ${esc(p.date)}</div>
     </div>`;
   }).join('');
 }
 
 // ===========================
-// MODAL
+// FENÊTRES
 // ===========================
+function ouvrir(id) { $('toast').classList.remove('visible'); $(id).classList.add('ouvert'); }
+function fermer(id) { $(id).classList.remove('ouvert'); }
+
 function openModal(id) {
-  const p = produits.find(x => x.id === id);
+  const p = produits.find(x => Number(x.id) === id);
   if (!p) return;
-  const cat = CATEGORIES[p.categorie] || CATEGORIES.tranquille;
+  const cle = cleValide(p.categorie);
+  const fenetre = $('modal').querySelector('.fenetre');
+  fenetre.dataset.cat = cle;
 
-  document.getElementById('modal-title').textContent = p.nom;
-  document.getElementById('modal-delete-btn').onclick = () => supprimerProduit(id);
+  $('modal-title').textContent = p.nom;
+  $('modal-delete-btn').onclick = () => supprimerProduit(p);
+  $('modal-modifier').onclick = () => recalculer(p);
 
-  let html = `
-    <div class="frais-info ${p.categorie === 'intermediaire' ? 'inter' : ''}">
-      <span>${esc(cat.label)}</span>
-      <strong>${fmt(p.prixTTC)} TTC</strong>
-    </div>`;
-  if (config && config.categories[p.categorie]) {
-    html += detailHtml(p.prixAchat, p.categorie);
+  let html = `<div class="sous-titre">${esc(categorie(cle).label)}</div>
+    <div class="prix-fiche">${fmt(p.prixTTC)}</div>`;
+  if (config && config.categories[cle]) {
+    html += detailHtml(p.prixAchat, cle);
   } else {
-    html += `<div class="detail-row"><span>Prix d'achat HT</span><span>${fmt(p.prixAchat)}</span></div>`;
+    html += `<div class="ligne"><span>Prix d'achat HT</span><span>${fmt(p.prixAchat)}</span></div>`;
   }
-  html += `<div class="detail-row total"><span>Prix TTC</span><span>${fmt(p.prixTTC)}</span></div>`;
-  if (p.sku) html += `<div class="detail-row" style="margin-top:8px"><span style="color:var(--text2)">SKU</span><span>${esc(p.sku)}</span></div>`;
-  html += `<div class="detail-row" style="margin-top:8px"><span style="color:var(--text2)">Enregistré le</span><span>${esc(p.date)}</span></div>`;
+  html += `<div class="ligne total"><span>Prix TTC</span><span>${fmt(p.prixTTC)}</span></div>`;
+  if (p.sku) html += `<div class="ligne" style="margin-top:8px"><span>SKU</span><span>${esc(p.sku)}</span></div>`;
+  html += `<div class="ligne"><span>Enregistré le</span><span>${esc(p.date)}</span></div>`;
+  const statut = statutProduit(p);
+  if (statut) html += `<div class="ligne"><span>Feuille Google</span>${statut}</div>`;
 
-  document.getElementById('modal-content').innerHTML = html;
-  document.getElementById('modal').classList.add('open');
+  $('modal-content').innerHTML = html;
+  ouvrir('modal');
 }
 
-function closeModal(e) {
-  if (e.target === document.getElementById('modal')) closeModalDirect();
-}
-function closeModalDirect() {
-  document.getElementById('modal').classList.remove('open');
+// Recharge le produit dans le calculateur (même nom = même SKU à l'enregistrement).
+function recalculer(p) {
+  fermer('modal');
+  selectCat(p.categorie);
+  $('input-prix').value = String(p.prixAchat).replace('.', ',');
+  $('input-nom').value = p.nom;
+  calculer();
+  switchTab('calc');
+  $('input-prix').focus();
 }
 
 // Supprimer dans l'app = « retiré » dans l'onglet Public (rien n'est effacé).
-function supprimerProduit(id) {
-  if (!confirm('Supprimer ce produit ?')) return;
-  const p = produits.find(x => x.id === id);
-  if (!p) return;
+function supprimerProduit(p) {
+  if (!confirm(`Supprimer « ${p.nom} » ?`)) return;
   produits = produits.filter(x => x !== p);
   retraits.push({ sku: p.sku || '', nom: p.nom });
   sauverProduits();
   sauverRetraits();
-  closeModalDirect();
-  renderList();
+  fermer('modal');
+  rafraichir();
+  toast('Produit supprimé');
   syncNow();
 }
 
 // ===========================
-// TABS
+// ONGLETS
 // ===========================
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t, i) => {
-    const names = ['calc', 'list', 'history'];
-    t.classList.toggle('active', names[i] === name);
-  });
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById('page-' + name).classList.add('active');
-  if (name === 'list') renderList();
-  if (name === 'history') renderHistory();
+  ongletActif = name;
+  document.querySelectorAll('.onglet').forEach(t => t.setAttribute('aria-selected', String(t.dataset.onglet === name)));
+  document.querySelectorAll('.page').forEach(p => p.classList.toggle('active', p.id === 'page-' + name));
+  rafraichir();
+  window.scrollTo(0, 0);
+}
+
+// ===========================
+// MESSAGE FLOTTANT
+// ===========================
+let toastMinuteur = null;
+function toast(texte, action, auClic) {
+  $('toast-texte').textContent = texte;
+  const bouton = $('toast-action');
+  bouton.hidden = !action;
+  bouton.textContent = action || '';
+  bouton.onclick = () => { $('toast').classList.remove('visible'); if (auClic) auClic(); };
+  $('toast').classList.add('visible');
+  clearTimeout(toastMinuteur);
+  toastMinuteur = setTimeout(() => $('toast').classList.remove('visible'), action ? 5000 : 2600);
 }
 
 // ===========================
 // SYNC GOOGLE SHEETS
 // ===========================
-// File d'attente : produits synced:false puis retraits. Le voyant ne passe
-// au vert que si le script a répondu ok:true et que la file est vide.
+// File d'attente : produits synced:false puis retraits, envoyés en un seul
+// lot (action « lot », config comprise). Un script pas encore mis à jour
+// répond « action » : on repasse alors à une requête par opération. Le voyant
+// ne passe au vert que si le script a répondu ok:true et que la file est vide.
 function enAttente() {
   return produits.filter(p => p.synced === false).length + retraits.length;
 }
 
+function afficherSync(etat, texte, court) {
+  $('pastille').dataset.etat = etat;
+  $('pastille-texte').textContent = court;
+  $('sync-status').textContent = texte;
+}
+
 function setSyncStatus(ok, raison) {
-  document.getElementById('sync-dot').className = 'sync-dot' + (ok ? '' : ' off');
-  let texte = 'Synchronisé avec Google Sheets';
-  if (!ok) {
-    const n = enAttente();
-    texte = 'Non synchronisé' + (raison ? ' – ' + raison : '') + (n ? ` (${n} en attente)` : '');
+  if (ok) return afficherSync('ok', 'Synchronisé avec Google Sheets', 'Synchronisé');
+  const n = enAttente();
+  const refuses = produits.filter(p => p.erreur).length;
+  let texte = 'Non synchronisé' + (raison ? ' – ' + raison : '') + (n ? ` (${n} en attente)` : '');
+  if (refuses) texte += ` · ${refuses} refusé${refuses > 1 ? 's' : ''} par le script`;
+  const court = raison === 'hors ligne' ? 'Hors ligne' : (n ? n + ' en attente' : 'Non synchronisé');
+  afficherSync(refuses || (raison && raison !== 'hors ligne') ? 'erreur' : 'off', texte, court);
+}
+
+let lotDisponible = true;
+async function executer(ops) {
+  if (lotDisponible) {
+    const rep = await appelScript('lot', { operations: ops }, null, 45000);
+    if (rep.error !== 'action') return rep;
+    lotDisponible = false;   // ancien script : une requête par opération
   }
-  document.getElementById('sync-status').textContent = texte;
+  const conf = await appelScript('config', {});
+  if (conf.ok !== true) return conf;
+  const resultats = [];
+  for (const op of ops) {
+    const r = await appelScript(op.action, op);
+    if (r.ok !== true && !ERREURS_PRODUIT.includes(r.error)) return Object.assign({}, r, { config: conf.config, resultats });
+    resultats.push(r);
+  }
+  return { ok: true, config: conf.config, resultats };
 }
 
 let syncEnCours = null;
@@ -935,62 +1067,138 @@ function syncNow() {
 
 async function synchroniser() {
   if (!lirePin() || !scriptUrl()) return finSync({ ok: false, error: 'pin' });
-  document.getElementById('sync-dot').className = 'sync-dot off';
-  document.getElementById('sync-status').textContent = 'Synchronisation…';
+  afficherSync('encours', 'Synchronisation…', 'Synchro…');
+  const refuses = new Set();   // déjà tentés pendant cette synchro, refusés par le script
 
-  // Vérifie le PIN et rafraîchit la config.
-  const rep = await chargerConfig();
-  if (rep.ok !== true) return finSync(rep);
-
-  let p;
-  while ((p = produits.find(x => x.synced === false))) {
-    const rev = p.rev;
-    const r = await appelScript('enregistrer', {
+  for (let tour = 0; tour < 20; tour++) {
+    const prods = produits.filter(p => p.synced === false && !refuses.has(p)).slice(0, TAILLE_LOT);
+    const rets = retraits.filter(r => !refuses.has(r)).slice(0, TAILLE_LOT - prods.length);
+    const revs = prods.map(p => p.rev);
+    const ops = prods.map(p => ({
+      action: 'enregistrer',
       sku: p.sku || undefined,
       uid: String(p.id),
       nom: p.nom,
       categorie: p.categorie,
       prixAchat: p.prixAchat,
       prixTTC: p.prixTTC,
+    })).concat(rets.map(r => ({ action: 'retirer', sku: r.sku || undefined, nom: r.nom })));
+
+    const rep = await executer(ops);
+    if (rep.config) appliquerConfig(rep.config);
+    const res = Array.isArray(rep.resultats) ? rep.resultats : [];
+    if (rep.ok === true && res.length < ops.length) return finSync({ ok: false, error: 'format' });
+
+    prods.forEach((p, i) => {
+      const r = res[i];
+      if (!r) return;
+      if (r.ok === true && r.sku) {
+        p.sku = r.sku;
+        delete p.erreur;
+        if (p.rev === revs[i]) p.synced = true;   // modifié pendant l'envoi : renvoyé au tour suivant
+      } else {
+        p.erreur = r.error || 'format';
+        refuses.add(p);
+      }
     });
-    if (r.ok !== true || !r.sku) return finSync(r);
-    p.sku = r.sku;
-    if (p.rev === rev) p.synced = true;   // modifié pendant l'envoi : renvoyé au tour suivant
-    sauverProduits();
-    renderList();
-  }
+    rets.forEach((x, j) => {
+      const r = res[prods.length + j];
+      if (!r) return;
+      // « introuvable » : jamais arrivé dans la feuille, rien à retirer.
+      if (r.ok === true || r.error === 'introuvable' || r.error === 'sku') retraits = retraits.filter(y => y !== x);
+      else refuses.add(x);
+    });
+    if (prods.length) sauverProduits();
+    if (rets.length) sauverRetraits();
+    rafraichir();
 
-  while (retraits.length) {
-    const r = await appelScript('retirer', retraits[0]);
-    // « introuvable » : jamais arrivé dans la feuille, rien à retirer.
-    if (r.ok !== true && r.error !== 'introuvable') return finSync(r);
-    retraits.shift();
-    sauverRetraits();
+    if (rep.ok !== true) return finSync(rep);
+    const suite = produits.some(p => p.synced === false && !refuses.has(p)) || retraits.some(r => !refuses.has(r));
+    if (!suite) break;
   }
-
   return finSync({ ok: true });
 }
 
 function finSync(rep) {
+  rafraichir();
   if (rep.ok === true && enAttente() === 0) {
     setSyncStatus(true);
     return true;
   }
   setSyncStatus(false, rep.ok === true ? '' : messageErreur(rep.error));
-  if (rep.error === 'auth' || rep.error === 'pin') ouvrirPin(rep.error === 'auth' ? 'PIN refusé' : '');
+  if ((rep.error === 'auth' || rep.error === 'pin') && !$('pin-modal').classList.contains('ouvert')) {
+    ouvrirPin(rep.error === 'auth' ? 'PIN refusé' : '');
+  }
   return false;
 }
 
+// ===========================
+// ÉVÉNEMENTS (délégués)
+// ===========================
+document.addEventListener('click', e => {
+  const cible = e.target.closest('[data-action]');
+  if (!cible) {
+    if (e.target.classList.contains('voile') && e.target.id === 'modal') fermer('modal');
+    return;
+  }
+  switch (cible.dataset.action) {
+    case 'onglet': switchTab(cible.dataset.onglet); break;
+    case 'categorie': selectCat(cible.dataset.cat); break;
+    case 'filtre': filtreCat = cible.dataset.filtre; renderList(); break;
+    case 'fiche': openModal(Number(cible.dataset.id)); break;
+    case 'fermer': fermer('modal'); break;
+    case 'pin': ouvrirPin(); break;
+    case 'fermer-pin': fermer('pin-modal'); break;
+    case 'sync': syncNow(); break;
+  }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { fermer('modal'); fermer('pin-modal'); }
+});
+
+let calculPrevu = 0;
+$('input-prix').addEventListener('input', () => {
+  cancelAnimationFrame(calculPrevu);
+  calculPrevu = requestAnimationFrame(calculer);
+});
+$('input-prix').addEventListener('keydown', e => { if (e.key === 'Enter') $('input-nom').focus(); });
+$('form-enregistrer').addEventListener('submit', e => { e.preventDefault(); sauvegarder(); });
+$('form-pin').addEventListener('submit', e => { e.preventDefault(); validerPin(); });
+
+let recherchePrevue = 0;
+$('search-input').addEventListener('input', () => {
+  clearTimeout(recherchePrevue);
+  recherchePrevue = setTimeout(renderList, 80);
+});
+
+const detail = $('detail');
+detail.open = stockage.lire('pv_detail', '1') === '1';
+detail.addEventListener('toggle', () => stockage.ecrire('pv_detail', detail.open ? '1' : '0'));
+
 window.addEventListener('online', () => syncNow());
 window.addEventListener('offline', () => setSyncStatus(false, 'hors ligne'));
+// Retour sur l'app (téléphone) : on renvoie ce qui attend.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && enAttente()) syncNow();
+});
+
+// ===========================
+// HORS LIGNE (service worker)
+// ===========================
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  const avaitControleur = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (avaitControleur) toast('Nouvelle version disponible', 'Recharger', () => location.reload());
+  });
+}
 
 // ===========================
 // INIT
 // ===========================
 afficherConfig();
-renderList();
-renderHistory();
-setSyncStatus(false);
+afficherBadge();
+setSyncStatus(false, navigator.onLine === false ? 'hors ligne' : '');
 if (!lirePin() || !scriptUrl()) ouvrirPin();
 else syncNow();
 </script>

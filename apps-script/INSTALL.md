@@ -52,6 +52,27 @@ montants dans le fichier privé) :
 Pour changer plus tard un frais ou un coefficient : modifie seulement cette
 propriété. L'app récupère la nouvelle config à sa prochaine synchronisation.
 
+### Ajouter les magnums
+
+L'app propose deux catégories magnum (150 cl) : `magnum_tranquille` et
+`magnum_mousseux`. Tant que leurs frais ne sont pas dans `CONFIG`, l'app les
+affiche avec « frais à configurer » et refuse de les calculer.
+
+1. Colle la dernière version de `Code.gs` (étape 1) et crée une nouvelle
+   version du déploiement (voir « Tu as modifié le code », en bas).
+2. Dans **Paramètres du projet › Propriétés du script**, modifie `CONFIG` :
+   dans `"categories":{…}`, ajoute après la dernière catégorie (sans oublier
+   la virgule) :
+
+   ```json
+   ,"magnum_tranquille":{"frais":…,"detail":"…"},"magnum_mousseux":{"frais":…,"detail":"…"}
+   ```
+
+   en remplaçant les `…` par les frais d'un magnum (le texte `detail` est
+   facultatif : il s'affiche dans le détail du calcul).
+3. **Enregistrer les propriétés du script**, puis dans l'app : onglet
+   Historique › **Synchroniser**. Les magnums affichent leurs frais.
+
 ## 3. Créer le nouveau déploiement
 
 1. En haut à droite : **Déployer › Nouveau déploiement**.

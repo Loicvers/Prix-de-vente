@@ -9,6 +9,9 @@
  *   { pin, action: 'config' }
  *   { pin, action: 'enregistrer', sku?, uid?, nom, categorie, prixAchat, prixTTC }
  *   { pin, action: 'retirer', sku }            (ou { nom } pour un ancien produit sans SKU)
+ *   { pin, action: 'lot', operations: [ { action: 'enregistrer', … }, { action: 'retirer', … } ] }
+ *     → { ok: true, config, resultats: [ réponse de chaque opération ] }
+ *     Une seule requête pour toute la file d'attente de l'app, config comprise.
  * Réponse : JSON { ok: true, … } ou { ok: false, error: '…' }.
  */
 
@@ -26,8 +29,16 @@ var LIBELLES = {
   tranquille: 'Vin tranquille',
   mousseux: 'Vin mousseux / pétillant',
   demie: '37,5 cl',
-  intermediaire: 'Produit intermédiaire 75cl'
+  intermediaire: 'Produit intermédiaire 75cl',
+  magnum_tranquille: 'Magnum vin tranquille 150cl',
+  magnum_mousseux: 'Magnum pétillant 150cl'
 };
+
+// Catégories de l'ancienne app : les seules possibles dans Historique.
+var CATEGORIES_HISTORIQUE = ['tranquille', 'mousseux', 'demie', 'intermediaire'];
+
+// Nombre maximal d'opérations dans un lot.
+var MAX_LOT = 50;
 
 // En-têtes reconnus dans l'ancien onglet (comparés sans majuscules ni
 // accents). Les colonnes sont trouvées par leur en-tête, pas par leur place.
@@ -68,6 +79,7 @@ function doPost(e) {
       case 'config': return json_({ ok: true, config: lireConfig_() });
       case 'enregistrer': return json_(enregistrer_(req));
       case 'retirer': return json_(retirer_(req));
+      case 'lot': return json_(lot_(req));
       default: return json_({ ok: false, error: 'action' });
     }
   } catch (err) {
@@ -118,7 +130,7 @@ function lireConfig_() {
 // ===========================
 // ENREGISTRER (upsert par SKU)
 // ===========================
-function enregistrer_(req) {
+function enregistrer_(req, config) {
   var nom = String(req.nom || '').trim();
   if (!nom) return { ok: false, error: 'nom' };
   var cle = cleCategorie_(req.categorie);
@@ -129,7 +141,7 @@ function enregistrer_(req) {
   var sku = String(req.sku || '').trim();
   if (sku && !/^UCP-\d{4,}$/.test(sku)) return { ok: false, error: 'sku' };
 
-  var config = lireConfig_();
+  config = config || lireConfig_();
   var cat = config.categories[cle];
   if (!cat) return { ok: false, error: 'categorie' };
 
@@ -193,6 +205,28 @@ function retirer_(req) {
   } finally {
     verrou.releaseLock();
   }
+}
+
+// ===========================
+// LOT (toute la file d'attente en une requête)
+// ===========================
+// Chaque opération a sa propre réponse : un produit refusé (nom, catégorie…)
+// n'empêche pas l'envoi des autres.
+function lot_(req) {
+  var ops = req.operations;
+  if (!Array.isArray(ops) || ops.length > MAX_LOT) return { ok: false, error: 'lot' };
+  var config = lireConfig_();
+  var resultats = ops.map(function (op) {
+    if (!op || typeof op !== 'object') return { ok: false, error: 'format' };
+    try {
+      if (op.action === 'enregistrer') return enregistrer_(op, config);
+      if (op.action === 'retirer') return retirer_(op);
+      return { ok: false, error: 'action' };
+    } catch (err) {
+      return { ok: false, error: 'serveur', message: String((err && err.message) || err) };
+    }
+  });
+  return { ok: true, config: config, resultats: resultats };
 }
 
 // ===========================
@@ -336,7 +370,7 @@ function prixConfig_(base, config) {
 
 function deduireCategorie_(prixAchat, prixTTC, config) {
   if (prixAchat === null || prixTTC === null) return null;
-  var trouvees = Object.keys(LIBELLES).filter(function (cle) {
+  var trouvees = CATEGORIES_HISTORIQUE.filter(function (cle) {
     var cat = config.categories[cle];
     return cat && Math.abs(prixConfig_(prixAchat + cat.frais, config) - prixTTC) < 0.001;
   });

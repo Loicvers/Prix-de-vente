@@ -9,10 +9,25 @@ GitHub Pages : https://loicvers.github.io/Prix-de-vente/
 | --- | --- |
 | `index.html` | L'app : calcul, liste des produits, synchronisation avec la feuille Google. |
 | `calcul.js` | Le calcul par tranches cumulées. Aucun montant : tout vient de la config. |
+| `sw.js` | Service worker : l'app s'ouvre instantanément, même hors ligne. |
+| `manifest.json`, `icon*.png`, `icon.svg` | Installation sur l'écran d'accueil (PWA). |
 | `apps-script/Code.gs` | Script de la feuille Google (à coller dans Apps Script). |
 | `apps-script/INSTALL.md` | Installation du script, pas à pas. |
 | `MIGRATION.md` | Passage au dépôt neuf, pas à pas. |
 | `tests/` | Tests (`node --test`, Node 18 ou plus). |
+
+## Catégories
+
+Bouteille 75 cl (tranquille, pétillant), magnum 150 cl (tranquille,
+pétillant), 37,5 cl et produit intermédiaire. Les frais des magnums sont à
+ajouter dans `CONFIG` : voir `apps-script/INSTALL.md`, « Ajouter les magnums ».
+
+## Synchronisation
+
+L'app envoie toute sa file d'attente (enregistrements et retraits) en une
+seule requête `lot`, qui renvoie aussi la config. Un produit refusé par le
+script est signalé dans la liste sans bloquer les autres. Avec un script pas
+encore mis à jour, l'app repasse automatiquement à une requête par opération.
 
 ## Sécurité
 

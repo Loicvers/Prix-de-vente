@@ -1,0 +1,17 @@
+{
+  "name": "Prix de vente – Une Autre Clé du Paradis",
+  "short_name": "Prix de vente",
+  "description": "Calculateur de prix de vente des vins.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#16100f",
+  "theme_color": "#16100f",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

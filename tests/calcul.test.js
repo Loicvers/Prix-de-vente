@@ -36,6 +36,11 @@ test('la config chargée est valide', { skip: sansConfig }, () => {
   for (const cle of ['tranquille', 'mousseux', 'demie', 'intermediaire']) {
     assert.ok(config.categories[cle], 'catégorie manquante : ' + cle);
   }
+  // Magnums : facultatifs tant que leurs frais ne sont pas ajoutés.
+  for (const cle of Object.keys(config.categories)) {
+    assert.ok(['tranquille', 'mousseux', 'demie', 'intermediaire', 'magnum_tranquille', 'magnum_mousseux'].includes(cle),
+      'catégorie inconnue de l\'app : ' + cle);
+  }
 });
 
 for (const [categorie, achat, attendu] of CAS) {

@@ -259,6 +259,43 @@ test('refaireMigration : anciens Privé et Public renommés, recréés depuis Hi
   assert.ok(env.ss.getSheetByName('Privé (ancien essai) 2'));
 });
 
+test('lot : toute la file en une requête, config comprise, erreurs par opération', () => {
+  const env = environnement({ props: { CONFIG: JSON.stringify(Object.assign({}, CONFIG, {
+    categories: Object.assign({}, CONFIG.categories, { magnum_tranquille: { frais: 6 } }),
+  })) } });
+  const r = env.post({ action: 'lot', pin: PIN, operations: [
+    Object.assign({ action: 'enregistrer', uid: '1' }, VIN),
+    { action: 'enregistrer', uid: '2', nom: 'Magnum Rouge', categorie: 'magnum_tranquille', prixAchat: 12, prixTTC: 30 },
+    { action: 'enregistrer', uid: '3', nom: 'Magnum Bulles', categorie: 'magnum_mousseux', prixAchat: 12, prixTTC: 30 },
+    { action: 'retirer', sku: 'UCP-0001' },
+    { action: 'retirer', sku: 'UCP-9999' },
+    { action: 'supprimer' },
+    null,
+  ] });
+  assert.equal(r.ok, true);
+  assert.equal(r.config.categories.magnum_tranquille.frais, 6);
+  assert.deepEqual(r.resultats, [
+    { ok: true, sku: 'UCP-0001' },
+    { ok: true, sku: 'UCP-0002' },
+    { ok: false, error: 'categorie' },     // frais du magnum pétillant absents de CONFIG
+    { ok: true, sku: 'UCP-0001' },
+    { ok: false, error: 'introuvable' },
+    { ok: false, error: 'action' },
+    { ok: false, error: 'format' },
+  ]);
+  const pub = env.onglet('Public').data;
+  assert.deepEqual(pub.slice(1), [
+    ['UCP-0001', VIN.nom, 'Produit intermédiaire 75cl', VIN.prixTTC, 'retiré'],
+    ['UCP-0002', 'Magnum Rouge', 'Magnum vin tranquille 150cl', 30, 'disponible'],
+  ]);
+  assert.equal(env.onglet('Privé').data[2][4], 6);
+
+  assert.equal(env.post({ action: 'lot', pin: PIN, operations: 'x' }).error, 'lot');
+  assert.equal(env.post({ action: 'lot', pin: PIN, operations: new Array(51).fill({ action: 'retirer', sku: 'UCP-0001' }) }).error, 'lot');
+  assert.equal(env.post({ action: 'lot', pin: '0000', operations: [] }).error, 'auth');
+  assert.deepEqual(env.post({ action: 'lot', pin: PIN, operations: [] }).resultats, []);
+});
+
 test('le calcul du script est identique à celui de l\'app', () => {
   const Calcul = require('../calcul.js');
   const env = environnement();
