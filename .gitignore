@@ -1,0 +1,3 @@
+tests/config.local.json
+*.local.json
+node_modules/

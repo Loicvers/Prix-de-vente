@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#1a1a2e"/>
+<title>Prix de Vente – Une Autre Clé du Paradis</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --surface2: #22223b;
+    --border: #2e2e4a;
+    --accent: #c9a96e;
+    --accent2: #e8c99a;
+    --text: #f0ece4;
+    --text2: #a09880;
+    --danger: #e07070;
+    --success: #6ec994;
+    --inter: #9b72cf;
+    --inter-bg: #2a1f3d;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+  }
+
+  /* HEADER */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+  header span {
+    font-size: 11px;
+    color: var(--text2);
+    font-weight: 300;
+  }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab {
+    flex: 1;
+    padding: 12px 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* PAGES */
+  .page { display: none; padding: 20px; max-width: 600px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* CALCULATOR */
+  .calc-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .calc-card h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  /* CATEGORY SELECTOR */
+  .cat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .cat-btn {
+    padding: 10px 8px;
+    border-radius: var(--radius-sm);
+    border: 1.5px solid var(--border);
+    background: var(--surface2);
+    color: var(--text2);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s;
+    line-height: 1.3;
+  }
+  .cat-btn.selected {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(201,169,110,0.08);
+  }
+  .cat-btn.inter.selected {
+    border-color: var(--inter);
+    color: var(--inter);
+    background: var(--inter-bg);
+  }
+  .cat-badge {
+    display: block;
+    font-size: 10px;
+    font-weight: 300;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+  .cat-btn.inter .cat-badge { color: var(--inter); opacity: 0.7; }
+
+  /* FRAIS INFO */
+  .frais-info {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 16px;
+    font-size: 12px;
+    color: var(--text2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .frais-info.inter {
+    border-color: var(--inter);
+    background: var(--inter-bg);
+    color: var(--inter);
+  }
+  .frais-info strong { color: var(--text); }
+  .frais-info.inter strong { color: var(--inter); }
+
+  /* INPUT */
+  label {
+    display: block;
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 6px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  input[type="number"], input[type="text"], select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  /* RESULT */
+  .result-box {
+    background: linear-gradient(135deg, rgba(201,169,110,0.12), rgba(201,169,110,0.04));
+    border: 1.5px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 8px;
+    text-align: center;
+  }
+  .result-box.inter {
+    background: linear-gradient(135deg, rgba(155,114,207,0.15), rgba(155,114,207,0.04));
+    border-color: var(--inter);
+  }
+  .result-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+  .result-price {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    color: var(--accent);
+    line-height: 1;
+  }
+  .result-box.inter .result-price { color: var(--inter); }
+  .result-detail {
+    margin-top: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 5px;
+  }
+  .detail-row.total {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+    margin-top: 4px;
+  }
+
+  /* BUTTON */
+  .btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-sm);
+    border: none;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 12px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #0f0f1a;
+  }
+  .btn-primary:active { opacity: 0.85; }
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    font-size: 12px;
+    padding: 10px;
+    margin-top: 6px;
+  }
+
+  /* PRODUCT LIST */
+  .product-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .product-card:active { border-color: var(--accent); }
+  .product-card.inter { border-left: 3px solid var(--inter); }
+  .product-name {
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .product-meta {
+    font-size: 12px;
+    color: var(--text2);
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .product-price {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    color: var(--accent);
+    float: right;
+  }
+  .product-card.inter .product-price { color: var(--inter); }
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: rgba(201,169,110,0.12);
+    color: var(--accent);
+    font-weight: 500;
+  }
+  .tag.inter {
+    background: var(--inter-bg);
+    color: var(--inter);
+  }
+
+  /* HISTORY */
+  .history-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+  .history-item .hi-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .history-item .hi-meta { color: var(--text2); display: flex; gap: 10px; flex-wrap: wrap; }
+  .history-item .hi-price { color: var(--accent); font-weight: 600; }
+  .history-item.inter .hi-price { color: var(--inter); }
+
+  /* SEARCH */
+  .search-bar {
+    position: relative;
+    margin-bottom: 14px;
+  }
+  .search-bar input {
+    padding-left: 36px;
+    margin-bottom: 0;
+  }
+  .search-bar::before {
+    content: '🔍';
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 24px 20px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-top: 1px solid var(--border);
+  }
+  .modal h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  /* EMPTY */
+  .empty {
+    text-align: center;
+    color: var(--text2);
+    padding: 40px 20px;
+    font-size: 13px;
+  }
+  .empty-icon { font-size: 36px; margin-bottom: 10px; }
+
+  .section-title {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text2);
+    margin-bottom: 10px;
+    margin-top: 4px;
+  }
+
+  /* SYNC */
+  .sync-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 12px;
+    color: var(--text2);
+  }
+  .sync-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    flex-shrink: 0;
+  }
+  .sync-dot.off { background: var(--text2); }
+
+  /* PIN / CONFIG */
+  .header-right { display: flex; align-items: center; gap: 10px; }
+  .btn-pin {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text2);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    padding: 5px 9px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .modal-overlay.center { align-items: center; }
+  .modal-overlay.center .modal { border-radius: var(--radius); margin: 0 16px; }
+  .pin-msg { font-size: 12px; color: var(--danger); min-height: 16px; margin-top: 8px; }
+  .config-manquante {
+    background: var(--surface2);
+    border: 1px solid var(--danger);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍷 Prix de Vente</h1>
+  <div class="header-right">
+    <span>Une Autre Clé du Paradis</span>
+    <button class="btn-pin" onclick="ouvrirPin()">Changer de PIN</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('calc')">Calculer</div>
+  <div class="tab" onclick="switchTab('list')">Produits</div>
+  <div class="tab" onclick="switchTab('history')">Historique</div>
+</div>
+
+<!-- ===== CALCULATEUR ===== -->
+<div class="page active" id="page-calc">
+
+  <div class="config-manquante" id="config-manquante" style="display:none">
+    Connecte-toi une première fois avec ton PIN
+  </div>
+
+  <div class="calc-card">
+    <h2>Catégorie</h2>
+    <div class="cat-grid">
+      <div class="cat-btn selected" data-cat="tranquille" onclick="selectCat(this)">
+        Vin tranquille
+        <span class="cat-badge frais"></span>
+      </div>
+      <div class="cat-btn" data-cat="mousseux" onclick="selectCat(this)">
+        Vin mousseux / pétillant
+        <span class="cat-badge frais"></span>
+      </div>
+      <div class="cat-btn" data-cat="demie" onclick="selectCat(this)">
+        37,5 cl
+        <span class="cat-badge frais"></span>
+      </div>
+      <div class="cat-btn inter" data-cat="intermediaire" onclick="selectCat(this)">
+        Produit intermédiaire
+        <span class="cat-badge">Maury, Porto, VDN… 75cl</span>
+        <span class="cat-badge frais"></span>
+      </div>
+    </div>
+
+    <div class="frais-info" id="frais-info-box">
+      Frais inclus dans le calcul : <strong id="frais-label">—</strong>
+    </div>
+  </div>
+
+  <div class="calc-card">
+    <h2>Prix d'achat</h2>
+    <label>Prix d'achat HT (€)</label>
+    <input type="number" id="input-prix" placeholder="ex: 10.80" step="0.01" min="0" oninput="calculer()"/>
+
+    <div id="result-zone" style="display:none">
+      <div class="result-box" id="result-box">
+        <div class="result-label">Prix de vente conseillé TTC</div>
+        <div class="result-price" id="result-price">—</div>
+        <div class="result-detail" id="result-detail"></div>
+      </div>
+
+      <label style="margin-top:16px">Nom du produit (pour l'enregistrer)</label>
+      <input type="text" id="input-nom" placeholder="ex: Maury Grenat 2022"/>
+      <button class="btn btn-primary" onclick="sauvegarder()">💾 Enregistrer ce produit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LISTE PRODUITS ===== -->
+<div class="page" id="page-list">
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Rechercher un produit…" oninput="renderList()"/>
+  </div>
+  <div id="product-list"></div>
+</div>
+
+<!-- ===== HISTORIQUE ===== -->
+<div class="page" id="page-history">
+  <div class="sync-bar">
+    <div class="sync-dot off" id="sync-dot"></div>
+    <span id="sync-status">Non synchronisé</span>
+    <button class="btn btn-secondary" style="width:auto;padding:6px 12px;margin:0;font-size:11px" onclick="syncNow()">Sync</button>
+  </div>
+  <div id="history-list"></div>
+</div>
+
+<!-- MODAL PRODUIT -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <h3 id="modal-title">Produit</h3>
+    <div id="modal-content"></div>
+    <button class="btn btn-secondary" style="margin-top:8px" onclick="closeModalDirect()">Fermer</button>
+    <button class="btn btn-danger" id="modal-delete-btn">🗑 Supprimer</button>
+  </div>
+</div>
+
+<!-- MODAL PIN -->
+<div class="modal-overlay center" id="pin-modal">
+  <div class="modal">
+    <h3>Ton PIN</h3>
+    <div id="pin-url-zone" style="display:none">
+      <label>Adresse du script Google (…/exec)</label>
+      <input type="text" id="pin-url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec"/>
+    </div>
+    <label>PIN</label>
+    <input type="password" id="pin-input" inputmode="numeric" autocomplete="off" onkeydown="if(event.key==='Enter')validerPin()"/>
+    <div class="pin-msg" id="pin-msg"></div>
+    <button class="btn btn-primary" id="pin-ok" onclick="validerPin()">Valider</button>
+    <button class="btn btn-secondary" onclick="fermerPin()">Plus tard</button>
+  </div>
+</div>
+
+<script src="calcul.js"></script>
+<script>
+// ===========================
+// SCRIPT GOOGLE
+// ===========================
+// Adresse /exec du déploiement Apps Script (voir MIGRATION.md). Laissée vide,
+// l'app la demande avec le PIN et la garde sur l'appareil (pv_url).
+const SCRIPT_URL = '';
+
+// ===========================
+// CATÉGORIES
+// ===========================
+// Frais, tranches et coefficients : uniquement dans la config du script,
+// mise en cache dans localStorage (pv_config).
+const CATEGORIES = {
+  tranquille:    { label: 'Vin tranquille' },
+  mousseux:      { label: 'Vin mousseux / pétillant' },
+  demie:         { label: '37,5 cl' },
+  intermediaire: { label: 'Produit intermédiaire 75cl' },
+};
+
+function fmt(n) { return n.toFixed(2).replace('.', ',') + ' €'; }
+function fmtCoef(n) { return n.toFixed(3).replace('.', ','); }
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function normNom(s) { return String(s).trim().toLowerCase().replace(/\s+/g, ' '); }
+
+function lireJSON(cle, defaut) {
+  try {
+    const v = localStorage.getItem(cle);
+    return v ? JSON.parse(v) : defaut;
+  } catch { return defaut; }
+}
+
+// ===========================
+// ÉTAT
+// ===========================
+let currentCat = 'tranquille';
+let produits = lireJSON('pv_produits_v2', []);
+let historique = lireJSON('pv_historique', []);
+let retraits = lireJSON('pv_retraits', []);   // produits supprimés à retirer côté feuille
+let config = lireJSON('pv_config', null);
+if (!Calcul.configValide(config)) config = null;
+
+function sauverProduits() { localStorage.setItem('pv_produits_v2', JSON.stringify(produits)); }
+function sauverHistorique() { localStorage.setItem('pv_historique', JSON.stringify(historique)); }
+function sauverRetraits() { localStorage.setItem('pv_retraits', JSON.stringify(retraits)); }
+
+function scriptUrl() { return SCRIPT_URL || localStorage.getItem('pv_url') || ''; }
+function lirePin() { return localStorage.getItem('pv_pin') || ''; }
+
+// ===========================
+// APPEL DU SCRIPT
+// ===========================
+// Content-Type text/plain : pas de requête préalable CORS, et la réponse
+// JSON est lue. Toute erreur renvoie { ok:false, error }.
+async function appelScript(action, donnees, acces) {
+  const url = (acces && acces.url) || scriptUrl();
+  const pin = (acces && acces.pin) || lirePin();
+  if (!url || !pin) return { ok: false, error: 'pin' };
+  const ctrl = new AbortController();
+  const minuteur = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    const rep = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({}, donnees, { action, pin })),
+      signal: ctrl.signal,
+    });
+    if (!rep.ok) return { ok: false, error: 'http' };
+    const json = await rep.json();
+    return (json && typeof json === 'object') ? json : { ok: false, error: 'format' };
+  } catch {
+    return { ok: false, error: 'reseau' };
+  } finally {
+    clearTimeout(minuteur);
+  }
+}
+
+async function chargerConfig(acces) {
+  const rep = await appelScript('config', {}, acces);
+  if (rep.ok === true) {
+    if (!Calcul.configValide(rep.config)) return { ok: false, error: 'config' };
+    config = rep.config;
+    localStorage.setItem('pv_config', JSON.stringify(config));
+    afficherConfig();
+  }
+  return rep;
+}
+
+// ===========================
+// PIN
+// ===========================
+function ouvrirPin(message) {
+  document.getElementById('pin-url-zone').style.display = SCRIPT_URL ? 'none' : 'block';
+  document.getElementById('pin-url').value = localStorage.getItem('pv_url') || '';
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-msg').textContent = message || '';
+  document.getElementById('pin-modal').classList.add('open');
+  document.getElementById('pin-input').focus();
+}
+function fermerPin() {
+  document.getElementById('pin-modal').classList.remove('open');
+}
+
+async function validerPin() {
+  const pin = document.getElementById('pin-input').value.trim();
+  const url = SCRIPT_URL || document.getElementById('pin-url').value.trim();
+  const msg = document.getElementById('pin-msg');
+  if (!url) { msg.textContent = 'Colle l\'adresse du script.'; return; }
+  if (!pin) { msg.textContent = 'Entre ton PIN.'; return; }
+  const bouton = document.getElementById('pin-ok');
+  bouton.disabled = true;
+  msg.textContent = 'Vérification…';
+  const rep = await chargerConfig({ url, pin });
+  bouton.disabled = false;
+  if (rep.ok === true || rep.error === 'reseau') {
+    // Hors ligne : le PIN est gardé et sera vérifié au retour du réseau.
+    localStorage.setItem('pv_pin', pin);
+    if (!SCRIPT_URL) localStorage.setItem('pv_url', url);
+    fermerPin();
+    syncNow();
+    return;
+  }
+  msg.textContent = messageErreur(rep.error);
+}
+
+function messageErreur(error) {
+  switch (error) {
+    case 'auth': return 'PIN refusé';
+    case 'bloque': return 'Trop d\'essais de PIN : réessaie dans 15 minutes';
+    case 'reseau': return 'hors ligne';
+    case 'pin': return 'PIN manquant';
+    default: return 'erreur du script (' + (error || 'réponse invalide') + ')';
+  }
+}
+
+// ===========================
+// SÉLECTION CATÉGORIE
+// ===========================
+function selectCat(el) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  currentCat = el.dataset.cat;
+  afficherFrais();
+  calculer();
+}
+
+function afficherConfig() {
+  document.getElementById('config-manquante').style.display = config ? 'none' : 'block';
+  document.querySelectorAll('.cat-btn').forEach(b => {
+    const cat = config && config.categories[b.dataset.cat];
+    b.querySelector('.cat-badge.frais').textContent = cat ? 'frais : +' + fmt(cat.frais) : '';
+  });
+  afficherFrais();
+  calculer();
+}
+
+function afficherFrais() {
+  const cat = config && config.categories[currentCat];
+  document.getElementById('frais-label').textContent = cat ? (cat.detail || fmt(cat.frais)) : '—';
+  document.getElementById('frais-info-box').className = 'frais-info' + (currentCat === 'intermediaire' ? ' inter' : '');
+}
+
+// ===========================
+// CALCUL
+// ===========================
+function detailHtml(prixAchat, categorie) {
+  const frais = Calcul.frais(categorie, config);
+  const base = prixAchat + frais;
+  let html = '';
+  html += `<div class="detail-row"><span>Prix d'achat HT</span><span>${fmt(prixAchat)}</span></div>`;
+  html += `<div class="detail-row"><span>Frais fixes (${esc(CATEGORIES[categorie].label)})</span><span>+${fmt(frais)}</span></div>`;
+  html += `<div class="detail-row"><span>Base de calcul</span><span>${fmt(base)}</span></div>`;
+  Calcul.detailTranches(base, config).forEach(t => {
+    html += `<div class="detail-row"><span>${fmt(t.debut)} → ${fmt(t.fin)} × ${fmtCoef(t.coef)}</span><span>${fmt(t.montant)}</span></div>`;
+  });
+  return html;
+}
+
+function calculer() {
+  const val = parseFloat(document.getElementById('input-prix').value);
+  const zone = document.getElementById('result-zone');
+  if (!config || isNaN(val) || val <= 0) { zone.style.display = 'none'; return; }
+
+  const prixTTC = Calcul.prixTTC(val, currentCat, config);
+  zone.style.display = 'block';
+
+  const box = document.getElementById('result-box');
+  box.className = 'result-box' + (currentCat === 'intermediaire' ? ' inter' : '');
+  document.getElementById('result-price').textContent = fmt(prixTTC);
+
+  let html = detailHtml(val, currentCat);
+  html += `<div class="detail-row total"><span>Prix de vente TTC</span><span>${fmt(prixTTC)}</span></div>`;
+  document.getElementById('result-detail').innerHTML = html;
+}
+
+// ===========================
+// SAUVEGARDER
+// ===========================
+function sauvegarder() {
+  const nom = document.getElementById('input-nom').value.trim();
+  const prixAchat = parseFloat(document.getElementById('input-prix').value);
+  if (!config) { alert('Connecte-toi une première fois avec ton PIN'); return; }
+  if (!nom) { alert('Donne un nom au produit'); return; }
+  if (isNaN(prixAchat) || prixAchat <= 0) return;
+
+  const prixTTC = Calcul.prixTTC(prixAchat, currentCat, config);
+  const date = new Date().toLocaleDateString('fr-BE');
+
+  // Même nom = même produit : on met à jour sa fiche (et on garde son SKU).
+  let prod = produits.find(p => normNom(p.nom) === normNom(nom));
+  if (prod) {
+    produits = produits.filter(p => p !== prod);
+    Object.assign(prod, { nom, categorie: currentCat, prixAchat, prixTTC, date });
+  } else {
+    prod = { id: Date.now(), sku: '', nom, categorie: currentCat, prixAchat, prixTTC, date };
+  }
+  prod.synced = false;
+  prod.rev = (prod.rev || 0) + 1;
+  produits.unshift(prod);
+  historique.unshift({ id: prod.id, nom, categorie: currentCat, prixAchat, prixTTC, date });
+  // Réenregistré après une suppression pas encore envoyée : on annule le retrait.
+  retraits = retraits.filter(r => normNom(r.nom) !== normNom(nom) && !(prod.sku && r.sku === prod.sku));
+  sauverProduits();
+  sauverHistorique();
+  sauverRetraits();
+
+  document.getElementById('input-nom').value = '';
+  renderList();
+  renderHistory();
+  syncNow();
+
+  switchTab('list');
+}
+
+// ===========================
+// LISTE PRODUITS
+// ===========================
+function renderList() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const filtered = produits.filter(p => p.nom.toLowerCase().includes(q));
+  const el = document.getElementById('product-list');
+
+  if (!filtered.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🍾</div>Aucun produit enregistré</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(p => {
+    const cat = CATEGORIES[p.categorie] || CATEGORIES.tranquille;
+    const isInter = p.categorie === 'intermediaire';
+    return `
+    <div class="product-card ${isInter ? 'inter' : ''}" onclick="openModal(${Number(p.id)})">
+      <span class="product-price">${fmt(p.prixTTC)}</span>
+      <div class="product-name">${esc(p.nom)}</div>
+      <div class="product-meta">
+        <span class="tag ${isInter ? 'inter' : ''}">${esc(cat.label)}</span>
+        <span>Achat : ${fmt(p.prixAchat)}</span>
+        ${p.sku ? `<span>${esc(p.sku)}</span>` : ''}
+        ${p.synced === false ? '<span>⏳ en attente</span>' : ''}
+        <span>${esc(p.date)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===========================
+// HISTORIQUE
+// ===========================
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (!historique.length) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">📋</div>Aucun historique</div>';
+    return;
+  }
+  el.innerHTML = historique.slice(0, 50).map(p => {
+    const cat = CATEGORIES[p.categorie] || CATEGORIES.tranquille;
+    const isInter = p.categorie === 'intermediaire';
+    return `
+    <div class="history-item ${isInter ? 'inter' : ''}">
+      <div class="hi-name">${esc(p.nom)}</div>
+      <div class="hi-meta">
+        <span class="tag ${isInter ? 'inter' : ''}">${esc(cat.label)}</span>
+        <span>Achat : ${fmt(p.prixAchat)}</span>
+        <span class="hi-price">${fmt(p.prixTTC)} TTC</span>
+        <span>${esc(p.date)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ===========================
+// MODAL
+// ===========================
+function openModal(id) {
+  const p = produits.find(x => x.id === id);
+  if (!p) return;
+  const cat = CATEGORIES[p.categorie] || CATEGORIES.tranquille;
+
+  document.getElementById('modal-title').textContent = p.nom;
+  document.getElementById('modal-delete-btn').onclick = () => supprimerProduit(id);
+
+  let html = `
+    <div class="frais-info ${p.categorie === 'intermediaire' ? 'inter' : ''}">
+      <span>${esc(cat.label)}</span>
+      <strong>${fmt(p.prixTTC)} TTC</strong>
+    </div>`;
+  if (config && config.categories[p.categorie]) {
+    html += detailHtml(p.prixAchat, p.categorie);
+  } else {
+    html += `<div class="detail-row"><span>Prix d'achat HT</span><span>${fmt(p.prixAchat)}</span></div>`;
+  }
+  html += `<div class="detail-row total"><span>Prix TTC</span><span>${fmt(p.prixTTC)}</span></div>`;
+  if (p.sku) html += `<div class="detail-row" style="margin-top:8px"><span style="color:var(--text2)">SKU</span><span>${esc(p.sku)}</span></div>`;
+  html += `<div class="detail-row" style="margin-top:8px"><span style="color:var(--text2)">Enregistré le</span><span>${esc(p.date)}</span></div>`;
+
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+// Supprimer dans l'app = « retiré » dans l'onglet Public (rien n'est effacé).
+function supprimerProduit(id) {
+  if (!confirm('Supprimer ce produit ?')) return;
+  const p = produits.find(x => x.id === id);
+  if (!p) return;
+  produits = produits.filter(x => x !== p);
+  retraits.push({ sku: p.sku || '', nom: p.nom });
+  sauverProduits();
+  sauverRetraits();
+  closeModalDirect();
+  renderList();
+  syncNow();
+}
+
+// ===========================
+// TABS
+// ===========================
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['calc', 'list', 'history'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  if (name === 'list') renderList();
+  if (name === 'history') renderHistory();
+}
+
+// ===========================
+// SYNC GOOGLE SHEETS
+// ===========================
+// File d'attente : produits synced:false puis retraits. Le voyant ne passe
+// au vert que si le script a répondu ok:true et que la file est vide.
+function enAttente() {
+  return produits.filter(p => p.synced === false).length + retraits.length;
+}
+
+function setSyncStatus(ok, raison) {
+  document.getElementById('sync-dot').className = 'sync-dot' + (ok ? '' : ' off');
+  let texte = 'Synchronisé avec Google Sheets';
+  if (!ok) {
+    const n = enAttente();
+    texte = 'Non synchronisé' + (raison ? ' – ' + raison : '') + (n ? ` (${n} en attente)` : '');
+  }
+  document.getElementById('sync-status').textContent = texte;
+}
+
+let syncEnCours = null;
+function syncNow() {
+  if (!syncEnCours) syncEnCours = synchroniser().finally(() => { syncEnCours = null; });
+  return syncEnCours;
+}
+
+async function synchroniser() {
+  if (!lirePin() || !scriptUrl()) return finSync({ ok: false, error: 'pin' });
+  document.getElementById('sync-dot').className = 'sync-dot off';
+  document.getElementById('sync-status').textContent = 'Synchronisation…';
+
+  // Vérifie le PIN et rafraîchit la config.
+  const rep = await chargerConfig();
+  if (rep.ok !== true) return finSync(rep);
+
+  let p;
+  while ((p = produits.find(x => x.synced === false))) {
+    const rev = p.rev;
+    const r = await appelScript('enregistrer', {
+      sku: p.sku || undefined,
+      uid: String(p.id),
+      nom: p.nom,
+      categorie: p.categorie,
+      prixAchat: p.prixAchat,
+      prixTTC: p.prixTTC,
+    });
+    if (r.ok !== true || !r.sku) return finSync(r);
+    p.sku = r.sku;
+    if (p.rev === rev) p.synced = true;   // modifié pendant l'envoi : renvoyé au tour suivant
+    sauverProduits();
+    renderList();
+  }
+
+  while (retraits.length) {
+    const r = await appelScript('retirer', retraits[0]);
+    // « introuvable » : jamais arrivé dans la feuille, rien à retirer.
+    if (r.ok !== true && r.error !== 'introuvable') return finSync(r);
+    retraits.shift();
+    sauverRetraits();
+  }
+
+  return finSync({ ok: true });
+}
+
+function finSync(rep) {
+  if (rep.ok === true && enAttente() === 0) {
+    setSyncStatus(true);
+    return true;
+  }
+  setSyncStatus(false, rep.ok === true ? '' : messageErreur(rep.error));
+  if (rep.error === 'auth' || rep.error === 'pin') ouvrirPin(rep.error === 'auth' ? 'PIN refusé' : '');
+  return false;
+}
+
+window.addEventListener('online', () => syncNow());
+window.addEventListener('offline', () => setSyncStatus(false, 'hors ligne'));
+
+// ===========================
+// INIT
+// ===========================
+afficherConfig();
+renderList();
+renderHistory();
+setSyncStatus(false);
+if (!lirePin() || !scriptUrl()) ouvrirPin();
+else syncNow();
+</script>
+</body>
+</html>
