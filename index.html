@@ -612,22 +612,28 @@ async function appelScript(action, donnees, acces) {
   const url = (acces && acces.url) || scriptUrl();
   const pin = (acces && acces.pin) || lirePin();
   if (!url || !pin) return { ok: false, error: 'pin' };
+  if (navigator.onLine === false) return { ok: false, error: 'reseau' };
   const ctrl = new AbortController();
-  const minuteur = setTimeout(() => ctrl.abort(), 20000);
+  const minuteur = setTimeout(() => ctrl.abort(), 30000);
+  let rep;
   try {
-    const rep = await fetch(url, {
+    rep = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(Object.assign({}, donnees, { action, pin })),
       signal: ctrl.signal,
     });
-    if (!rep.ok) return { ok: false, error: 'http' };
-    const json = await rep.json();
-    return (json && typeof json === 'object') ? json : { ok: false, error: 'format' };
-  } catch {
-    return { ok: false, error: 'reseau' };
+  } catch (e) {
+    return { ok: false, error: e && e.name === 'AbortError' ? 'delai' : 'injoignable' };
   } finally {
     clearTimeout(minuteur);
+  }
+  if (!rep.ok) return { ok: false, error: 'http', message: 'HTTP ' + rep.status };
+  try {
+    const json = JSON.parse(await rep.text());
+    return (json && typeof json === 'object') ? json : { ok: false, error: 'format' };
+  } catch {
+    return { ok: false, error: 'format' };
   }
 }
 
@@ -676,16 +682,21 @@ async function validerPin() {
     syncNow();
     return;
   }
-  msg.textContent = messageErreur(rep.error);
+  msg.textContent = messageErreur(rep);
 }
 
-function messageErreur(error) {
-  switch (error) {
+function messageErreur(rep) {
+  switch (rep.error) {
     case 'auth': return 'PIN refusé';
     case 'bloque': return 'Trop d\'essais de PIN : réessaie dans 15 minutes';
     case 'reseau': return 'hors ligne';
     case 'pin': return 'PIN manquant';
-    default: return 'erreur du script (' + (error || 'réponse invalide') + ')';
+    case 'delai': return 'le script ne répond pas (délai dépassé)';
+    case 'injoignable': return 'script injoignable : vérifie l\'adresse et l\'accès « Tout le monde »';
+    case 'format': return 'réponse illisible du script : vérifie l\'adresse (…/exec)';
+    case 'config': return 'config du script invalide : vérifie la propriété CONFIG';
+    case 'serveur': return 'erreur du script' + (rep.message ? ' : ' + rep.message : '');
+    default: return 'erreur du script (' + (rep.message || rep.error || 'réponse invalide') + ')';
   }
 }
 
@@ -976,7 +987,7 @@ function finSync(rep) {
     setSyncStatus(true);
     return true;
   }
-  setSyncStatus(false, rep.ok === true ? '' : messageErreur(rep.error));
+  setSyncStatus(false, rep.ok === true ? '' : messageErreur(rep));
   if (rep.error === 'auth' || rep.error === 'pin') ouvrirPin(rep.error === 'auth' ? 'PIN refusé' : '');
   return false;
 }
