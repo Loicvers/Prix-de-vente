@@ -1119,8 +1119,13 @@ async function synchroniser() {
   return finSync({ ok: true });
 }
 
+// Réseau faible (le téléphone se croit connecté mais la requête échoue) :
+// nouvel essai toutes les 2 minutes tant que des envois attendent.
+let reessai = null;
 function finSync(rep) {
   rafraichir();
+  clearTimeout(reessai);
+  if (['reseau', 'http'].includes(rep.error) && enAttente()) reessai = setTimeout(syncNow, 120000);
   if (rep.ok === true && enAttente() === 0) {
     setSyncStatus(true);
     return true;

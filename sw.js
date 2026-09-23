@@ -3,7 +3,7 @@
 // (la nouvelle version s'affiche à l'ouverture suivante). Les appels au
 // script Google (POST) ne passent jamais par le cache.
 'use strict';
-const CACHE = 'pv-v3';
+const CACHE = 'pv-v4';
 const COQUILLE = [
   './', 'index.html', 'calcul.js', 'manifest.json',
   'icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png',
