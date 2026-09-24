@@ -47,6 +47,10 @@
   [data-cat="mousseux"]          { --c: #e8c97c; }
   [data-cat="magnum_tranquille"] { --c: #c9607a; }
   [data-cat="magnum_mousseux"]   { --c: #d9b05a; }
+  [data-cat="3l_tranquille"]     { --c: #e06a8c; }
+  [data-cat="3l_mousseux"]       { --c: #e0aa55; }
+  [data-cat="4_5l_tranquille"]   { --c: #d77aa8; }
+  [data-cat="5l_tranquille"]     { --c: #c98ac0; }
   [data-cat="demie"]             { --c: #86c2ad; }
   [data-cat="intermediaire"]     { --c: #b196e8; }
 
@@ -211,7 +215,7 @@
       var(--surface);
     box-shadow: var(--ombre);
   }
-  .resultat-haut { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+  .resultat-haut { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 4px 12px; }
   .resultat-libelle { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .09em; }
   .resultat-cat { font-size: 13px; color: var(--c); margin-top: 2px; }
   .resultat-prix {
@@ -564,12 +568,18 @@ const CATEGORIES = {
   mousseux:          { label: 'Vin mousseux / pétillant',   nom: 'Pétillant',      court: 'Pétillant' },
   magnum_tranquille: { label: 'Magnum tranquille (1,5 l)',  nom: 'Tranquille',     court: 'Magnum tranquille' },
   magnum_mousseux:   { label: 'Magnum pétillant (1,5 l)',   nom: 'Pétillant',      court: 'Magnum pétillant' },
+  '3l_tranquille':   { label: 'Double magnum tranquille (3 l)', nom: 'Double magnum', court: 'Double magnum', info: 'tranquille' },
+  '3l_mousseux':     { label: 'Jéroboam pétillant (3 l)',   nom: 'Jéroboam',       court: 'Jéroboam 3 l', info: 'pétillant' },
+  '4_5l_tranquille': { label: 'Tranquille 4,5 l',           nom: '4,5 l',          court: 'Tranquille 4,5 l', info: 'tranquille' },
+  '5l_tranquille':   { label: 'Jéroboam tranquille (5 l)',  nom: 'Jéroboam 5 l',   court: 'Jéroboam 5 l', info: 'tranquille' },
   demie:             { label: '37,5 cl',                    nom: 'Demi-bouteille', court: '37,5 cl', info: '37,5 cl' },
   intermediaire:     { label: 'Produit intermédiaire 75cl', nom: 'Intermédiaire',  court: 'Intermédiaire', info: 'Maury, Porto, VDN…' },
 };
 const GROUPES = [
   ['Bouteille 75 cl', ['tranquille', 'mousseux']],
   ['Magnum 1,5 l', ['magnum_tranquille', 'magnum_mousseux']],
+  ['3 litres', ['3l_tranquille', '3l_mousseux']],
+  ['4,5 et 5 litres', ['4_5l_tranquille', '5l_tranquille']],
   ['Autres formats', ['demie', 'intermediaire']],
 ];
 function categorie(cle) { return CATEGORIES[cle] || CATEGORIES.tranquille; }
@@ -748,7 +758,7 @@ function renderCategories() {
         const cat = CATEGORIES[cle];
         const conf = config && config.categories[cle];
         const info = conf ? '+' + fmt(conf.frais) + ' de frais' + (cat.info ? ' · ' + cat.info : '')
-          : (config ? 'frais à charger' : (cat.info || ''));
+          : (config ? 'frais à charger' + (cat.info ? ' · ' + cat.info : '') : (cat.info || ''));
         return `<button type="button" class="cat" data-cat="${cle}" data-action="categorie" aria-pressed="${cle === currentCat}">
           <span class="cat-nom">${esc(cat.nom)}</span>
           <span class="cat-info${config && !conf ? ' manque' : ''}">${esc(info)}</span>

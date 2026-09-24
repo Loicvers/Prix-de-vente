@@ -18,8 +18,10 @@ GitHub Pages : https://loicvers.github.io/Prix-de-vente/
 
 ## Catégories
 
-Bouteille 75 cl (tranquille, pétillant), magnum 1,5 l (tranquille,
-pétillant), 37,5 cl et produit intermédiaire. Les frais des magnums sont à
+Bouteille 75 cl (tranquille, pétillant), grands formats (magnum 1,5 l
+tranquille et pétillant, double magnum tranquille 3 l, jéroboam pétillant
+3 l, tranquille 4,5 l, jéroboam tranquille 5 l), 37,5 cl et produit
+intermédiaire. Les frais des grands formats sont à
 ajouter dans `CONFIG` : voir `apps-script/INSTALL.md`, « Ajouter une
 catégorie ». Aucun montant de frais dans ce dépôt.
 

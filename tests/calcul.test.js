@@ -38,7 +38,8 @@ test('la config chargée est valide', { skip: sansConfig }, () => {
   }
   // Magnums : facultatifs tant que leurs frais ne sont pas ajoutés.
   for (const cle of Object.keys(config.categories)) {
-    assert.ok(['tranquille', 'mousseux', 'demie', 'intermediaire', 'magnum_tranquille', 'magnum_mousseux'].includes(cle),
+    assert.ok(['tranquille', 'mousseux', 'demie', 'intermediaire', 'magnum_tranquille', 'magnum_mousseux',
+      '3l_tranquille', '3l_mousseux', '4_5l_tranquille', '5l_tranquille'].includes(cle),
       'catégorie inconnue de l\'app : ' + cle);
   }
 });
@@ -49,13 +50,17 @@ for (const [categorie, achat, attendu] of CAS) {
   });
 }
 
-// Magnums (ticket T0.4), attendus calculés avec les frais proposés : à
+// Grands formats (ticket T0.4), attendus calculés avec les frais proposés : à
 // recalculer si d'autres frais sont retenus. Ignorés tant que la config
 // locale ne contient pas la catégorie.
 const CAS_MAGNUM = [
   ['magnum_tranquille', 8.00, 17.10],
   ['magnum_tranquille', 20.00, 35.10],
   ['magnum_mousseux', 30.00, 51.80],
+  ['3l_tranquille', 20.00, 38.10],
+  ['3l_mousseux', 50.00, 84.20],
+  ['4_5l_tranquille', 40.00, 68.00],
+  ['5l_tranquille', 40.00, 68.90],
 ];
 
 for (const [categorie, achat, attendu] of CAS_MAGNUM) {

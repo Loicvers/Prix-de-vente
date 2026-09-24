@@ -31,7 +31,11 @@ var LIBELLES = {
   demie: '37,5 cl',
   intermediaire: 'Produit intermédiaire 75cl',
   magnum_tranquille: 'Magnum tranquille (1,5 l)',
-  magnum_mousseux: 'Magnum pétillant (1,5 l)'
+  magnum_mousseux: 'Magnum pétillant (1,5 l)',
+  '3l_tranquille': 'Double magnum tranquille (3 l)',
+  '3l_mousseux': 'Jéroboam pétillant (3 l)',
+  '4_5l_tranquille': 'Tranquille 4,5 l',
+  '5l_tranquille': 'Jéroboam tranquille (5 l)'
 };
 
 // Catégories de l'ancienne app : les seules possibles dans Historique.

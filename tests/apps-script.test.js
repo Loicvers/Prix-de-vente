@@ -296,6 +296,29 @@ test('lot : toute la file en une requête, config comprise, erreurs par opérati
   assert.deepEqual(env.post({ action: 'lot', pin: PIN, operations: [] }).resultats, []);
 });
 
+test('grands formats : enregistrés avec leur libellé dans Privé et Public', () => {
+  const grands = {
+    magnum_tranquille: 'Magnum tranquille (1,5 l)',
+    magnum_mousseux: 'Magnum pétillant (1,5 l)',
+    '3l_tranquille': 'Double magnum tranquille (3 l)',
+    '3l_mousseux': 'Jéroboam pétillant (3 l)',
+    '4_5l_tranquille': 'Tranquille 4,5 l',
+    '5l_tranquille': 'Jéroboam tranquille (5 l)',
+  };
+  const categories = Object.assign({}, CONFIG.categories);
+  Object.keys(grands).forEach((cle, i) => { categories[cle] = { frais: 10 + i }; });
+  const env = environnement({ props: { CONFIG: JSON.stringify(Object.assign({}, CONFIG, { categories })) } });
+  Object.keys(grands).forEach((cle, i) => {
+    assert.equal(env.post({ action: 'enregistrer', pin: PIN, nom: 'Vin ' + i, categorie: cle, prixAchat: 20, prixTTC: 40 }).ok, true);
+    // Le libellé est aussi accepté à la place de la clé.
+    assert.equal(env.post({ action: 'enregistrer', pin: PIN, nom: 'Vin ' + i, categorie: grands[cle], prixAchat: 20, prixTTC: 40 }).ok, true);
+  });
+  const prive = env.onglet('Privé').data.slice(1);
+  const pub = env.onglet('Public').data.slice(1);
+  assert.deepEqual(prive.map(r => [r[2], r[4]]), Object.keys(grands).map((cle, i) => [grands[cle], 10 + i]));
+  assert.deepEqual(pub.map(r => r[2]), Object.values(grands));
+});
+
 test('le calcul du script est identique à celui de l\'app', () => {
   const Calcul = require('../calcul.js');
   const env = environnement();
