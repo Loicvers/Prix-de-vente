@@ -52,6 +52,55 @@ montants dans le fichier privé) :
 Pour changer plus tard un frais ou un coefficient : modifie seulement cette
 propriété. L'app récupère la nouvelle config à sa prochaine synchronisation.
 
+### Ajouter une catégorie (par exemple les grands formats)
+
+L'app connaît six catégories de grands formats :
+
+| Clé | Libellé |
+| --- | --- |
+| `magnum_tranquille` | Magnum tranquille (1,5 l) |
+| `magnum_mousseux` | Magnum pétillant (1,5 l) |
+| `3l_tranquille` | Double magnum tranquille (3 l) |
+| `3l_mousseux` | Jéroboam pétillant (3 l) |
+| `4_5l_tranquille` | Tranquille 4,5 l |
+| `5l_tranquille` | Jéroboam tranquille (5 l) |
+
+Tant que leurs frais ne sont pas dans `CONFIG`, l'app les affiche avec
+« frais à charger » et ne calcule pas leur prix. Tu peux n'en ajouter que
+certaines.
+
+Les montants des frais ne sont **pas** dans ce guide (dépôt public) : prends
+ceux que tu as validés, notés dans ton document privé.
+
+1. **Mettre le script à jour** (une seule fois) : colle la dernière version
+   de `Code.gs` (étape 1), enregistre, puis crée une nouvelle version du
+   déploiement (voir « Tu as modifié le code », tout en bas).
+2. Dans l'éditeur Apps Script, clique sur la **roue dentée** à gauche
+   (**Paramètres du projet**), descends jusqu'à **Propriétés du script**.
+3. Clique dans la valeur de `CONFIG`, sélectionne tout (Ctrl+A, ou Cmd+A sur
+   Mac), copie (Ctrl+C) et **colle-la dans un fichier texte de secours**
+   (Bloc-notes, TextEdit). Si tu te trompes, tu pourras recoller ce texte.
+4. Toujours dans la valeur de `CONFIG`, trouve le texte `"intermediaire":{`.
+   Juste après, repère la première accolade fermante `}` : c'est la fin de
+   la catégorie « intermédiaire ».
+5. Place le curseur juste après cette `}` et tape (ou colle) :
+
+   ```json
+   ,"magnum_tranquille":{"frais":…},"magnum_mousseux":{"frais":…},"3l_tranquille":{"frais":…},"3l_mousseux":{"frais":…},"4_5l_tranquille":{"frais":…},"5l_tranquille":{"frais":…}
+   ```
+
+   Remplace chaque `…` par le montant du frais, **avec un point** comme
+   séparateur décimal (par exemple `2.5`, jamais `2,5`), sans le signe €.
+   La virgule au tout début est indispensable. Ne touche à rien d'autre :
+   ni aux autres catégories, ni à `"tranches"`, ni à `"arrondi"`.
+6. Clique sur **Enregistrer les propriétés du script**.
+7. Dans l'app, onglet **Historique › Synchroniser** (ou rouvre l'app avec du
+   réseau). Les grands formats affichent alors « +… € de frais ».
+
+Si l'app dit « erreur du script (serveur) » après l'étape 6, la valeur de
+`CONFIG` est mal formée : recolle le texte de secours de l'étape 3 et
+recommence à l'étape 4.
+
 ## 3. Créer le nouveau déploiement
 
 1. En haut à droite : **Déployer › Nouveau déploiement**.
