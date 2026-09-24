@@ -562,14 +562,14 @@ const SCRIPT_URL = '';
 const CATEGORIES = {
   tranquille:        { label: 'Vin tranquille',             nom: 'Tranquille',     court: 'Tranquille' },
   mousseux:          { label: 'Vin mousseux / pétillant',   nom: 'Pétillant',      court: 'Pétillant' },
-  magnum_tranquille: { label: 'Magnum vin tranquille',      nom: 'Tranquille',     court: 'Magnum tranquille' },
-  magnum_mousseux:   { label: 'Magnum pétillant',           nom: 'Pétillant',      court: 'Magnum pétillant' },
+  magnum_tranquille: { label: 'Magnum tranquille (1,5 l)',  nom: 'Tranquille',     court: 'Magnum tranquille' },
+  magnum_mousseux:   { label: 'Magnum pétillant (1,5 l)',   nom: 'Pétillant',      court: 'Magnum pétillant' },
   demie:             { label: '37,5 cl',                    nom: 'Demi-bouteille', court: '37,5 cl', info: '37,5 cl' },
   intermediaire:     { label: 'Produit intermédiaire 75cl', nom: 'Intermédiaire',  court: 'Intermédiaire', info: 'Maury, Porto, VDN…' },
 };
 const GROUPES = [
   ['Bouteille 75 cl', ['tranquille', 'mousseux']],
-  ['Magnum 150 cl', ['magnum_tranquille', 'magnum_mousseux']],
+  ['Magnum 1,5 l', ['magnum_tranquille', 'magnum_mousseux']],
   ['Autres formats', ['demie', 'intermediaire']],
 ];
 function categorie(cle) { return CATEGORIES[cle] || CATEGORIES.tranquille; }
@@ -748,7 +748,7 @@ function renderCategories() {
         const cat = CATEGORIES[cle];
         const conf = config && config.categories[cle];
         const info = conf ? '+' + fmt(conf.frais) + ' de frais' + (cat.info ? ' · ' + cat.info : '')
-          : (config ? 'frais à configurer' : (cat.info || ''));
+          : (config ? 'frais à charger' : (cat.info || ''));
         return `<button type="button" class="cat" data-cat="${cle}" data-action="categorie" aria-pressed="${cle === currentCat}">
           <span class="cat-nom">${esc(cat.nom)}</span>
           <span class="cat-info${config && !conf ? ' manque' : ''}">${esc(info)}</span>
@@ -795,8 +795,10 @@ function calculer() {
   const conf = config && config.categories[currentCat];
   manque.hidden = !config || !!conf;
   if (config && !conf) {
-    manque.innerHTML = `<strong>${esc(categorie(currentCat).label)}</strong> : les frais ne sont pas encore dans la config du script. ` +
-      `Ajoute <code>${esc(currentCat)}</code> dans la propriété CONFIG (voir INSTALL.md).`;
+    // Cache d'avant l'ajout de la catégorie : une connexion recharge la config.
+    manque.innerHTML = `<strong>Connecte-toi une première fois avec ton PIN</strong> pour charger les frais de la catégorie ` +
+      `${esc(categorie(currentCat).label)}. <button data-action="pin">Entrer mon PIN</button><br/>` +
+      `<small>Si ce message reste après connexion : ajoute <code>${esc(currentCat)}</code> dans la propriété CONFIG du script (INSTALL.md, « Ajouter une catégorie »).</small>`;
   }
   if (!conf || isNaN(val)) { zone.hidden = true; return; }
 

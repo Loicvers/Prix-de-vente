@@ -286,7 +286,7 @@ test('lot : toute la file en une requête, config comprise, erreurs par opérati
   const pub = env.onglet('Public').data;
   assert.deepEqual(pub.slice(1), [
     ['UCP-0001', VIN.nom, 'Produit intermédiaire 75cl', VIN.prixTTC, 'retiré'],
-    ['UCP-0002', 'Magnum Rouge', 'Magnum vin tranquille 150cl', 30, 'disponible'],
+    ['UCP-0002', 'Magnum Rouge', 'Magnum tranquille (1,5 l)', 30, 'disponible'],
   ]);
   assert.equal(env.onglet('Privé').data[2][4], 6);
 

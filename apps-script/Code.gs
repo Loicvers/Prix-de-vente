@@ -30,8 +30,8 @@ var LIBELLES = {
   mousseux: 'Vin mousseux / pétillant',
   demie: '37,5 cl',
   intermediaire: 'Produit intermédiaire 75cl',
-  magnum_tranquille: 'Magnum vin tranquille 150cl',
-  magnum_mousseux: 'Magnum pétillant 150cl'
+  magnum_tranquille: 'Magnum tranquille (1,5 l)',
+  magnum_mousseux: 'Magnum pétillant (1,5 l)'
 };
 
 // Catégories de l'ancienne app : les seules possibles dans Historique.

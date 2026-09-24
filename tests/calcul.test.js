@@ -49,6 +49,22 @@ for (const [categorie, achat, attendu] of CAS) {
   });
 }
 
+// Magnums (ticket T0.4), attendus calculés avec les frais proposés : à
+// recalculer si d'autres frais sont retenus. Ignorés tant que la config
+// locale ne contient pas la catégorie.
+const CAS_MAGNUM = [
+  ['magnum_tranquille', 8.00, 17.10],
+  ['magnum_tranquille', 20.00, 35.10],
+  ['magnum_mousseux', 30.00, 51.80],
+];
+
+for (const [categorie, achat, attendu] of CAS_MAGNUM) {
+  const skip = sansConfig || (config.categories[categorie] ? false : `catégorie ${categorie} absente de la config`);
+  test(`${categorie} ${achat.toFixed(2)} → ${attendu.toFixed(2)} €`, { skip }, () => {
+    assert.equal(Calcul.prixTTC(achat, categorie, config), attendu);
+  });
+}
+
 // Moteur de calcul, avec une config fictive (aucune valeur réelle).
 const FICTIVE = {
   categories: { a: { frais: 2 }, b: { frais: 0 } },

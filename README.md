@@ -18,9 +18,10 @@ GitHub Pages : https://loicvers.github.io/Prix-de-vente/
 
 ## Catégories
 
-Bouteille 75 cl (tranquille, pétillant), magnum 150 cl (tranquille,
+Bouteille 75 cl (tranquille, pétillant), magnum 1,5 l (tranquille,
 pétillant), 37,5 cl et produit intermédiaire. Les frais des magnums sont à
-ajouter dans `CONFIG` : voir `apps-script/INSTALL.md`, « Ajouter les magnums ».
+ajouter dans `CONFIG` : voir `apps-script/INSTALL.md`, « Ajouter une
+catégorie ». Aucun montant de frais dans ce dépôt.
 
 ## Synchronisation
 
