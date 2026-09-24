@@ -662,21 +662,31 @@ async function appelScript(action, donnees, acces, delai) {
   if (navigator.onLine === false) return { ok: false, error: 'reseau' };
   const ctrl = new AbortController();
   const minuteur = setTimeout(() => ctrl.abort(), delai || 20000);
+  let rep;
   try {
-    const rep = await fetch(url, {
+    rep = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(Object.assign({}, donnees, { action, pin })),
       signal: ctrl.signal,
       cache: 'no-store',
     });
-    if (!rep.ok) return { ok: false, error: 'http' };
+  } catch {
+    clearTimeout(minuteur);
+    if (ctrl.signal.aborted) return { ok: false, error: 'delai' };
+    // En ligne mais aucune réponse lisible : adresse fausse ou déploiement
+    // pas ouvert à « Tout le monde » (Google renvoie vers sa page de connexion).
+    return { ok: false, error: navigator.onLine === false ? 'reseau' : 'injoignable' };
+  }
+  clearTimeout(minuteur);
+  if (!rep.ok) return { ok: false, error: 'http' };
+  // Une page HTML au lieu de JSON : erreur dans le code collé ou autorisation
+  // Google manquante.
+  try {
     const json = await rep.json();
     return (json && typeof json === 'object') ? json : { ok: false, error: 'format' };
   } catch {
-    return { ok: false, error: 'reseau' };
-  } finally {
-    clearTimeout(minuteur);
+    return { ok: false, error: 'format' };
   }
 }
 
@@ -738,6 +748,12 @@ function messageErreur(error) {
     case 'auth': return 'PIN refusé';
     case 'bloque': return 'Trop d\'essais de PIN : réessaie dans 15 minutes';
     case 'reseau': return 'hors ligne';
+    case 'injoignable': return 'script injoignable : vérifie l\'adresse /exec et que le déploiement est ouvert à « Tout le monde »';
+    case 'delai': return 'le script met trop de temps à répondre';
+    case 'format': return 'réponse illisible du script : code mal collé ou déploiement non autorisé (lance diagnostic dans Apps Script)';
+    case 'serveur': return 'erreur du script : propriété CONFIG absente ou mal formée (lance diagnostic dans Apps Script)';
+    case 'config': return 'CONFIG incomplète ou invalide (lance diagnostic dans Apps Script)';
+    case 'http': return 'le script a répondu par une erreur Google (réessaie, puis vérifie le déploiement)';
     case 'pin': return 'PIN manquant';
     case 'categorie': return 'catégorie inconnue du script (mets Code.gs à jour)';
     case 'nom': return 'nom manquant';
@@ -1137,7 +1153,7 @@ let reessai = null;
 function finSync(rep) {
   rafraichir();
   clearTimeout(reessai);
-  if (['reseau', 'http'].includes(rep.error) && enAttente()) reessai = setTimeout(syncNow, 120000);
+  if (['reseau', 'injoignable', 'delai', 'http'].includes(rep.error) && enAttente()) reessai = setTimeout(syncNow, 120000);
   if (rep.ok === true && enAttente() === 0) {
     setSyncStatus(true);
     return true;

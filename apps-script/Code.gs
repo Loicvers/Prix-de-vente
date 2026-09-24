@@ -212,6 +212,86 @@ function retirer_(req) {
 }
 
 // ===========================
+// DIAGNOSTIC (à lancer à la main)
+// ===========================
+// Vérifie les propriétés PIN et CONFIG et les onglets, puis écrit le
+// résultat dans le journal d'exécution. Ne modifie rien. N'affiche aucun
+// montant, sauf l'extrait de CONFIG autour d'une erreur de syntaxe.
+function diagnostic() {
+  var props = PropertiesService.getScriptProperties();
+  var ok = [];
+  var problemes = [];
+
+  var pin = props.getProperty('PIN');
+  if (!pin) problemes.push('Propriété PIN absente : ajoute-la (Paramètres du projet › Propriétés du script).');
+  else if (String(pin) !== String(pin).trim()) problemes.push('PIN : espace au début ou à la fin, à retirer.');
+  else ok.push('PIN présent (' + String(pin).length + ' caractères).');
+
+  var brut = props.getProperty('CONFIG');
+  var config = null;
+  if (!brut) {
+    problemes.push('Propriété CONFIG absente.');
+  } else {
+    try {
+      config = JSON.parse(brut);
+      ok.push('CONFIG lisible.');
+    } catch (err) {
+      var message = String((err && err.message) || err);
+      var m = /position (\d+)/.exec(message);
+      var extrait = '';
+      if (m) {
+        var pos = Number(m[1]);
+        extrait = ' Autour de l\'erreur : « ' + brut.slice(Math.max(0, pos - 25), pos) + ' ⟶ ' + brut.slice(pos, pos + 25) + ' ».';
+      }
+      problemes.push('CONFIG illisible (virgule, guillemet ou accolade en trop ou manquant ; décimales avec un point, pas une virgule).' +
+        extrait + ' Détail : ' + message);
+    }
+  }
+
+  if (config) {
+    var cats = config.categories && typeof config.categories === 'object' ? config.categories : null;
+    if (!cats) {
+      problemes.push('CONFIG : "categories" manquant.');
+    } else {
+      Object.keys(cats).forEach(function (cle) {
+        if (!LIBELLES[cle]) problemes.push('CONFIG : catégorie inconnue « ' + cle + ' » (faute de frappe ?). Clés possibles : ' + Object.keys(LIBELLES).join(', ') + '.');
+        var frais = cats[cle] && cats[cle].frais;
+        if (typeof frais !== 'number' || !isFinite(frais) || frais < 0) {
+          problemes.push('CONFIG : les frais de « ' + cle + ' » doivent être un nombre sans guillemets, avec un point (ex. 6.7).');
+        }
+      });
+      var presentes = Object.keys(LIBELLES).filter(function (cle) { return cats[cle]; });
+      var absentes = Object.keys(LIBELLES).filter(function (cle) { return !cats[cle]; });
+      ok.push('Catégories avec frais : ' + presentes.join(', ') + '.');
+      if (absentes.length) ok.push('Catégories sans frais (affichées « frais à charger » dans l\'app) : ' + absentes.join(', ') + '.');
+      CATEGORIES_HISTORIQUE.forEach(function (cle) {
+        if (!cats[cle]) problemes.push('CONFIG : la catégorie de base « ' + cle + ' » a disparu.');
+      });
+    }
+    var t = config.tranches;
+    var tranchesOk = Array.isArray(t) && t.length > 0 && t.every(function (x, i) {
+      var derniere = i === t.length - 1;
+      return x && typeof x.coef === 'number' && x.coef > 0 &&
+        (derniere ? x.jusqua === null || x.jusqua === undefined : typeof x.jusqua === 'number');
+    });
+    if (!tranchesOk) problemes.push('CONFIG : "tranches" abîmées (chaque tranche : "jusqua" et "coef" ; la dernière a "jusqua":null).');
+    if (typeof config.arrondi !== 'number' || !(config.arrondi > 0)) problemes.push('CONFIG : "arrondi" manquant ou invalide.');
+  }
+
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  [ONGLET_PRIVE, ONGLET_PUBLIC].forEach(function (nom) {
+    if (ss.getSheetByName(nom)) ok.push('Onglet « ' + nom + ' » présent.');
+    else problemes.push('Onglet « ' + nom + ' » absent (il sera recréé vide au prochain enregistrement : vérifie son nom).');
+  });
+
+  var texte = (problemes.length ? '❌ ' + problemes.length + ' problème(s) :\n- ' + problemes.join('\n- ') + '\n\n' : '✅ Aucun problème trouvé.\n\n') +
+    'Vérifié :\n- ' + ok.join('\n- ') +
+    '\n\nRappel : après avoir collé un nouveau Code.gs, il faut Déployer › Gérer les déploiements › crayon › Nouvelle version › Déployer.';
+  Logger.log(texte);
+  return { ok: problemes.length === 0, problemes: problemes, verifie: ok };
+}
+
+// ===========================
 // LOT (toute la file d'attente en une requête)
 // ===========================
 // Chaque opération a sa propre réponse : un produit refusé (nom, catégorie…)

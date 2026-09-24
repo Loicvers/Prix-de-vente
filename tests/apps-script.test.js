@@ -319,6 +319,30 @@ test('grands formats : enregistrés avec leur libellé dans Privé et Public', (
   assert.deepEqual(pub.map(r => r[2]), Object.values(grands));
 });
 
+test('diagnostic : config correcte, puis erreurs typiques d\'une modification à la main', () => {
+  const onglets = [fausseFeuille('Privé'), fausseFeuille('Public')];
+  assert.equal(environnement({ onglets }).ctx.diagnostic().ok, true);
+
+  // Virgule décimale collée dans CONFIG : JSON illisible, extrait montré.
+  const casse = JSON.stringify(CONFIG).replace('"demie":{"frais":2}', '"demie":{"frais":2,5}');
+  let d = environnement({ onglets, props: { CONFIG: casse } }).ctx.diagnostic();
+  assert.equal(d.ok, false);
+  assert.match(d.problemes[0], /CONFIG illisible/);
+  assert.match(d.problemes[0], /⟶/);
+
+  // Faute de frappe dans une clé, frais entre guillemets, PIN avec espace.
+  const faute = Object.assign({}, CONFIG, { categories: Object.assign({}, CONFIG.categories, { magnum_tranquile: { frais: 2 }, '3l_mousseux': { frais: '8' } }) });
+  d = environnement({ props: { CONFIG: JSON.stringify(faute), PIN: PIN + ' ' } }).ctx.diagnostic();
+  const tout = d.problemes.join('\n');
+  assert.match(tout, /PIN : espace/);
+  assert.match(tout, /inconnue « magnum_tranquile »/);
+  assert.match(tout, /frais de « 3l_mousseux »/);
+  assert.match(tout, /Onglet « Privé » absent/);
+
+  d = environnement({ props: { CONFIG: null, PIN: null } }).ctx.diagnostic();
+  assert.deepEqual(Array.from(d.problemes.slice(0, 2)), ['Propriété PIN absente : ajoute-la (Paramètres du projet › Propriétés du script).', 'Propriété CONFIG absente.']);
+});
+
 test('le calcul du script est identique à celui de l\'app', () => {
   const Calcul = require('../calcul.js');
   const env = environnement();
