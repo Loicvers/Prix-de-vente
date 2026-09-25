@@ -14,7 +14,8 @@ GitHub Pages : https://loicvers.github.io/Prix-de-vente/
 | `apps-script/Code.gs` | Script de la feuille Google (à coller dans Apps Script). |
 | `apps-script/INSTALL.md` | Installation du script, pas à pas. |
 | `MIGRATION.md` | Passage au dépôt neuf, pas à pas. |
-| `tests/` | Tests (`node --test`, Node 18 ou plus). |
+| `tests/` | Tests (`npm test`, `npm run test:e2e`, Node 18 ou plus). |
+| `docs/ETAT-DE-REFERENCE.md` | Comportement de référence avant la refonte. |
 
 ## Catégories
 
@@ -45,8 +46,13 @@ encore mis à jour, l'app repasse automatiquement à une requête par opération
 ## Tests
 
 ```sh
-node --test
+npm install          # une fois (Playwright, pour les tests de l'app)
+npm test             # calcul, script de la feuille, confidentialité
+npm run test:e2e     # l'app dans Chromium, contre le vrai Code.gs
 ```
+
+L'état de référence de l'app (comportements vérifiés, bugs et risques connus)
+est décrit dans `docs/ETAT-DE-REFERENCE.md`.
 
 Les 4 cas de prix de référence ont besoin de la vraie config : copie la
 valeur de la propriété `CONFIG` dans `tests/config.local.json` (ignoré par

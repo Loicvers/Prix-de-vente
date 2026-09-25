@@ -2,6 +2,11 @@
   "name": "prix-de-vente",
   "private": true,
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "test:e2e": "node --test --test-concurrency=2 \"tests/e2e/*.e2e.js\"",
+    "test:tout": "npm test && npm run test:e2e"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
   }
 }
