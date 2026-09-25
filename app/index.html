@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#16100f"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Prix de vente"/>
+<title>Prix de Vente – Une Autre Clé du Paradis</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" href="icon.svg" type="image/svg+xml"/>
+<link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<script type="module" src="./src/main.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="entete">
+    <div class="marque">
+      <h1>Prix de vente</h1>
+      <p>Une Autre Clé du Paradis</p>
+    </div>
+    <button class="pastille" id="pastille" data-etat="off" data-action="onglet" data-onglet="history" aria-label="État de la synchronisation">
+      <span class="point"></span><span id="pastille-texte">Hors ligne</span>
+    </button>
+    <button class="icone-btn" data-action="pin" title="Changer de PIN" aria-label="Changer de PIN">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="m10.7 12.3 9.8-9.8M16 7l3 3M19 4l2 2"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- ===== CALCULER ===== -->
+  <section class="page active" id="page-calc" role="tabpanel" aria-labelledby="onglet-calc">
+    <div class="alerte danger" id="config-manquante" hidden>
+      <strong>Connecte-toi une première fois avec ton PIN</strong> pour charger les frais et coefficients.
+      <button data-action="pin">Entrer mon PIN</button>
+    </div>
+
+    <div class="carte">
+      <div class="carte-titre">Catégorie</div>
+      <div id="categories"></div>
+    </div>
+
+    <div class="carte">
+      <label class="champ" for="input-prix">Prix d'achat HT</label>
+      <div class="prix-saisie">
+        <input type="text" id="input-prix" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="0,00"/>
+        <span aria-hidden="true">€</span>
+      </div>
+    </div>
+
+    <div class="alerte" id="cat-manquante" hidden></div>
+
+    <div class="carte resultat" id="resultat" hidden aria-live="polite">
+      <div class="resultat-haut">
+        <div>
+          <div class="resultat-libelle">Prix de vente TTC</div>
+          <div class="resultat-cat" id="resultat-cat"></div>
+        </div>
+        <div class="resultat-prix" id="resultat-prix">—</div>
+      </div>
+      <details class="detail" id="detail">
+        <summary>Détail du calcul</summary>
+        <div id="resultat-detail"></div>
+      </details>
+      <form class="enregistrer" id="form-enregistrer" autocomplete="off">
+        <label class="visuellement-cache" for="input-nom">Nom du produit</label>
+        <input type="text" id="input-nom" placeholder="Nom du produit" enterkeyhint="send"/>
+        <button class="btn btn-principal" type="submit">Enregistrer</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== PRODUITS ===== -->
+  <section class="page" id="page-list" role="tabpanel" aria-labelledby="onglet-list">
+    <div class="recherche">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <label class="visuellement-cache" for="search-input">Rechercher</label>
+      <input type="search" id="search-input" placeholder="Rechercher un produit ou un SKU" autocomplete="off"/>
+    </div>
+    <div class="filtres" id="filtres"></div>
+    <div class="compte" id="compte"></div>
+    <div id="product-list"></div>
+  </section>
+
+  <!-- ===== HISTORIQUE ===== -->
+  <section class="page" id="page-history" role="tabpanel" aria-labelledby="onglet-history">
+    <div class="carte synchro">
+      <p id="sync-status">Non synchronisé</p>
+      <button class="btn btn-secondaire btn-petit" data-action="sync">Synchroniser</button>
+    </div>
+    <div class="carte-titre">Derniers calculs enregistrés</div>
+    <div id="history-list"></div>
+  </section>
+</main>
+
+<nav class="onglets" aria-label="Sections">
+  <div class="onglets-rang" role="tablist">
+    <button class="onglet" id="onglet-calc" role="tab" aria-selected="true" data-action="onglet" data-onglet="calc">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M8.5 6.5h7M8.5 11h.01M12 11h.01M15.5 11h.01M8.5 14.5h.01M12 14.5h.01M15.5 14.5h.01M8.5 18h.01M12 18h.01M15.5 18h.01"/></svg>
+      Calculer
+    </button>
+    <button class="onglet" id="onglet-list" role="tab" aria-selected="false" data-action="onglet" data-onglet="list">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5h4v4.2c0 .9.4 1.7 1.1 2.3 1.2 1 1.9 2.4 1.9 4V20a1.5 1.5 0 0 1-1.5 1.5h-7A1.5 1.5 0 0 1 7 20v-7c0-1.6.7-3 1.9-4 .7-.6 1.1-1.4 1.1-2.3z"/><path d="M7 14h10"/></svg>
+      Produits
+      <span class="badge" id="badge-attente" hidden></span>
+    </button>
+    <button class="onglet" id="onglet-history" role="tab" aria-selected="false" data-action="onglet" data-onglet="history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>
+      Historique
+    </button>
+  </div>
+</nav>
+
+<!-- FICHE PRODUIT -->
+<div class="voile" id="modal">
+  <div class="fenetre" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="poignee"></div>
+    <h2 id="modal-title">Produit</h2>
+    <div id="modal-content"></div>
+    <div class="actions">
+      <button class="btn btn-secondaire" id="modal-modifier">Recalculer</button>
+      <button class="btn btn-danger" id="modal-delete-btn">Supprimer</button>
+      <button class="btn btn-secondaire btn-large" data-action="fermer">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- PIN -->
+<div class="voile centre" id="pin-modal">
+  <form class="fenetre pile" id="form-pin" role="dialog" aria-modal="true" aria-labelledby="pin-titre" autocomplete="off">
+    <h2 id="pin-titre">Ton PIN</h2>
+    <div id="pin-url-zone" hidden>
+      <label class="champ" for="pin-url">Adresse du script Google (…/exec)</label>
+      <input type="text" id="pin-url" autocomplete="off" placeholder="https://script.google.com/macros/s/…/exec"/>
+    </div>
+    <div>
+      <label class="champ" for="pin-input">PIN</label>
+      <input type="password" id="pin-input" inputmode="numeric" autocomplete="off"/>
+    </div>
+    <div class="pin-msg" id="pin-msg" role="alert"></div>
+    <button class="btn btn-principal btn-large" id="pin-ok" type="submit">Valider</button>
+    <button class="btn btn-secondaire btn-large" type="button" data-action="fermer-pin">Plus tard</button>
+  </form>
+</div>
+
+<div class="toast" id="toast" role="status"><span id="toast-texte"></span><button id="toast-action" hidden></button></div>
+
+</body>
+</html>

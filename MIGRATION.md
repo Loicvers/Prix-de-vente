@@ -76,7 +76,8 @@ grep -rE "1[.,]714|1[.,]35|0[.,]56|1[.,]92|1[.,]18|0[.,]27|AKfycb""zfmTfy" . --e
 ```
 
 Si Loïc veut éviter de saisir l'adresse du script sur chaque appareil, elle
-peut être écrite dans `const SCRIPT_URL = '';` de `index.html`, dans un
+peut être écrite dans `const SCRIPT_URL = '';` de `app/src/config.js` (depuis
+l'étape 2 ; avant : `index.html`), dans un
 second commit (l'adresse n'est pas secrète : sans PIN, le script refuse
 tout).
 

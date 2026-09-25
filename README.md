@@ -7,14 +7,17 @@ GitHub Pages : https://loicvers.github.io/Prix-de-vente/
 
 | Fichier | Rôle |
 | --- | --- |
-| `index.html` | L'app : calcul, liste des produits, synchronisation avec la feuille Google. |
-| `calcul.js` | Le calcul par tranches cumulées. Aucun montant : tout vient de la config. |
-| `sw.js` | Service worker : l'app s'ouvre instantanément, même hors ligne. |
-| `manifest.json`, `icon*.png`, `icon.svg` | Installation sur l'écran d'accueil (PWA). |
+| `app/` | L'app (Vite, JavaScript sans framework) : calcul, produits, synchronisation, hors ligne. Détail dans `docs/DEPLOIEMENT.md`. |
+| `app/src/core/calcul.js` | Le calcul par tranches cumulées. Aucun montant : tout vient de la config. |
+| `vite.config.mjs` | Compilation vers `dist/` et génération du service worker. |
+| `.github/workflows/publication.yml` | Tests, puis publication sur GitHub Pages depuis `main`. |
+| `index.html`, `calcul.js`, `sw.js`, `manifest.json`, icônes (racine) | Ancienne app, gardée comme solution de repli le temps de valider la nouvelle publication. |
 | `apps-script/Code.gs` | Script de la feuille Google (à coller dans Apps Script). |
 | `apps-script/INSTALL.md` | Installation du script, pas à pas. |
 | `MIGRATION.md` | Passage au dépôt neuf, pas à pas. |
-| `tests/` | Tests (`node --test`, Node 18 ou plus). |
+| `tests/` | Tests (`npm test`, `npm run test:e2e`, Node 22.12 ou plus). |
+| `docs/ETAT-DE-REFERENCE.md` | Comportement de référence avant la refonte. |
+| `docs/DEPLOIEMENT.md` | Compilation, publication, retour arrière. |
 
 ## Catégories
 
@@ -28,9 +31,23 @@ catégorie ». Aucun montant de frais dans ce dépôt.
 ## Synchronisation
 
 L'app envoie toute sa file d'attente (enregistrements et retraits) en une
-seule requête `lot`, qui renvoie aussi la config. Un produit refusé par le
-script est signalé dans la liste sans bloquer les autres. Avec un script pas
-encore mis à jour, l'app repasse automatiquement à une requête par opération.
+seule requête `lot`, qui renvoie aussi la config et la liste des produits.
+Un produit refusé par le script est signalé dans la liste sans bloquer les
+autres. Avec un script pas encore mis à jour, l'app repasse automatiquement à
+une requête par opération.
+
+La feuille Google est la source commune des produits (script version 3) :
+
+- chaque produit de Privé a une **Version**, augmentée à chaque écriture, et
+  l'**Appareil** qui l'a modifié en dernier ;
+- une écriture qui porte la version connue de l'appareil est refusée si la
+  feuille a changé entre-temps (`error: 'conflit'`, avec la version de la
+  feuille) : rien n'est écrasé sans le savoir ;
+- l'onglet **Journal** (privé) trace chaque écriture et chaque conflit ;
+- un produit retiré puis réenregistré redevient disponible, sous le même SKU ;
+- l'action `produits` (et la réponse de `lot`) renvoie la liste complète.
+
+Le détail du protocole est en tête de `apps-script/Code.gs`.
 
 ## Sécurité
 
@@ -45,8 +62,13 @@ encore mis à jour, l'app repasse automatiquement à une requête par opération
 ## Tests
 
 ```sh
-node --test
+npm install          # une fois (Vite, Playwright)
+npm test             # calcul, script de la feuille, confidentialité
+npm run test:e2e     # compile l'app, puis la teste dans Chromium contre le vrai Code.gs
 ```
+
+L'état de référence de l'app (comportements vérifiés, bugs et risques connus)
+est décrit dans `docs/ETAT-DE-REFERENCE.md`.
 
 Les 4 cas de prix de référence ont besoin de la vraie config : copie la
 valeur de la propriété `CONFIG` dans `tests/config.local.json` (ignoré par

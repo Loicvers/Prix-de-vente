@@ -2,6 +2,18 @@
   "name": "prix-de-vente",
   "private": true,
   "scripts": {
-    "test": "node --test"
+    "dev": "vite",
+    "build": "vite build",
+    "apercu": "vite preview",
+    "test": "node --test",
+    "test:e2e": "vite build && node --test --test-concurrency=2 \"tests/e2e/*.e2e.js\"",
+    "test:e2e:ancienne": "CIBLE=ancienne node --test --test-concurrency=2 \"tests/e2e/*.e2e.js\"",
+    "test:tout": "npm test && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@fontsource/dm-sans": "5.3.0",
+    "@fontsource/dm-serif-display": "5.3.0",
+    "playwright": "1.56.1",
+    "vite": "8.3.1"
   }
 }

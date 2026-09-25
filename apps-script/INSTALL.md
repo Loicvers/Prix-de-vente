@@ -180,11 +180,48 @@ place des noms, par exemple) :
 - **Public** a exactement 5 colonnes : SKU, Nom, Catégorie, Prix TTC,
   Disponibilité. Aucun prix d'achat, aucun frais.
 - **Privé** a les colonnes : SKU, Nom, Catégorie, Prix d'achat HT, Frais,
-  Prix TTC, Date MAJ.
+  Prix TTC, Date MAJ, Version, Appareil (les deux dernières sont ajoutées
+  automatiquement au premier enregistrement fait avec la version 3 du
+  script).
+- **Journal** (créé automatiquement) : une ligne par création, modification,
+  retrait, réactivation ou conflit. Il contient les prix d'achat : il est
+  **privé**, comme Privé.
 - **Historique** est identique à l'ancien onglet.
 - Ne partage jamais la feuille entière. Si un jour elle doit alimenter le
   site, ne publie que l'onglet **Public** (Fichier › Partager › Publier sur
   le Web › choisir « Public »).
+
+## 7. Mise à jour : version 3 du script (versions, conflits, Journal)
+
+Cette version ne change rien pour l'app actuelle : elle continue de
+fonctionner exactement comme avant. Elle prépare la synchronisation entre
+appareils.
+
+Ce qu'elle apporte :
+- chaque produit de **Privé** reçoit un numéro de **Version**, augmenté à
+  chaque modification, et le nom de l'**Appareil** qui l'a modifié en
+  dernier ;
+- un onglet **Journal** garde la trace de chaque écriture ;
+- un produit retiré puis réenregistré redevient **disponible** (même SKU) ;
+- les futures versions de l'app pourront relire la liste des produits et
+  seront prévenues d'un **conflit** au lieu d'écraser une modification faite
+  sur un autre appareil.
+
+Étapes (10 minutes, sur ordinateur) :
+1. Colle le nouveau `Code.gs` (étape 1 de ce guide), puis **Enregistrer**.
+2. **Déployer › Gérer les déploiements**, crayon sur « v2 avec PIN »,
+   Version : **Nouvelle version**, **Déployer**. L'adresse ne change pas.
+3. Dans la liste des fonctions, choisis **diagnostic**, puis **▷ Exécuter**.
+   Le journal d'exécution doit afficher ✅.
+4. Dans l'app : onglet Historique › **Synchroniser**. Le voyant passe au
+   vert.
+5. Enregistre un produit d'essai dans l'app, puis vérifie dans la feuille :
+   colonnes **Version** (1) et **Appareil** dans Privé, et une ligne « créer »
+   dans le nouvel onglet **Journal**. Supprime ensuite le produit d'essai
+   dans l'app : une ligne « retirer » s'ajoute au Journal.
+
+Ne supprime pas et ne réordonne pas les colonnes de Privé : le script les
+lit par leur position.
 
 ## En cas de souci
 
@@ -194,6 +231,9 @@ place des noms, par exemple) :
   tout pendant 15 minutes. Attends, puis réessaie.
 - L'app dit « erreur du script (serveur) » : la propriété `CONFIG` est
   absente ou mal collée. Recolle tout le contenu du fichier privé.
+- Dans le Journal, « conflit » : un appareil a tenté de modifier un produit
+  déjà modifié ailleurs entre-temps. Rien n'a été écrit ; les colonnes Avant
+  et Après montrent les deux versions.
 - Tu as modifié le code : **Déployer › Gérer les déploiements**, crayon sur
   « v2 avec PIN », Version : **Nouvelle version**, **Déployer**. L'URL ne
   change pas.

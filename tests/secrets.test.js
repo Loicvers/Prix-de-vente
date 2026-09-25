@@ -6,7 +6,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const RACINE = path.join(__dirname, '..');
-const IGNORES = new Set(['.git', 'node_modules', 'config.local.json']);
+// package-lock.json : uniquement des numéros de version de dépendances (faux positifs).
+const IGNORES = new Set(['.git', 'node_modules', 'config.local.json', 'package-lock.json']);
 // Mêmes motifs que le critère d'acceptation (identifiant découpé pour que ce
 // fichier ne se signale pas lui-même).
 const MOTIF = new RegExp(['1[.,]714', '1[.,]35', '0[.,]56', '1[.,]92', '1[.,]18', '0[.,]27', 'AKfycb' + 'zfmTfy'].join('|'));
