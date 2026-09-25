@@ -7,15 +7,17 @@ GitHub Pages : https://loicvers.github.io/Prix-de-vente/
 
 | Fichier | Rôle |
 | --- | --- |
-| `index.html` | L'app : calcul, liste des produits, synchronisation avec la feuille Google. |
-| `calcul.js` | Le calcul par tranches cumulées. Aucun montant : tout vient de la config. |
-| `sw.js` | Service worker : l'app s'ouvre instantanément, même hors ligne. |
-| `manifest.json`, `icon*.png`, `icon.svg` | Installation sur l'écran d'accueil (PWA). |
+| `app/` | L'app (Vite, JavaScript sans framework) : calcul, produits, synchronisation, hors ligne. Détail dans `docs/DEPLOIEMENT.md`. |
+| `app/src/core/calcul.js` | Le calcul par tranches cumulées. Aucun montant : tout vient de la config. |
+| `vite.config.mjs` | Compilation vers `dist/` et génération du service worker. |
+| `.github/workflows/publication.yml` | Tests, puis publication sur GitHub Pages depuis `main`. |
+| `index.html`, `calcul.js`, `sw.js`, `manifest.json`, icônes (racine) | Ancienne app, gardée comme solution de repli le temps de valider la nouvelle publication. |
 | `apps-script/Code.gs` | Script de la feuille Google (à coller dans Apps Script). |
 | `apps-script/INSTALL.md` | Installation du script, pas à pas. |
 | `MIGRATION.md` | Passage au dépôt neuf, pas à pas. |
-| `tests/` | Tests (`npm test`, `npm run test:e2e`, Node 18 ou plus). |
+| `tests/` | Tests (`npm test`, `npm run test:e2e`, Node 22.12 ou plus). |
 | `docs/ETAT-DE-REFERENCE.md` | Comportement de référence avant la refonte. |
+| `docs/DEPLOIEMENT.md` | Compilation, publication, retour arrière. |
 
 ## Catégories
 
@@ -60,9 +62,9 @@ Le détail du protocole est en tête de `apps-script/Code.gs`.
 ## Tests
 
 ```sh
-npm install          # une fois (Playwright, pour les tests de l'app)
+npm install          # une fois (Vite, Playwright)
 npm test             # calcul, script de la feuille, confidentialité
-npm run test:e2e     # l'app dans Chromium, contre le vrai Code.gs
+npm run test:e2e     # compile l'app, puis la teste dans Chromium contre le vrai Code.gs
 ```
 
 L'état de référence de l'app (comportements vérifiés, bugs et risques connus)

@@ -11,7 +11,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const Calcul = require('../calcul.js');
+const Calcul = require('../app/src/core/calcul.js');
 
 function chargerConfig() {
   const fichier = process.env.PV_CONFIG || path.join(__dirname, 'config.local.json');

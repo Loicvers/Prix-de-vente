@@ -2,7 +2,7 @@
 'use strict';
 const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const Calcul = require('../../calcul.js');
+const Calcul = require('../../app/src/core/calcul.js');
 const { lancer, ouvrir, fauxScript, connecte, calculer, texte, prixAffiche, CONFIG_E2E } = require('./outils');
 
 let app;
@@ -16,7 +16,7 @@ describe('calcul', () => {
   it('les 10 formats donnent le prix de calcul.js, avec leur libellé', async () => {
     const { page, context } = await app.appareil(null, { stockage: connecte() });
     await ouvrir(app, page, { connecter: false });
-    const libelles = await page.evaluate(() => Object.fromEntries(Object.entries(CATEGORIES).map(([k, v]) => [k, v.label])));
+    const libelles = Object.fromEntries(Object.entries(require('../../app/src/core/categories.js').CATEGORIES).map(([k, v]) => [k, v.label]));
     assert.deepEqual(Object.keys(libelles).sort(), CATEGORIES.slice().sort());
     for (const cat of CATEGORIES) {
       for (const achat of ACHATS) {

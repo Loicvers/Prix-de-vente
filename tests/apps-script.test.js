@@ -284,7 +284,7 @@ test('diagnostic : config correcte, puis erreurs typiques d\'une modification à
 });
 
 test('le calcul du script est identique à celui de l\'app', () => {
-  const Calcul = require('../calcul.js');
+  const Calcul = require('../app/src/core/calcul.js');
   const env = environnement();
   for (let c = 1; c <= 5000; c++) {
     assert.equal(env.ctx.prixConfig_(c / 100 + 3, CONFIG), Calcul.calculerPrixTTC(c / 100 + 3, CONFIG));

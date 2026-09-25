@@ -15,13 +15,14 @@ voulu et validé ; les tests marqués **BUG CONNU**, **LIMITE CONNUE** ou
 | --- | --- | --- |
 | 0. État de référence | Fait | — |
 | 1. Script v3 : versions, conflits, Journal, réactivation, lecture des produits | Fait (à déployer dans Apps Script) | B-03 corrigé (test inversé volontairement) ; B-06 toujours présent avec l'app actuelle, mais tracé dans le Journal. Les 58 autres tests de l'app passent sans changement avec le nouveau script. |
+| 2. Vite, modules, publication par GitHub Actions, sans changement visible | Fait (à publier : voir `docs/DEPLOIEMENT.md`) | Les 59 tests de l'app passent à l'identique sur l'app compilée et sur l'ancienne app ; test ajouté : mise à jour depuis la version en ligne (cache `pv-v7`) avec un produit en attente. Le test du cache vérifie désormais une version calculée (`pv-` + empreinte) au lieu de `pv-v7`. |
 
 ## Lancer les tests
 
 ```sh
 npm install          # une fois (installe Playwright)
 npm test             # calcul, script de la feuille, confidentialité (~1 s)
-npm run test:e2e     # l'app dans Chromium (~30 s)
+npm run test:e2e     # compile, puis l'app dans Chromium (~30 s)
 npm run test:tout    # les deux
 ```
 

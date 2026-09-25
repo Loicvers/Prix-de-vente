@@ -3,7 +3,7 @@
 'use strict';
 const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
-const Calcul = require('../../calcul.js');
+const Calcul = require('../../app/src/core/calcul.js');
 const { lancer, ouvrir, fauxScript, connecte, enregistrer, attendreEtat, lireJSON, texte, URL_SCRIPT, CONFIG_E2E, PIN } = require('./outils');
 
 let app;

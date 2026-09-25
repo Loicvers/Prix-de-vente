@@ -12,6 +12,13 @@ const { chromium } = require('playwright');
 const { PIN, environnement } = require('../helpers/fausse-feuille');
 
 const RACINE = path.join(__dirname, '..', '..');
+// Version testée : l'app compilée (dist/, par défaut) ou l'ancienne app à la
+// racine du dépôt (CIBLE=ancienne), pour comparer les deux.
+const CIBLE = process.env.CIBLE === 'ancienne' ? 'ancienne' : 'dist';
+const DOSSIERS = { ancienne: RACINE, dist: path.join(RACINE, 'dist') };
+if (CIBLE === 'dist' && !fs.existsSync(path.join(DOSSIERS.dist, 'index.html'))) {
+  throw new Error('dist/ absent : lance « npx vite build » (ou npm run test:e2e)');
+}
 const URL_SCRIPT = 'https://script.test/macros/s/faux/exec';
 
 // Config fictive couvrant les 10 catégories (aucune valeur réelle).
@@ -39,8 +46,11 @@ const TYPES = {
 
 // remplacements : { '/chemin': 'contenu' } servi à la place du fichier (pour
 // simuler une nouvelle version publiée).
+// srv.dossier : version servie, modifiable en cours de test (mise à jour
+// de l'ancienne app vers la nouvelle).
 function serveur() {
   const remplacements = {};
+  const etat = { dossier: DOSSIERS[CIBLE] };
   return new Promise(resolve => {
     const srv = http.createServer((req, res) => {
       const chemin = decodeURIComponent(new URL(req.url, 'http://x').pathname);
@@ -48,14 +58,15 @@ function serveur() {
         res.writeHead(200, { 'Content-Type': TYPES[path.extname(chemin)] || 'text/plain', 'Cache-Control': 'no-cache' });
         res.end(remplacements[chemin]); return;
       }
-      const fichier = path.join(RACINE, chemin === '/' ? 'index.html' : chemin);
-      if (!fichier.startsWith(RACINE) || !fs.existsSync(fichier) || fs.statSync(fichier).isDirectory()) {
+      const racine = etat.dossier;
+      const fichier = path.join(racine, chemin === '/' ? 'index.html' : chemin);
+      if (!fichier.startsWith(racine) || !fs.existsSync(fichier) || fs.statSync(fichier).isDirectory()) {
         res.writeHead(404); res.end(); return;
       }
       res.writeHead(200, { 'Content-Type': TYPES[path.extname(fichier)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
       fs.createReadStream(fichier).pipe(res);
     });
-    srv.listen(0, '127.0.0.1', () => resolve({ url: `http://localhost:${srv.address().port}/`, remplacements, fermer: () => srv.close() }));
+    srv.listen(0, '127.0.0.1', () => resolve({ url: `http://localhost:${srv.address().port}/`, remplacements, etat, fermer: () => srv.close() }));
   });
 }
 
@@ -102,6 +113,7 @@ async function lancer() {
   return {
     url: srv.url,
     remplacements: srv.remplacements,
+    servir(version) { srv.etat.dossier = DOSSIERS[version]; },
     // serviceWorkers : 'block' par défaut pour des tests déterministes ;
     // 'allow' pour les tests hors ligne / PWA.
     async appareil(script, options = {}) {
@@ -166,4 +178,4 @@ const prixAffiche = n => (fmtNombre.format(n) + ' €').replace(/\s+/g, ' ');
 const lireJSON = (page, cle) => page.evaluate(k => JSON.parse(localStorage.getItem(k)), cle);
 const texte = (page, sel) => page.textContent(sel).then(t => (t || '').replace(/\s+/g, ' ').trim());
 
-module.exports = { connecte, prixAffiche, PIN, URL_SCRIPT, CONFIG_E2E, fauxScript, lancer, ouvrir, attendreEtat, calculer, enregistrer, lireJSON, texte };
+module.exports = { CIBLE, DOSSIERS, connecte, prixAffiche, PIN, URL_SCRIPT, CONFIG_E2E, fauxScript, lancer, ouvrir, attendreEtat, calculer, enregistrer, lireJSON, texte };

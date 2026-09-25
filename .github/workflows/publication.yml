@@ -1,0 +1,52 @@
+# Tests à chaque demande de fusion ; sur main, publication de l'app compilée
+# (dist/) sur GitHub Pages, seulement si tous les tests passent.
+# Réglage requis une fois : Settings › Pages › Source : « GitHub Actions ».
+name: Tests et publication
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Calcul, script de la feuille, confidentialité
+        run: npm test
+      - name: Compilation et tests de l'app dans Chromium
+        run: npm run test:e2e
+      - name: Confidentialité de la version compilée
+        run: node --test tests/secrets.test.js
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        with:
+          path: dist
+
+  publication:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: tests
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - id: deploiement
+        uses: actions/deploy-pages@v4
