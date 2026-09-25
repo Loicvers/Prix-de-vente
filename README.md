@@ -29,9 +29,23 @@ catégorie ». Aucun montant de frais dans ce dépôt.
 ## Synchronisation
 
 L'app envoie toute sa file d'attente (enregistrements et retraits) en une
-seule requête `lot`, qui renvoie aussi la config. Un produit refusé par le
-script est signalé dans la liste sans bloquer les autres. Avec un script pas
-encore mis à jour, l'app repasse automatiquement à une requête par opération.
+seule requête `lot`, qui renvoie aussi la config et la liste des produits.
+Un produit refusé par le script est signalé dans la liste sans bloquer les
+autres. Avec un script pas encore mis à jour, l'app repasse automatiquement à
+une requête par opération.
+
+La feuille Google est la source commune des produits (script version 3) :
+
+- chaque produit de Privé a une **Version**, augmentée à chaque écriture, et
+  l'**Appareil** qui l'a modifié en dernier ;
+- une écriture qui porte la version connue de l'appareil est refusée si la
+  feuille a changé entre-temps (`error: 'conflit'`, avec la version de la
+  feuille) : rien n'est écrasé sans le savoir ;
+- l'onglet **Journal** (privé) trace chaque écriture et chaque conflit ;
+- un produit retiré puis réenregistré redevient disponible, sous le même SKU ;
+- l'action `produits` (et la réponse de `lot`) renvoie la liste complète.
+
+Le détail du protocole est en tête de `apps-script/Code.gs`.
 
 ## Sécurité
 

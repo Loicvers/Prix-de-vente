@@ -254,7 +254,7 @@ describe('plusieurs appareils (même feuille)', () => {
     await a.context.close(); await b.context.close();
   });
 
-  it('LIMITE CONNUE B-06 : modifications concurrentes, le dernier envoi écrase sans signal', async () => {
+  it('LIMITE CONNUE B-06 (app actuelle) : modifications concurrentes, le dernier envoi écrase, désormais tracé dans le Journal', async () => {
     const script = fauxScript();
     const a = await appareilConnecte(script);
     const b = await appareilConnecte(script);
@@ -273,6 +273,15 @@ describe('plusieurs appareils (même feuille)', () => {
     assert.equal(script.prive()[0][3], 10);             // la modification de B est perdue
     assert.equal(await texte(b.page, '#pastille-texte'), 'Synchronisé');   // et B n'en sait rien
     assert.equal((await lireJSON(b.page, 'pv_produits_v2'))[0].prixAchat, 20);
+    // Script v3 : l'app actuelle n'envoie pas de version, l'écrasement a
+    // encore lieu, mais le Journal garde les deux modifications.
+    const journal = script.env.onglet('Journal').data.slice(1);
+    assert.deepEqual(journal.map(r => [r[2], r[7]]), [
+      ['créer', 'Vin tranquille · achat 8 · TTC 21.5 · disponible'],
+      ['modifier', 'Vin tranquille · achat 20 · TTC 39.5 · disponible'],
+      ['modifier', 'Vin tranquille · achat 10 · TTC 24.5 · disponible'],
+    ]);
+    assert.ok(journal.slice(1).every(r => r[8] === 'sans contrôle de version (ancienne app)'));
     await a.context.close(); await b.context.close();
   });
 });

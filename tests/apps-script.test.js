@@ -42,9 +42,9 @@ test('config renvoyée avec le bon PIN', () => {
 test('enregistrer deux fois le même vin : une seule ligne dans Privé et dans Public', () => {
   const env = environnement();
   const r1 = env.post(Object.assign({ action: 'enregistrer', pin: PIN }, VIN));
-  assert.deepEqual(r1, { ok: true, sku: 'UCP-0001' });
+  assert.deepEqual(r1, { ok: true, sku: 'UCP-0001', version: 1 });
   const r2 = env.post(Object.assign({ action: 'enregistrer', pin: PIN, sku: r1.sku }, VIN, { prixAchat: 10, prixTTC: 25.5 }));
-  assert.deepEqual(r2, { ok: true, sku: 'UCP-0001' });
+  assert.deepEqual(r2, { ok: true, sku: 'UCP-0001', version: 2 });
   // Sans SKU mais même nom : même produit.
   assert.equal(env.post(Object.assign({ action: 'enregistrer', pin: PIN }, VIN, { nom: '  maury grenat 2022 ' })).sku, 'UCP-0001');
   // Réponse perdue puis renvoi du même produit local (uid) : même SKU.
@@ -54,7 +54,7 @@ test('enregistrer deux fois le même vin : une seule ligne dans Privé et dans P
 
   const prive = env.onglet('Privé').data;
   const pub = env.onglet('Public').data;
-  assert.deepEqual(prive[0], ['SKU', 'Nom', 'Catégorie', "Prix d'achat HT", 'Frais', 'Prix TTC', 'Date MAJ']);
+  assert.deepEqual(prive[0], ['SKU', 'Nom', 'Catégorie', "Prix d'achat HT", 'Frais', 'Prix TTC', 'Date MAJ', 'Version', 'Appareil']);
   assert.deepEqual(pub[0], ['SKU', 'Nom', 'Catégorie', 'Prix TTC', 'Disponibilité']);
   assert.equal(prive.length, 3);
   assert.equal(pub.length, 3);
@@ -72,14 +72,21 @@ test('l\'onglet Public ne contient ni prix d\'achat ni frais', () => {
   assert.ok(!pub.flat().includes(CONFIG.categories.tranquille.frais));
 });
 
-test('retirer : Disponibilité = retiré, aucune ligne supprimée, jamais réécrite ensuite', () => {
+test('retirer : Disponibilité = retiré, aucune ligne supprimée ; réenregistré, il redevient disponible (même SKU)', () => {
   const env = environnement();
   const { sku } = env.post(Object.assign({ action: 'enregistrer', pin: PIN }, VIN));
-  assert.deepEqual(env.post({ action: 'retirer', pin: PIN, sku }), { ok: true, sku });
-  env.post(Object.assign({ action: 'enregistrer', pin: PIN, sku }, VIN, { prixTTC: 30 }));
+  assert.deepEqual(env.post({ action: 'retirer', pin: PIN, sku }), { ok: true, sku, version: 2 });
+  assert.equal(env.onglet('Public').data[1][4], 'retiré');
+  // Déjà retiré : rien ne change.
+  assert.deepEqual(env.post({ action: 'retirer', pin: PIN, sku }), { ok: true, sku, version: 2, inchange: true });
+  assert.deepEqual(env.post(Object.assign({ action: 'enregistrer', pin: PIN, sku }, VIN, { prixTTC: 30 })),
+    { ok: true, sku, version: 3, reactive: true });
   const pub = env.onglet('Public').data;
   assert.equal(pub.length, 2);
-  assert.deepEqual(pub[1], [sku, VIN.nom, 'Produit intermédiaire 75cl', 30, 'retiré']);
+  assert.deepEqual(pub[1], [sku, VIN.nom, 'Produit intermédiaire 75cl', 30, 'disponible']);
+  const journal = env.onglet('Journal').data;
+  assert.deepEqual(journal.slice(1).map(r => [r[2], r[3], r[5]]), [['créer', sku, 'ok'], ['retirer', sku, 'ok'], ['réenregistrer', sku, 'ok']]);
+  assert.match(journal[3][8], /ancien statut : retiré ; nouveau statut : disponible/);
   assert.equal(env.onglet('Privé').data.length, 2);
   assert.equal(env.post({ action: 'retirer', pin: PIN, sku: 'UCP-9999' }).error, 'introuvable');
   assert.equal(env.post({ action: 'retirer', sku }).ok, false);
@@ -208,10 +215,10 @@ test('lot : toute la file en une requête, config comprise, erreurs par opérati
   assert.equal(r.ok, true);
   assert.equal(r.config.categories.magnum_tranquille.frais, 6);
   assert.deepEqual(r.resultats, [
-    { ok: true, sku: 'UCP-0001' },
-    { ok: true, sku: 'UCP-0002' },
+    { ok: true, sku: 'UCP-0001', version: 1 },
+    { ok: true, sku: 'UCP-0002', version: 1 },
     { ok: false, error: 'categorie' },     // frais du magnum pétillant absents de CONFIG
-    { ok: true, sku: 'UCP-0001' },
+    { ok: true, sku: 'UCP-0001', version: 2 },
     { ok: false, error: 'introuvable' },
     { ok: false, error: 'action' },
     { ok: false, error: 'format' },

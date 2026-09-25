@@ -132,7 +132,7 @@ describe('produits', () => {
     await context.close();
   });
 
-  it('BUG CONNU B-03 : réenregistré après retrait, le produit garde son SKU mais reste « retiré » dans Public', async () => {
+  it('B-03 CORRIGÉ (script v3) : réenregistré après retrait, le produit garde son SKU et redevient « disponible »', async () => {
     const script = fauxScript();
     const { page, context } = await appareilConnecte(script);
     await enregistrer(page, 'tranquille', '8', 'Revenant');
@@ -143,7 +143,8 @@ describe('produits', () => {
     await enregistrer(page, 'tranquille', '9', 'Revenant');
     await attendreEtat(page, 'ok');
     assert.equal(script.prive().length, 1);
-    assert.deepEqual(script.public(), [['UCP-0001', 'Revenant', 'Vin tranquille', Calcul.prixTTC(9, 'tranquille', CONFIG_E2E), 'retiré']]);
+    assert.deepEqual(script.public(), [['UCP-0001', 'Revenant', 'Vin tranquille', Calcul.prixTTC(9, 'tranquille', CONFIG_E2E), 'disponible']]);
+    assert.deepEqual(script.env.onglet('Journal').data.slice(1).map(r => r[2]), ['créer', 'retirer', 'réenregistrer']);
     await context.close();
   });
 

@@ -7,20 +7,38 @@
  *
  * Requête : POST, corps JSON envoyé en text/plain :
  *   { pin, action: 'config' }
- *   { pin, action: 'enregistrer', sku?, uid?, nom, categorie, prixAchat, prixTTC }
- *   { pin, action: 'retirer', sku }            (ou { nom } pour un ancien produit sans SKU)
- *   { pin, action: 'lot', operations: [ { action: 'enregistrer', … }, { action: 'retirer', … } ] }
- *     → { ok: true, config, resultats: [ réponse de chaque opération ] }
- *     Une seule requête pour toute la file d'attente de l'app, config comprise.
+ *   { pin, action: 'produits' }                → { ok: true, produits: [ … ] }
+ *   { pin, action: 'enregistrer', sku?, uid?, nom, categorie, prixAchat, prixTTC, version?, appareil? }
+ *   { pin, action: 'retirer', sku, version?, appareil? }   (ou { nom } pour un ancien produit sans SKU)
+ *   { pin, action: 'lot', appareil?, operations: [ { action: 'enregistrer', … }, { action: 'retirer', … } ] }
+ *     → { ok: true, config, resultats: [ réponse de chaque opération ], produits: [ … ] }
+ *     Une seule requête pour toute la file d'attente de l'app, config et
+ *     liste des produits comprises.
  * Réponse : JSON { ok: true, … } ou { ok: false, error: '…' }.
+ *
+ * Versions et conflits : chaque produit de Privé a un numéro de Version,
+ * augmenté à chaque écriture. Une app qui envoie « version » (la version
+ * qu'elle connaissait) n'écrase jamais une modification faite ailleurs : si
+ * la feuille a changé entre-temps, rien n'est écrit et la réponse est
+ * { ok: false, error: 'conflit', sku, actuel: { … } }. Pour une nouvelle
+ * fiche, l'app envoie version: 0. Sans « version » (ancienne app), l'écriture
+ * se fait comme avant, et le Journal l'indique.
+ * Chaque écriture, conflit ou réactivation est ajouté à l'onglet Journal.
  */
 
 var ONGLET_PRIVE = 'Privé';
 var ONGLET_PUBLIC = 'Public';
 var ONGLET_HISTORIQUE = 'Historique';
+var ONGLET_JOURNAL = 'Journal';
 
-var ENTETES_PRIVE = ['SKU', 'Nom', 'Catégorie', "Prix d'achat HT", 'Frais', 'Prix TTC', 'Date MAJ'];
+// Version et Appareil ajoutés en fin de ligne : les colonnes existantes ne
+// bougent pas (les en-têtes manquants sont complétés à la première écriture).
+var ENTETES_PRIVE = ['SKU', 'Nom', 'Catégorie', "Prix d'achat HT", 'Frais', 'Prix TTC', 'Date MAJ', 'Version', 'Appareil'];
 var ENTETES_PUBLIC = ['SKU', 'Nom', 'Catégorie', 'Prix TTC', 'Disponibilité'];
+// Onglet privé, jamais à publier : il contient les prix d'achat.
+var ENTETES_JOURNAL = ['Date', 'Appareil', 'Action', 'SKU', 'Nom', 'Résultat', 'Avant', 'Après', 'Détail'];
+var COL_VERSION = 8;
+var COL_APPAREIL = 9;
 
 var DISPONIBLE = 'disponible';
 var RETIRE = 'retiré';
@@ -81,6 +99,7 @@ function doPost(e) {
   try {
     switch (req.action) {
       case 'config': return json_({ ok: true, config: lireConfig_() });
+      case 'produits': return json_({ ok: true, produits: listerProduits_() });
       case 'enregistrer': return json_(enregistrer_(req));
       case 'retirer': return json_(retirer_(req));
       case 'lot': return json_(lot_(req));
@@ -132,7 +151,7 @@ function lireConfig_() {
 }
 
 // ===========================
-// ENREGISTRER (upsert par SKU)
+// ENREGISTRER (upsert par SKU, avec contrôle de version)
 // ===========================
 function enregistrer_(req, config) {
   var nom = String(req.nom || '').trim();
@@ -144,6 +163,9 @@ function enregistrer_(req, config) {
   if (!isFinite(prixAchat) || prixAchat <= 0 || !isFinite(prixTTC) || prixTTC <= 0) return { ok: false, error: 'prix' };
   var sku = String(req.sku || '').trim();
   if (sku && !/^UCP-\d{4,}$/.test(sku)) return { ok: false, error: 'sku' };
+  var versionBase = lireVersionDemandee_(req.version);
+  if (versionBase === false) return { ok: false, error: 'version' };
+  var appareil = nomAppareil_(req.appareil);
 
   config = config || lireConfig_();
   var cat = config.categories[cle];
@@ -158,57 +180,214 @@ function enregistrer_(req, config) {
     var cache = CacheService.getScriptCache();
     var uid = req.uid ? 'uid_' + String(req.uid).slice(0, 60) : '';
 
-    // Un envoi répété (réponse perdue) retrouve le SKU déjà attribué.
-    if (!sku && uid) sku = cache.get(uid) || '';
+    // Un envoi répété (réponse perdue) retrouve le SKU déjà attribué, et la
+    // version que cet envoi avait écrite.
+    var dejaEcrit = uid ? lireCacheUid_(cache.get(uid)) : null;
+    if (!sku && dejaEcrit) sku = dejaEcrit.sku;
     var lignePrive = sku ? trouverLigne_(prive, sku) : -1;
+    var parNom = false;
     // Produit sans SKU mais déjà connu sous ce nom : même SKU.
     if (!sku) {
       lignePrive = trouverLigneParNom_(prive, nom);
-      if (lignePrive > 0) sku = String(prive.getRange(lignePrive, 1).getValue());
+      if (lignePrive > 0) { sku = String(prive.getRange(lignePrive, 1).getValue()); parNom = true; }
     }
-    if (!sku) sku = nouveauSku_(prive);
+
+    var propose = { nom: nom, categorie: cle, prixAchat: prixAchat, prixTTC: prixTTC, disponibilite: DISPONIBLE };
+    var actuel = lignePrive > 0 ? lireProduit_(prive, pub, lignePrive) : null;
+    var nouvelleVersion = 1;
+
+    if (actuel) {
+      // Relecture sous verrou avant d'écrire : la feuille a-t-elle changé
+      // depuis la version connue de l'appareil ?
+      var base = versionBase;
+      if (base !== null && dejaEcrit && dejaEcrit.sku === sku && dejaEcrit.version === actuel.version) base = actuel.version;
+      if (base !== null && base !== actuel.version) {
+        if (memesValeurs_(actuel, propose)) {
+          return { ok: true, sku: sku, version: actuel.version, inchange: true };
+        }
+        journaliser_(ss, appareil, 'enregistrer', sku, nom, 'conflit', resume_(actuel), resume_(propose),
+          (parNom ? 'même nom déjà enregistré ailleurs ; ' : '') + 'version connue ' + base + ', version de la feuille ' + actuel.version + ' ; rien n\'a été écrit');
+        return { ok: false, error: 'conflit', sku: sku, actuel: produitPublic_(actuel) };
+      }
+      nouvelleVersion = actuel.version + 1;
+    } else if (!sku) {
+      sku = nouveauSku_(prive);
+    }
 
     var libelle = LIBELLES[cle];
-    var valeursPrive = [[sku, texte_(nom), libelle, prixAchat, cat.frais, prixTTC, new Date()]];
+    var maintenant = new Date();
+    var valeursPrive = [[sku, texte_(nom), libelle, prixAchat, cat.frais, prixTTC, maintenant, nouvelleVersion, appareil]];
     if (lignePrive > 0) prive.getRange(lignePrive, 1, 1, ENTETES_PRIVE.length).setValues(valeursPrive);
     else prive.getRange(prive.getLastRow() + 1, 1, 1, ENTETES_PRIVE.length).setValues(valeursPrive);
 
-    // Public : SKU, Nom, Catégorie, Prix TTC ; la Disponibilité n'est écrite qu'à la création.
+    // Public : un produit réenregistré redevient disponible.
     var lignePublic = trouverLigne_(pub, sku);
+    var reactive = lignePublic > 0 && String(pub.getRange(lignePublic, 5).getValue()) === RETIRE;
     if (lignePublic > 0) {
-      pub.getRange(lignePublic, 1, 1, 4).setValues([[sku, texte_(nom), libelle, prixTTC]]);
+      pub.getRange(lignePublic, 1, 1, ENTETES_PUBLIC.length).setValues([[sku, texte_(nom), libelle, prixTTC, DISPONIBLE]]);
     } else {
       pub.getRange(pub.getLastRow() + 1, 1, 1, ENTETES_PUBLIC.length)
         .setValues([[sku, texte_(nom), libelle, prixTTC, DISPONIBLE]]);
     }
 
-    if (uid) cache.put(uid, sku, 21600);
-    return { ok: true, sku: sku };
+    if (uid) cache.put(uid, JSON.stringify({ sku: sku, version: nouvelleVersion }), 21600);
+    var details = [];
+    if (versionBase === null) details.push('sans contrôle de version (ancienne app)');
+    if (reactive) details.push('ancien statut : retiré ; nouveau statut : disponible');
+    journaliser_(ss, appareil, reactive ? 'réenregistrer' : (actuel ? 'modifier' : 'créer'), sku, nom, 'ok',
+      actuel ? resume_(actuel) : '', resume_(propose), details.join(' ; '));
+    var reponse = { ok: true, sku: sku, version: nouvelleVersion };
+    if (reactive) reponse.reactive = true;
+    return reponse;
   } finally {
     verrou.releaseLock();
   }
 }
 
 // ===========================
-// RETIRER (sans rien supprimer)
+// RETIRER (sans rien supprimer, avec contrôle de version)
 // ===========================
 function retirer_(req) {
   var sku = String(req.sku || '').trim();
   var nom = String(req.nom || '').trim();
   if (!sku && !nom) return { ok: false, error: 'sku' };
+  var versionBase = lireVersionDemandee_(req.version);
+  if (versionBase === false) return { ok: false, error: 'version' };
+  var appareil = nomAppareil_(req.appareil);
 
   var verrou = LockService.getScriptLock();
   verrou.waitLock(20000);
   try {
-    var pub = onglet_(SpreadsheetApp.getActiveSpreadsheet(), ONGLET_PUBLIC, ENTETES_PUBLIC);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var pub = onglet_(ss, ONGLET_PUBLIC, ENTETES_PUBLIC);
+    var prive = ss.getSheetByName(ONGLET_PRIVE);
     var ligne = sku ? trouverLigne_(pub, sku) : -1;
     if (ligne < 1 && nom) ligne = trouverLigneParNom_(pub, nom);
     if (ligne < 1) return { ok: false, error: 'introuvable' };
+    sku = String(pub.getRange(ligne, 1).getValue());
+
+    var lignePrive = prive ? trouverLigne_(prive, sku) : -1;
+    var actuel = lignePrive > 0 ? lireProduit_(prive, pub, lignePrive) : null;
+    var dejaRetire = String(pub.getRange(ligne, 5).getValue()) === RETIRE;
+    if (dejaRetire) return { ok: true, sku: sku, version: actuel ? actuel.version : 0, inchange: true };
+
+    if (actuel && versionBase !== null && versionBase !== actuel.version) {
+      journaliser_(ss, appareil, 'retirer', sku, actuel.nom, 'conflit', resume_(actuel), 'retiré',
+        'version connue ' + versionBase + ', version de la feuille ' + actuel.version + ' ; rien n\'a été écrit');
+      return { ok: false, error: 'conflit', sku: sku, actuel: produitPublic_(actuel) };
+    }
+
     pub.getRange(ligne, 5).setValue(RETIRE);
-    return { ok: true, sku: String(pub.getRange(ligne, 1).getValue()) };
+    var nouvelleVersion = actuel ? actuel.version + 1 : 0;
+    if (actuel) {
+      prive.getRange(lignePrive, COL_VERSION, 1, 2).setValues([[nouvelleVersion, appareil]]);
+    }
+    journaliser_(ss, appareil, 'retirer', sku, actuel ? actuel.nom : String(pub.getRange(ligne, 2).getValue()), 'ok',
+      actuel ? resume_(actuel) : DISPONIBLE, RETIRE, versionBase === null ? 'sans contrôle de version (ancienne app)' : '');
+    return { ok: true, sku: sku, version: nouvelleVersion };
   } finally {
     verrou.releaseLock();
   }
+}
+
+// ===========================
+// PRODUITS (lecture de la source commune)
+// ===========================
+// Tous les produits de Privé, avec leur disponibilité (Public), pour que
+// chaque appareil ait la même liste.
+function listerProduits_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var prive = ss.getSheetByName(ONGLET_PRIVE);
+  var pub = ss.getSheetByName(ONGLET_PUBLIC);
+  if (!prive || prive.getLastRow() < 2) return [];
+  var dispo = {};
+  if (pub && pub.getLastRow() > 1) {
+    pub.getRange(2, 1, pub.getLastRow() - 1, ENTETES_PUBLIC.length).getValues().forEach(function (r) {
+      dispo[String(r[0])] = String(r[4]) === RETIRE ? RETIRE : DISPONIBLE;
+    });
+  }
+  var lignes = prive.getRange(2, 1, prive.getLastRow() - 1, ENTETES_PRIVE.length).getValues();
+  var produits = [];
+  lignes.forEach(function (r) {
+    var sku = String(r[0]).trim();
+    if (!sku) return;
+    produits.push(produitPublic_(ligneVersProduit_(r, dispo[sku] || DISPONIBLE)));
+  });
+  return produits;
+}
+
+function lireProduit_(prive, pub, ligne) {
+  var r = prive.getRange(ligne, 1, 1, ENTETES_PRIVE.length).getValues()[0];
+  var lignePublic = trouverLigne_(pub, String(r[0]));
+  var dispo = lignePublic > 0 && String(pub.getRange(lignePublic, 5).getValue()) === RETIRE ? RETIRE : DISPONIBLE;
+  return ligneVersProduit_(r, dispo);
+}
+
+function ligneVersProduit_(r, disponibilite) {
+  var date = estDate_(r[6]) ? r[6] : lireDate_(r[6]);
+  return {
+    sku: String(r[0]).trim(),
+    nom: String(r[1]).replace(/^'/, ''),
+    categorie: cleCategorie_(r[2]),            // null : catégorie à compléter
+    libelle: String(r[2] || ''),
+    prixAchat: nombre_(r[3]),
+    frais: nombre_(r[4]),
+    prixTTC: nombre_(r[5]),
+    dateMaj: date ? date.toISOString() : '',
+    version: Number(r[7]) > 0 ? Math.floor(Number(r[7])) : 0,
+    appareil: String(r[8] || ''),
+    disponibilite: disponibilite
+  };
+}
+
+// Champs renvoyés à l'app (sans les frais : elle les tient de la config).
+function produitPublic_(p) {
+  return {
+    sku: p.sku, nom: p.nom, categorie: p.categorie, libelle: p.libelle, prixAchat: p.prixAchat,
+    prixTTC: p.prixTTC, dateMaj: p.dateMaj, version: p.version, appareil: p.appareil, disponibilite: p.disponibilite
+  };
+}
+
+// Même contenu : l'envoi n'apporte rien de nouveau (pas un conflit).
+function memesValeurs_(actuel, propose) {
+  return normaliser_(actuel.nom) === normaliser_(propose.nom) && actuel.categorie === propose.categorie &&
+    actuel.prixAchat === propose.prixAchat && actuel.prixTTC === propose.prixTTC && actuel.disponibilite === propose.disponibilite;
+}
+
+// null : pas de contrôle (ancienne app) ; false : valeur invalide.
+function lireVersionDemandee_(v) {
+  if (v === undefined || v === null || v === '') return null;
+  var n = Number(v);
+  return isFinite(n) && n >= 0 && Math.floor(n) === n ? n : false;
+}
+
+// Ancien format du cache (SKU seul) ou nouveau ({ sku, version }).
+function lireCacheUid_(valeur) {
+  if (!valeur) return null;
+  try {
+    var o = JSON.parse(valeur);
+    if (o && typeof o === 'object' && o.sku) return { sku: String(o.sku), version: Number(o.version) || 0 };
+  } catch (e) { /* ancien format */ }
+  return { sku: String(valeur), version: -1 };
+}
+
+function nomAppareil_(v) {
+  var s = String(v === undefined || v === null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 40);
+  return s ? texte_(s) : '';
+}
+
+// ===========================
+// JOURNAL (on n'y fait qu'ajouter des lignes)
+// ===========================
+function journaliser_(ss, appareil, action, sku, nom, resultat, avant, apres, detail) {
+  var j = onglet_(ss, ONGLET_JOURNAL, ENTETES_JOURNAL);
+  j.getRange(j.getLastRow() + 1, 1, 1, ENTETES_JOURNAL.length)
+    .setValues([[new Date(), appareil || '', action, sku || '', texte_(String(nom || '')), resultat, avant || '', apres || '', detail || '']]);
+}
+
+function resume_(p) {
+  if (!p) return '';
+  return [LIBELLES[p.categorie] || p.libelle || '?', 'achat ' + p.prixAchat, 'TTC ' + p.prixTTC, p.disponibilite].join(' · ');
 }
 
 // ===========================
@@ -283,6 +462,13 @@ function diagnostic() {
     if (ss.getSheetByName(nom)) ok.push('Onglet « ' + nom + ' » présent.');
     else problemes.push('Onglet « ' + nom + ' » absent (il sera recréé vide au prochain enregistrement : vérifie son nom).');
   });
+  var privePresent = ss.getSheetByName(ONGLET_PRIVE);
+  if (privePresent && String(privePresent.getRange(1, COL_VERSION).getValue()) !== 'Version') {
+    ok.push('Colonnes « Version » et « Appareil » : elles seront ajoutées à Privé au prochain enregistrement.');
+  }
+  ok.push(ss.getSheetByName(ONGLET_JOURNAL)
+    ? 'Onglet « Journal » présent (privé : ne jamais le publier).'
+    : 'Onglet « Journal » : il sera créé au prochain enregistrement.');
 
   var texte = (problemes.length ? '❌ ' + problemes.length + ' problème(s) :\n- ' + problemes.join('\n- ') + '\n\n' : '✅ Aucun problème trouvé.\n\n') +
     'Vérifié :\n- ' + ok.join('\n- ') +
@@ -302,6 +488,7 @@ function lot_(req) {
   var config = lireConfig_();
   var resultats = ops.map(function (op) {
     if (!op || typeof op !== 'object') return { ok: false, error: 'format' };
+    if (op.appareil === undefined && req.appareil !== undefined) op.appareil = req.appareil;
     try {
       if (op.action === 'enregistrer') return enregistrer_(op, config);
       if (op.action === 'retirer') return retirer_(op);
@@ -310,7 +497,7 @@ function lot_(req) {
       return { ok: false, error: 'serveur', message: String((err && err.message) || err) };
     }
   });
-  return { ok: true, config: config, resultats: resultats };
+  return { ok: true, config: config, resultats: resultats, produits: listerProduits_() };
 }
 
 // ===========================
@@ -403,7 +590,7 @@ function ecrireMigration_(ss, produits, lignesLues) {
   var lignesPublic = [];
   produits.forEach(function (p, n) {
     var sku = formatSku_(n + 1);
-    lignesPrive.push([sku, texte_(p.nom), p.libelle, p.prixAchat, p.frais, p.prixTTC, p.date]);
+    lignesPrive.push([sku, texte_(p.nom), p.libelle, p.prixAchat, p.frais, p.prixTTC, p.date, 1, 'migration']);
     lignesPublic.push([sku, texte_(p.nom), p.libelle, p.prixTTC, DISPONIBLE]);
   });
   var prive = onglet_(ss, ONGLET_PRIVE, ENTETES_PRIVE);
@@ -492,6 +679,15 @@ function onglet_(ss, nom, entetes) {
     sh = ss.insertSheet(nom);
     sh.getRange(1, 1, 1, entetes.length).setValues([entetes]).setFontWeight('bold');
     sh.setFrozenRows(1);
+    return sh;
+  }
+  // Onglet d'une version précédente : on complète les en-têtes manquants en
+  // fin de ligne, sans jamais toucher à ceux qui existent.
+  var actuels = sh.getRange(1, 1, 1, entetes.length).getValues()[0];
+  for (var i = 0; i < entetes.length; i++) {
+    if (actuels[i] === '' || actuels[i] === null || actuels[i] === undefined) {
+      sh.getRange(1, i + 1).setValue(entetes[i]);
+    }
   }
   return sh;
 }
@@ -563,6 +759,10 @@ function nombre_(v) {
 
 function sansAccents_(s) {
   return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function estDate_(v) {
+  return Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v.getTime());
 }
 
 // Date d'une cellule : objet Date, ou texte jj/mm/aaaa (format de l'ancienne app).
