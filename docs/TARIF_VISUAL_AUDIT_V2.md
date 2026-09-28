@@ -50,6 +50,15 @@ S'y ajoutent des défauts d'accessibilité ciblés (texte tertiaire à 3,8–4,2
 trois cibles tactiles < 44 px, fenêtre produit sans gestion du focus) et
 **aucune adaptation** aux grands écrans.
 
+> **Mise à jour après validation (28/09/2026).** Usage : smartphone,
+> 75 cl dans la majorité des cas, Historique utilisé pour **vérifier les
+> augmentations par rapport au prix précédent**, marge souhaitée, pas de
+> charte de la maison. Conséquences : la recomposition de Calculer est
+> confirmée (75 cl en accès direct) ; deux besoins métier montent en P1 —
+> **voir l'écart avec le prix précédent avant d'enregistrer** et **afficher
+> la marge** ; l'onglet Historique devient « Évolution des prix » ;
+> l'adaptation ordinateur passe en P3. Détail en parties 15 à 20.
+
 **Aucun P0.** Six P1. Direction recommandée : **évolution contrôlée**
 (« Étiquette de cave ») — garder l'univers, recomposer l'écran Calculer
 autour du résultat, réduire la couleur à un rôle clair.
@@ -312,10 +321,10 @@ grands écrans).
 | Fiche produit | 9 lignes de détail + 3 actions dans ≈ 510 px | Bonne densité. |
 | Détail du calcul | 5–7 lignes, 13 px | Bon, lisible, tabulaire. |
 
-**Informations absentes** qui aideraient à décider *(possible, à valider)* :
-marge brute (€ et %), coefficient global, écart avec le prix précédent quand
-on recalcule un produit existant, date de dernière modification dans la
-liste, tri (nom, prix, date).
+**Informations absentes** qui aideraient à décider : **marge (€ et %)** et
+**écart avec le prix précédent** — toutes deux confirmées comme besoins
+(partie 20, Q4 et Q5) ; *possible, non validé* : coefficient global, date de
+dernière modification dans la liste, tri (nom, prix, date).
 
 **Informations redondantes** : la catégorie apparaît trois fois sur une ligne
 produit (liseré, étiquette colorée, couleur du prix).
@@ -432,22 +441,45 @@ gérées (`env(safe-area-inset-*)`).
 8. **Aucun responsive réel** : colonne de téléphone sur ordinateur.
 9. **Historique et Produits** visuellement redondants.
 10. **Pas d'échelle d'espacement ni de typographie**.
+11. **Augmentations invisibles** — l'Historique liste les calculs sans les
+    relier : pour voir une hausse, il faut retrouver deux lignes et
+    soustraire de tête ; Calculer n'affiche jamais le prix précédent.
 
 ---
 
 ## 15. Design Opportunities
 
-| # | Opportunité | Fonction servie (Master §3.4) |
-| --- | --- | --- |
-| O1 | **Saisie et résultat en tête**, format en sélecteur compact (« Tranquille · 75 cl ▾ ») qui déplie la grille à la demande. | compréhension, vitesse |
-| O2 | **Résultat en « étiquette de prix »** : bloc clair (crème) sur fond nuit, serif sombre, filet or — la marque passe dans le geste principal. | mémorisation, perception de marque |
-| O3 | **Formats par silhouettes de contenance** (37,5 cl → 5 l, à l'échelle) au lieu de 10 couleurs. | compréhension, différenciation |
-| O4 | **Couleur réduite à deux familles** (tranquille / pétillant) + neutre ; états sortis de l'arc chaud avec icône. | accessibilité, clarté |
-| O5 | **Mise en page deux colonnes ≥ 900 px** : formats + saisie à gauche, résultat collant à droite ; Produits en tableau triable. | navigation, densité |
-| O6 | **Informations d'aide à la décision** : marge € / %, écart avec le prix précédent lors d'un recalcul. | décision |
-| O7 | **Fusion Historique / synchro** : voyant cliquable qui ouvre un panneau d'état ; Historique recentré sur les calculs. | architecture d'information |
-| O8 | **Fiche en vraie feuille** : glissement ou pas de poignée, confirmation de suppression intégrée, focus géré. | cohérence, accessibilité |
-| O9 | **Clé comme motif** : reprendre discrètement la clé (nom de la maison) dans l'état vide, l'écran PIN, l'icône. | identité |
+Mises à jour après les réponses de la partie 20 : **O1 renforcée, O6 et O10
+validées, O5 déclassée, O9 facultative.**
+
+| # | Opportunité | Fonction servie (Master §3.4) | Statut |
+| --- | --- | --- | --- |
+| O1 | **Saisie et résultat en tête ; 75 cl en accès direct.** Deux gros boutons « Tranquille · Pétillant » (75 cl) toujours visibles, et une puce « Autres formats ▾ » qui déplie les 8 autres (et affiche le format choisi quand ce n'en est pas un de 75 cl). Environ 60 px au lieu de 532. | vitesse, compréhension | **validée** (Q1) |
+| O2 | **Résultat en « étiquette de prix »** : bloc clair (crème) sur fond nuit, serif sombre, filet or. Signature propre à l'app, puisqu'il n'y a pas de charte à reprendre. | mémorisation, identité | à maquetter |
+| O3 | **Formats par silhouettes de contenance** (37,5 cl → 5 l) dans le panneau « Autres formats ». | compréhension | facultative |
+| O4 | **Couleur réduite à deux familles** (tranquille / pétillant) + neutre ; états sortis de l'arc chaud, avec icône. | accessibilité, clarté | recommandée |
+| O5 | Deux colonnes ≥ 900 px ; Produits en tableau triable. | densité | **déclassée** (Q2 : smartphone) |
+| O6 | **Marge affichée** dans le résultat et la fiche : marge € et % sous le prix de vente, et dans le détail du calcul. | décision | **validée** (Q5) — définition à confirmer (Q12) |
+| O7 | Synchronisation déplacée dans le voyant (panneau d'état) ; l'onglet Historique libéré pour sa vraie fonction (O10). | architecture d'information | recommandée |
+| O8 | **Fiche en vraie feuille** : pas de poignée factice, confirmation de suppression intégrée, focus géré. | cohérence, accessibilité | recommandée |
+| O9 | Clé comme motif discret (état vide, écran PIN). | identité | facultative (Q7 : pas de charte) |
+| **O10** | **Voir l'augmentation avant d'enregistrer, et la retrouver ensuite.** (1) Dans Calculer : dès que le nom saisi correspond à un produit existant (ou après « Recalculer »), afficher sous le nouveau prix « Avant : 21,80 € · ▲ +1,20 € (+5,5 %) ». (2) L'onglet Historique devient **« Évolution des prix »** : une ligne par produit, *ancien → nouveau*, écart en € et en %, date, avec accès à tous les changements du produit. | décision, compréhension | **nouvelle** (Q4) |
+
+**Constats de code qui fondent O10** *(confirmé à la lecture)* :
+- Chaque enregistrement ajoute une ligne à l'historique avec l'identifiant du
+  produit (`sauvegarder()`, `calculateur.js`), mais l'onglet affiche ces
+  lignes **séparément, sans lien entre elles ni écart** : pour voir une
+  augmentation, il faut aujourd'hui retrouver à l'œil deux lignes du même nom
+  et faire la soustraction.
+- L'historique est **propre à chaque appareil** (`pv_historique`, 300 lignes
+  au plus) ; un calcul fait sur un autre appareil n'y figure pas.
+- En revanche, le **prix actuel de la feuille** (onglet Produits) est commun à
+  tous les appareils : c'est la bonne référence pour l'écart affiché *avant*
+  d'enregistrer, quel que soit l'appareil.
+- Rappel de `ETAT-DE-REFERENCE.md` : les prix enregistrés ne sont jamais
+  recalculés si la config change. « Évolution des prix » pourrait aussi
+  signaler les produits dont le prix recalculé avec la config actuelle
+  diffère du prix enregistré *(possible, à valider)*.
 
 ---
 
@@ -460,56 +492,87 @@ gérées (`env(safe-area-inset-*)`).
 | **Concept** | Même univers, hiérarchie et couleurs corrigées | « Étiquette de cave » : le résultat devient une étiquette | « Pavé de caisse » : un seul écran, pavé numérique intégré |
 | **Typographie** | Actuelle + échelle | Serif plus présente (étiquette), sans tabulaire pour les listes | Chiffres géants, sans condensé |
 | **Couleur** | 2 familles + neutre, états séparés | Nuit + crème + or ; catégories en monochrome | Quasi monochrome, or pour l'action |
-| **Formats** | Sélecteur compact | Silhouettes de contenance | Rangée défilante sous le pavé |
+| **Formats** | 75 cl en accès direct + « Autres formats » | Silhouettes de contenance | Rangée défilante sous le pavé |
 | **Risque** | Faible | Moyen (icônes, test utilisateurs) | Élevé (saisie non standard, accessibilité) |
 | **Différenciation** | Faible | Forte | Très forte |
 
-### Recommandation : **A, enrichie de l'étiquette de B** — « Étiquette de cave »
+### Recommandation confirmée : **A, enrichie de l'étiquette de B** — « Étiquette de cave », 100 % smartphone
+
+Les réponses renforcent cette direction :
+
+- **Q1 (75 cl majoritaire)** : la grille complète des formats n'a pas à
+  occuper l'écran ; 75 cl en accès direct, le reste à la demande.
+- **Q2 (smartphone)** : on conçoit pour 360–430 px de large, à une main ;
+  l'adaptation ordinateur sort des priorités.
+- **Q4 (vérifier les augmentations)** : l'écart avec le prix précédent
+  devient une information de premier rang, au même niveau que le prix.
+- **Q5 (marge : oui)** : la marge rejoint le résultat.
+- **Q7 (pas de charte)** : l'identité actuelle (nuit, or, DM Serif / DM Sans)
+  **devient** la charte ; on la stabilise au lieu d'en importer une.
+
+**Écran Calculer visé (smartphone, de haut en bas)**
+
+1. En-tête compact (titre, voyant).
+2. Format : `[ Tranquille ] [ Pétillant ]` 75 cl + `Autres formats ▾`.
+3. Prix d'achat HT (serif, gros).
+4. **Étiquette résultat** : prix de vente TTC ; en dessous, marge € / % ;
+   si le produit existe, « Avant : … · ▲ +… € (+… %) ».
+5. Nom du produit + Enregistrer, dans la zone du pouce.
+6. Détail du calcul, replié.
+
+Objectif mesurable : **prix de vente, marge et écart visibles sans défiler
+en 390×844 et en 360×740**, clavier fermé.
 
 **Principes de direction**
 
-1. **Le prix d'abord** — le résultat est visible dès qu'un prix est tapé, à
-   toutes les tailles.
-2. **Une couleur, un sens** — l'or agit, l'ambre attend, le rouge alerte ;
-   les formats sont dits par le texte et la forme.
-3. **L'étiquette comme signature** — le serif et le filet or sont réservés
-   aux montants qui comptent.
-4. **Calme de cave** — fond nuit, peu de bordures, peu de cartes.
-5. **Pouce et comptoir** — cibles ≥ 44 px, texte ≥ 12 px, actions à portée
-   du pouce.
+1. **Le prix d'abord** — le résultat est visible dès qu'un prix est tapé.
+2. **Comparer sans calculer** — l'écart avec le prix précédent et la marge
+   sont affichés, jamais à reconstituer de tête.
+3. **Une couleur, un sens** — l'or agit, l'ambre attend, le rouge alerte ;
+   une hausse de prix n'est **pas** une erreur (▲ + texte, couleur neutre).
+4. **L'étiquette comme signature** — serif et filet or pour les montants qui
+   comptent.
+5. **Une main, un pouce** — cibles ≥ 44 px, texte ≥ 12 px, action principale
+   en bas.
 
 **Do / Don't**
 
 | Do | Don't |
 | --- | --- |
 | Prix principal en couleur stable | Colorer le chiffre selon le format |
-| Nouvelles catégories rangées dans une famille existante | Ajouter une teinte par nouveau format |
+| 75 cl en un geste | Faire défiler 10 formats pour le cas courant |
+| Écart signalé par ▲ / ▼ + montant + % | Hausse en rouge (confusion avec une erreur) |
+| Marge à côté du prix, en plus petit | Marge qui concurrence le prix de vente |
+| Nouvelles catégories rangées dans une famille existante | Une teinte par nouveau format |
 | Icône + texte pour chaque état | Un état signalé par la seule couleur |
-| Une carte quand elle regroupe | Une carte autour d'un seul champ |
 | Affordance = comportement | Poignée ou chevron décoratif |
 
 ---
 
 ## 17. Priority Matrix
 
-Impact (sur la tâche et l'accessibilité) × Effort (estimation d'implémentation).
+Impact (sur la tâche et l'accessibilité) × Effort (estimation). Mise à jour
+avec les réponses : **smartphone seulement**, **75 cl majoritaire**,
+**comparaison au prix précédent** et **marge** demandées.
 
-| Priorité | Constat | Impact | Effort | Quadrant |
+| Priorité | Constat / action | Impact | Effort | Quadrant |
 | --- | --- | --- | --- | --- |
-| **P1** | Résultat hors du premier écran (réorganiser Calculer, sélecteur compact) | Élevé | Moyen | **À planifier en premier** |
+| **P1** | Calculer recomposé : 75 cl en accès direct, saisie + résultat dans le premier écran | Élevé | Moyen | **En premier** |
+| **P1** | Écart avec le prix précédent affiché avant d'enregistrer (O10-1) | Élevé | Moyen | **En premier** |
+| **P1** | Historique → « Évolution des prix » (O10-2) | Élevé | Moyen | À planifier |
+| **P1** | Marge € / % dans le résultat et la fiche (O6) | Élevé | Faible à moyen (selon Q12) | À planifier après Q12 |
 | **P1** | Prix principal en couleur stable | Élevé | Faible | **Gain rapide** |
 | **P1** | Séparer couleurs d'état et de catégorie | Élevé | Moyen | À planifier |
 | **P1** | `--text3` ≥ 4,5:1 (ex. `#9d8c7d` : 4,9 / 5,4), tailles ≥ 12 px | Moyen | Faible | **Gain rapide** |
 | **P1** | Cibles ≥ 44 px (voyant, PIN, toast) | Moyen | Faible | **Gain rapide** |
 | **P1** | Fiche : focus, poignée, ordre des actions, suppression intégrée | Moyen | Moyen | À planifier |
-| P2 | Réduire les catégories à 2 familles + neutre | Moyen | Moyen | À planifier (avec le P1 couleur) |
-| P2 | Libellés de format non ambigus | Moyen | Faible | Gain rapide |
-| P2 | Voyant « Hors ligne · n en attente » | Moyen | Faible | Gain rapide |
-| P2 | Deux colonnes ≥ 900 px ; tableau Produits | Moyen | Élevé | Plus tard |
-| P2 | Historique / Produits : clarifier ou fusionner | Moyen | Moyen | Après validation (Q4) |
-| P2 | Échelles d'espacement et de typographie | Moyen | Moyen | Socle de toute refonte |
-| P2 | En-tête en 320 px | Faible | Faible | Gain rapide |
+| P2 | Réduire les catégories à 2 familles + neutre | Moyen | Moyen | Avec le P1 couleur |
+| P2 | Libellés de format non ambigus | Moyen | Faible | Gain rapide (en partie absorbé par la recomposition) |
+| P2 | Voyant « Hors ligne · n en attente » ; synchro dans le voyant | Moyen | Faible | Gain rapide |
+| P2 | Échelles d'espacement et de typographie | Moyen | Moyen | Socle |
+| P2 | En-tête en 320–360 px | Faible | Faible | Gain rapide |
 | P2 | Montants de liste alignés (sans tabulaire) | Faible | Faible | Gain rapide |
+| P3 | Deux colonnes ≥ 900 px ; tableau Produits | Faible (Q2) | Élevé | **Déclassé** |
 | P3 | « ⚠ » → icône ; bordures de champs ; focus sur formats pétillants ; indice de défilement des filtres ; carte « Prix d'achat » supprimée ; dégradé du résultat au seul moment du calcul | Faible | Faible | Finitions |
 
 ---
@@ -518,16 +581,18 @@ Impact (sur la tâche et l'accessibilité) × Effort (estimation d'implémentati
 
 Évolution par étapes, chacune publiable seule et vérifiée par la suite e2e
 existante (plusieurs tests ciblent `.cat[data-cat]`, `#resultat-prix`, les
-textes du voyant).
+textes du voyant). Ordre revu après validation.
 
 | Étape | Contenu | Visible pour l'utilisateur |
 | --- | --- | --- |
-| **V1 — Socle** | Jetons : échelle d'espacement, échelle typographique, rôles de couleur (`--color-*` sémantiques : primary, warning, danger, success, info, category-still, category-sparkling, category-other). Aucun changement de mise en page. | Presque rien |
-| **V2 — Gains rapides** | Prix en couleur stable ; `--text3` éclairci ; tailles ≥ 12 px ; cibles ≥ 44 px ; voyant avec compte d'attente ; en-tête 320 px ; libellés de format explicites. | Lisibilité, calme |
-| **V3 — Calculer recomposé** | Prix d'achat + résultat en tête ; format en sélecteur compact qui déplie la grille ; carte « étiquette » pour le résultat. | Le changement majeur |
-| **V4 — Couleur rationalisée** | Catégories en 2 familles + neutre ; états avec icône et teintes hors de l'arc ; `color-mix` doublé d'un repli pour iOS < 16.2. | Cohérence |
-| **V5 — Fenêtres et confirmations** | Fiche : actions en tête, focus géré, poignée retirée ou fonctionnelle, suppression confirmée dans la fiche. | Finition |
-| **V6 — Grands écrans** | Deux colonnes ≥ 900 px ; Produits en tableau triable. | Usage ordinateur |
+| **V1 — Socle** | Jetons : échelle d'espacement, échelle typographique, rôles de couleur sémantiques (primary, warning, danger, success, info, category-still, category-sparkling, category-other, **delta-up, delta-down**). Aucun changement de mise en page. | Presque rien |
+| **V2 — Gains rapides** | Prix en couleur stable ; `--text3` éclairci ; tailles ≥ 12 px ; cibles ≥ 44 px ; voyant avec compte d'attente ; en-tête 360 px. | Lisibilité, calme |
+| **V3 — Calculer recomposé** | 75 cl en accès direct + « Autres formats » ; saisie et étiquette résultat en tête ; nom + Enregistrer dans la zone du pouce. | Le changement majeur |
+| **V4 — Comparer et décider** | Écart avec le prix précédent avant d'enregistrer ; marge € / % (selon Q12) ; mêmes informations dans la fiche produit. | Nouvelle valeur métier |
+| **V5 — Évolution des prix** | Onglet Historique transformé : une ligne par produit, ancien → nouveau, écart, date ; détail des changements ; synchronisation déplacée dans le voyant. | Nouvelle valeur métier |
+| **V6 — Couleur rationalisée** | Catégories en 2 familles + neutre ; états avec icône ; repli pour `color-mix` (iOS < 16.2). | Cohérence |
+| **V7 — Fenêtres et confirmations** | Fiche : actions en tête, focus géré, poignée retirée, suppression confirmée dans la fiche. | Finition |
+| ~~Grands écrans~~ | Retiré du plan (Q2). La colonne actuelle reste utilisable sur ordinateur. | — |
 
 ---
 
@@ -535,51 +600,71 @@ textes du voyant).
 
 | Sujet | Avant | Après (principe) |
 | --- | --- | --- |
-| Premier écran | 10 formats, champ prix tronqué, résultat invisible | Prix d'achat et prix de vente visibles ; format rappelé en une ligne |
-| Format | Grille toujours dépliée (532 px) | Sélecteur compact ; grille à la demande |
+| Premier écran | 10 formats, champ prix tronqué, résultat invisible | Prix d'achat, prix de vente, marge et écart visibles sans défiler |
+| Format | Grille toujours dépliée (532 px) pour un usage à 75 cl surtout | 75 cl en un geste ; 8 autres formats à la demande |
+| Prix précédent | Introuvable dans Calculer ; dans l'Historique, deux lignes séparées à comparer de tête | « Avant : … · ▲ +… € (+… %) » sous le nouveau prix |
+| Historique | Liste de calculs ≈ liste de produits | « Évolution des prix » : ancien → nouveau, écart, date |
+| Marge | Absente | € et % sous le prix, en plus petit |
 | Prix principal | Couleur du format (5 teintes) | Couleur stable, serif « étiquette » |
-| Catégories | 10 teintes voisines | 2 familles + neutre ; le texte (et la forme) nomme le format |
-| États | Ambre ≈ or ≈ pétillant ; rouge ≈ tranquille | Teintes réservées + icône pour chaque état |
+| Catégories | 10 teintes voisines | 2 familles + neutre ; le texte nomme le format |
+| États | Ambre ≈ or ≈ pétillant ; rouge ≈ tranquille | Teintes réservées + icône ; hausse ≠ erreur |
 | Texte secondaire | 3,8–4,2:1, 10,5–11,5 px | ≥ 4,5:1, ≥ 12 px |
 | Cibles | 31 / 36 / 20 px | ≥ 44 px |
 | Fiche produit | « Fermer » dominant, poignée factice, `confirm()` | Actions réelles d'abord, confirmation intégrée, focus géré |
-| Grands écrans | Colonne de téléphone étirée | Deux colonnes, tableau triable |
 | Espacements | 19 valeurs | 7 valeurs d'échelle |
 | Typographie | 15 combinaisons | 8 rôles |
 | Cartes | Tout est carte | Une carte quand elle regroupe |
 
 **Invariants** (à ne pas perdre) : fond nuit, or unique pour l'action,
-serif pour les montants, tutoiement, carte de conflit, voyant textuel,
-sobriété du mouvement, fonctionnement hors ligne.
+serif pour les montants, DM Serif Display / DM Sans (pas de charte à
+reprendre), tutoiement, carte de conflit, voyant textuel, sobriété du
+mouvement, fonctionnement hors ligne, aucun montant de config dans le dépôt.
 
 ---
 
 ## 20. Questions Requiring Validation
 
-1. **Fréquence de changement de format** : en pratique, combien de calculs
-   d'affilée se font dans le même format ? (conditionne le sélecteur compact
-   — O1)
-2. **Appareil principal** : téléphone tenu à une main, tablette posée au
-   comptoir, ordinateur ? Quelle taille d'écran exactement ?
-3. **Couleurs de catégorie** : sont-elles utilisées pour *reconnaître* un
-   format d'un coup d'œil, ou sont-elles décoratives ? Le rose pour
-   « tranquille » gêne-t-il (connotation rosé) ?
-4. **Historique** : à quoi sert-il aujourd'hui, par rapport à Produits ?
-   Faut-il y garder les calculs *non enregistrés* ?
-5. **Aide à la décision** : afficher la marge (€ / %) ou le coefficient
-   global est-il souhaité, et est-ce acceptable si l'écran est vu par un
-   client au comptoir ?
-6. **Lisibilité en boutique** : lumière de la cave, distance de lecture,
-   plusieurs personnes utilisent-elles l'app (âges, vue) ?
-7. **Étiquette de prix** : existe-t-il une charte de la maison (étiquettes
-   de rayon, logo, couleurs, typographies) à reprendre plutôt que DM Serif ?
-8. **Mode clair** : utile en plein jour ou en réserve éclairée, ou le mode
-   sombre suffit-il ?
-9. **iPhone antérieurs à iOS 16.2** encore en service à la boutique ?
-10. **Suppression** : la confirmation système actuelle est-elle perçue comme
-    un problème, ou rassurante ?
-11. **Direction** : valider A + étiquette de B, ou explorer B / C plus loin
-    (maquettes) avant toute implémentation ?
+### Réponses reçues (28/09/2026)
+
+| # | Question | Réponse | Conséquence |
+| --- | --- | --- | --- |
+| Q1 | Fréquence de changement de format | **La majorité des calculs sont en 75 cl.** | 75 cl en accès direct, autres formats repliés (O1, V3). |
+| Q2 | Appareil principal | **Smartphone.** | Conception pour 360–430 px à une main ; grands écrans déclassés (O5, P3). |
+| Q4 | Rôle de l'Historique | **Vérifier les augmentations par rapport au prix précédent.** | Écart affiché avant d'enregistrer ; Historique → « Évolution des prix » (O10, V4–V5). |
+| Q5 | Afficher la marge | **Oui.** | Marge € / % dans le résultat et la fiche (O6, V4). |
+| Q7 | Charte de la maison | **Non, pas vraiment.** | L'identité actuelle devient la charte ; O9 facultative. |
+
+### Questions ouvertes
+
+Les numéros Q3, Q6, Q8 à Q11 sont ceux de la première liste ; Q12 à Q15
+découlent des réponses.
+
+- **Q3 · Couleurs de catégorie** : servent-elles à reconnaître un format
+  d'un coup d'œil, ou sont-elles décoratives ? Le rose pour « tranquille »
+  gêne-t-il ?
+- **Q6 · Lisibilité en boutique** : lumière, distance de lecture, autres
+  utilisateurs ?
+- **Q8 · Mode clair** : utile en plein jour, ou le sombre suffit ?
+- **Q9 · iPhone antérieurs à iOS 16.2** encore utilisés ?
+- **Q10 · Suppression** : la boîte de confirmation système gêne-t-elle ?
+- **Q11 · Direction** : valider « Étiquette de cave » telle que décrite en
+  partie 16, ou voir d'abord des maquettes ?
+- **Q12 · Définition de la marge** : la config ne contient pas de taux de
+  TVA et l'app ne calcule qu'un prix TTC. Quelle marge veux-tu voir ?
+  - (a) prix de vente HT − prix d'achat HT (il faut alors le taux de TVA :
+    21 % pour tous les formats ?) ;
+  - (b) prix de vente HT − (prix d'achat HT + frais fixes) ;
+  - (c) en % du prix de vente (taux de marque) ou du prix d'achat (taux de
+    marge) ?
+- **Q13 · Prix précédent de référence** : le prix actuel de la feuille
+  (commun à tous les appareils), ou le dernier calcul de *cet* appareil ?
+  (recommandation : la feuille)
+- **Q14 · Écart à signaler** : faut-il attirer l'attention au-delà d'un seuil
+  (par exemple hausse > 10 %), ou toujours afficher l'écart de la même façon ?
+- **Q15 · Évolution des prix** : suffit-il de voir le dernier changement de
+  chaque produit, ou faut-il tout l'historique de ses prix (sur plusieurs
+  années, ce qui demanderait de le conserver dans la feuille plutôt que sur
+  l'appareil) ?
 
 ---
 
