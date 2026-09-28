@@ -3,17 +3,16 @@
 ## Spécification fonctionnelle et UX — écran « Calculer »
 
 **Projet :** Tarif (Prix de vente — Une Autre Clé du Paradis)
-**Version :** 2.1 — 28/09/2026
-**Statut :** spécification fonctionnelle définitive, à figer avant `CALCULER_UI_MOCKUP.md`
+**Version :** 2.2 — 28/09/2026
+**Statut :** spécification fonctionnelle définitive — base de `CALCULER_UI_MOCKUP.md`
 **Références :** `00_MASTER_SYSTEM.md`, `DESIGN_SYSTEM_V2.md`, `UI_COMPONENT_LIBRARY_V2.md`,
 `docs/ETAT-DE-REFERENCE.md`, code de `app/src/`
 
 Ce document remplace la version 2.0, qui décrivait un parcours générique
 (recherche de produit, paramètres modifiables, calcul asynchrone) ne
 correspondant pas à Tarif. Tout ce qui suit est vérifié dans le code actuel
-ou issu d'une décision validée (D1 à D7). Les points ajoutés lors de la
-rédaction et encore à confirmer sont regroupés en **§19** et marqués
-**[À CONFIRMER]** là où ils apparaissent.
+ou issu d'une décision validée (C1 à C12, D1 à D14, récapitulées en §19).
+Aucun point fonctionnel n'est laissé ouvert.
 
 En cas de conflit : `00_MASTER_SYSTEM.md` puis `DESIGN_SYSTEM_V2.md`
 prévalent sur ce document. Un conflit est signalé, jamais résolu en silence.
@@ -155,8 +154,10 @@ mettre à jour en conséquence (§18 de ce document).
 | `3l_mousseux` | Jéroboam pétillant (3 l) | Jéroboam pétillant · 3 l | pétillant | 3 litres |
 | `4_5l_tranquille` | Tranquille 4,5 l | Tranquille · 4,5 l | tranquille | 4,5 et 5 litres |
 | `5l_tranquille` | Jéroboam tranquille (5 l) | Jéroboam tranquille · 5 l | tranquille | 4,5 et 5 litres |
-| `demie` | 37,5 cl | Demi-bouteille · 37,5 cl | autre **[À CONFIRMER]** | Autres formats |
+| `demie` | 37,5 cl | Demi-bouteille · 37,5 cl | autre (D10) | Autres formats |
 | `intermediaire` | Produit intermédiaire 75cl | Intermédiaire · 75 cl | autre | Autres formats |
+
+Contenances écrites en minuscules, « cl » et « l », partout (D13).
 
 Informations complémentaires conservées : `intermediaire` garde sa mention
 « Maury, Porto, VDN… » comme aide sous le libellé.
@@ -174,11 +175,11 @@ seule, jamais sur le prix de vente, jamais sur l'or.
 - **Fermé** : libellé « Format » + libellé V2 du format courant + chevron.
 - **Ouvert** : les 10 options groupées selon `GROUPES`, choix unique
   (sémantique radio), cibles ≥ 44 × 44 px, sélection visible sans couleur.
-- Chaque option affiche, sous le libellé, les frais du format
-  (« + x,xx € de frais ») quand la config est chargée — comportement actuel
-  conservé — ou « frais à charger » si le format manque dans la config.
-  **[À CONFIRMER]** : afficher aussi les frais dans l'état fermé ; par défaut,
-  non (ils figurent dans le détail).
+- Sélecteur ouvert : chaque option affiche, sous le libellé, les frais du
+  format (« + x,xx € de frais ») quand la config est chargée — comportement
+  actuel conservé — ou « frais à charger » si le format manque dans la config.
+- Sélecteur fermé : **pas de frais** (D12). Les frais du format choisi
+  figurent dans le détail du calcul (ligne « Frais fixes »).
 - Le choix est mémorisé dans `pv_categorie`, recalcule immédiatement,
   referme le sélecteur et renvoie le focus au champ prix d'achat.
 - Échap referme le sélecteur sans changer de format.
@@ -210,8 +211,8 @@ Sont **invalides** :
 - plusieurs virgules ;
 - un point de milliers qui ne sépare pas un groupe de 3 chiffres
   (`1.23,50`) ou un point placé après la virgule ;
-- plusieurs points sans virgule (`1.234.567`) **[À CONFIRMER]** : invalide par
-  défaut plutôt que deviné ;
+- plusieurs points sans virgule (`1.234.567`) : une suite de séparateurs de
+  milliers sans partie décimale n'est pas une saisie valide (D11) ;
 - tout caractère autre que chiffres, séparateurs, espaces et € (aujourd'hui
   `parseFloat` accepte « 12abc » comme 12 : ce ne sera plus le cas) ;
 - zéro ou négatif (règle actuelle conservée).
@@ -275,10 +276,23 @@ modifie jamais la valeur métier.
   5. total « Prix de vente TTC », séparé visuellement.
 - Libellés à gauche, montants à droite, chiffres tabulaires.
 - Pas de ligne « marge » ni « coefficient global » (**D4**).
-- Repliable ; état mémorisé dans `pv_detail` (clé et valeurs conservées).
-  **[À CONFIRMER]** valeur par défaut quand `pv_detail` n'existe pas :
-  aujourd'hui ouvert ; proposé fermé sous 900 px (pour garder le nom et
-  « Enregistrer » dans le premier écran), ouvert à partir de 900 px.
+- Repliable. On distingue **l'état initial** et **la préférence mémorisée**
+  (D9) :
+  - sans préférence mémorisée : replié sous 900 px, ouvert à partir de 900 px
+    (largeur lue à l'ouverture de l'écran) ;
+  - dès que l'utilisateur ouvre ou ferme le détail, ce choix est mémorisé dans
+    `pv_detail` et s'applique ensuite quelle que soit la largeur ;
+  - seule une action de l'utilisateur écrit la préférence ; une ouverture ou
+    fermeture faite par l'app (état initial) n'écrit rien.
+- Reprise de l'existant : aujourd'hui, l'app ouvre le détail au démarrage par
+  programme, ce qui déclenche l'écriture de `pv_detail = '1'` chez **tous**
+  les utilisateurs, sans action de leur part. Une valeur `'1'` héritée ne
+  prouve donc aucun choix. Règle retenue, avec la même clé :
+  - V2 écrit `pv_detail` = `'ouvert'` ou `'ferme'` ;
+  - valeur héritée `'0'` (écrite seulement quand l'utilisateur a replié) :
+    lue comme « fermé » ;
+  - valeur héritée `'1'`, absente ou illisible : aucune préférence, état
+    initial responsive.
 - Sémantique : liste de paires libellé / montant (`dl`) ou tableau à deux
   colonnes ; le choix final se fait en maquette, avec en-têtes associés si
   tableau.
@@ -292,10 +306,27 @@ modifie jamais la valeur métier.
 - Hors parcours « Recalculer », le nom identifie le produit : un nom identique
   à un produit existant (comparaison `normNom` : casse et espaces ignorés) met
   à jour ce produit, qui garde son SKU. Comportement actuel conservé.
-- Ce comportement est rendu **visible sans parler de SKU** : quand le nom
-  saisi correspond à un produit existant, une ligne d'aide sous le champ
-  indique « Ce produit existe déjà : il sera mis à jour. »
+- Ce comportement est rendu **visible sans parler de SKU** (D14) : quand le
+  nom saisi correspond à un produit existant, une ligne d'aide sous le champ
+  indique, avant l'enregistrement, « Ce produit existe déjà : il sera mis à
+  jour. » Elle se met à jour pendant la frappe (comparaison `normNom`) et
+  n'est pas une erreur.
 - Le SKU n'est jamais affiché dans Calculer.
+
+Règle complète du champ nom (D8 + D14) :
+
+| Mode | Nom saisi | Résultat | Message sous le champ |
+|---|---|---|---|
+| Nouveau calcul | Nom d'aucun produit | Création | — |
+| Nouveau calcul | Nom d'un produit existant | Mise à jour de ce produit | Aide : « Ce produit existe déjà : il sera mis à jour. » |
+| Modification (§11) | Nom du produit en cours de modification (inchangé ou casse / espaces différents) | Mise à jour de ce produit | Aide : « Ce produit existe déjà : il sera mis à jour. » |
+| Modification (§11) | Nom d'aucun produit | Renommage de ce produit, SKU conservé | — |
+| Modification (§11) | Nom d'un **autre** produit existant | **Bloqué** (D8) : rien n'est enregistré, ni sur l'appareil ni dans la file d'envoi | Erreur : « Un autre produit porte déjà ce nom. Choisis un autre nom. » |
+
+Les produits retirés comptent comme existants, comme aujourd'hui : enregistrer
+leur nom en nouveau calcul les met à jour et les remet en vente ; l'aide le
+précise alors (« Ce produit existe déjà (retiré) : il sera mis à jour et remis
+en vente. »).
 
 ### 10.2 Conditions d'enregistrement
 
@@ -305,6 +336,7 @@ modifie jamais la valeur métier.
 | Format sans frais dans la config | Bouton désactivé, raison affichée (§12.2). |
 | Prix d'achat vide ou invalide | Bouton désactivé ; si activé au clavier, focus sur le champ prix. |
 | Nom vide | Message associé au champ : « Donne un nom au produit », focus sur le champ. |
+| Mode modification, nom d'un autre produit | Bouton désactivé, erreur sous le champ (D8). |
 | Format « à compléter » (§11.3) | Bouton désactivé tant qu'aucun format n'est choisi. |
 | Hors ligne | **Aucun blocage.** L'enregistrement local se fait normalement. |
 
@@ -381,7 +413,7 @@ crée un second produit avec un nouveau SKU (B-02). En V2 :
   changé : c'est un renommage, le SKU est conservé. Le script le permet déjà
   (il identifie par SKU quand il est fourni) ; seule l'app change.
 - Si le nouveau nom est celui d'**un autre** produit existant : enregistrement
-  bloqué, message « Un autre produit porte déjà ce nom. » **[À CONFIRMER]**
+  bloqué, aucune modification enregistrée, message d'erreur (§10.1, D8).
 - Produit retiré : le bandeau précise « Ce produit est retiré :
   l'enregistrer le remet en vente. » (comportement actuel du script).
 - Le mode se termine après l'enregistrement, avec « Nouveau calcul », ou si le
@@ -429,7 +461,8 @@ l'écran : il n'empêche rien et s'affiche dans le voyant.
 
 Contrat de stockage conservé : `pv_categorie`, `pv_config`, `pv_detail`,
 `pv_historique`, `pv_produits_v2`, `pv_retraits` (mêmes clés, mêmes formats,
-anciennes données relues).
+anciennes données relues). Seule exception : les valeurs de `pv_detail`
+(§9, D9), avec relecture des anciennes valeurs.
 
 Événements UI (noms indicatifs, alignés sur `UI_COMPONENT_LIBRARY_V2` §58) :
 `onFormatChange`, `onPriceChange`, `onDetailToggle`, `onNameChange`,
@@ -503,12 +536,22 @@ Seuils de `DESIGN_SYSTEM_V2` §16 : < 600, 600–899, ≥ 900, ≥ 1200 px.
 12. Recalculer préremplit format, prix et nom ; renommer met à jour le même
     produit (même SKU) ; aucun second produit n'est créé.
 13. Recalculer un produit au format inconnu n'impose aucun format.
-14. L'Historique ne reçoit que les calculs enregistrés.
-15. Clavier : tout l'écran est utilisable ; Entrée prix → nom, Entrée nom →
+14. En modification, un nom déjà porté par un autre produit bloque
+    l'enregistrement : aucune donnée locale ni envoi n'est modifié.
+15. L'aide « Ce produit existe déjà : il sera mis à jour. » apparaît avant
+    l'enregistrement dès que le nom correspond à un produit existant
+    (ou au produit modifié).
+16. Sans préférence mémorisée, le détail est replié sous 900 px et ouvert à
+    partir de 900 px ; après une ouverture ou fermeture par l'utilisateur, ce
+    choix est conservé au rechargement ; une valeur `pv_detail = '1'` héritée
+    ne compte pas comme un choix.
+17. Aucun frais n'apparaît dans le sélecteur fermé ; `1.234.567` est refusé.
+18. L'Historique ne reçoit que les calculs enregistrés.
+19. Clavier : tout l'écran est utilisable ; Entrée prix → nom, Entrée nom →
     enregistrer ; Échap ferme le sélecteur.
-16. Mise en page correcte à 320, 390, 768, 900 et 1440 px, sans défilement
+20. Mise en page correcte à 320, 390, 768, 900 et 1440 px, sans défilement
     horizontal.
-17. Tous les tests existants passent, hormis B-01 et B-02 inversés
+21. Tous les tests existants passent, hormis B-01 et B-02 inversés
     volontairement.
 
 ## 18. Impacts sur les documents de référence
@@ -519,7 +562,7 @@ Seuils de `DESIGN_SYSTEM_V2` §16 : < 600, 600–899, ≥ 900, ≥ 1200 px.
 - `DESIGN_SYSTEM_V2` : tokens de l'étiquette crème (surface, texte, filet,
   focus sur surface claire), aujourd'hui non définis.
 - `DESIGN_SYSTEM_V2` §21 et `UI_COMPONENT_LIBRARY_V2` §12 : table complète
-  des 10 libellés (§6.2) et unité « l » en minuscule **[À CONFIRMER]**.
+  des 10 libellés (§6.2), contenances « cl » / « l » en minuscules (D13).
 - `UI_COMPONENT_LIBRARY_V2` §6 : ajouter l'état `conflit` à `SyncStatus`.
 - `UI_COMPONENT_LIBRARY_V2` §16 : exemple du détail avec frais et base.
 - `UI_COMPONENT_LIBRARY_V2` §18 : états de `SaveAction` (« Enregistré sur
@@ -538,22 +581,17 @@ Seuils de `DESIGN_SYSTEM_V2` §16 : < 600, 600–899, ≥ 900, ≥ 1200 px.
 | D5 | Correction de B-01, compatibilité des saisies actuelles |
 | D6 | Historique = calculs enregistrés uniquement |
 | D7 | Étiquette de cave crème pour le prix de vente TTC |
+| D8 | En modification, un nom déjà porté par un **autre** produit bloque l'enregistrement (message explicite, rien d'enregistré) ; le nom du produit modifié reste autorisé |
+| D9 | Détail : état initial replié < 900 px, ouvert ≥ 900 px ; préférence de l'utilisateur mémorisée dans `pv_detail` après interaction |
+| D10 | 37,5 cl : famille « autre » |
+| D11 | `1.234.567` (séparateurs de milliers sans partie décimale) refusé |
+| D12 | Pas de frais dans le sélecteur fermé ; frais dans les options ouvertes et dans le détail |
+| D13 | Contenances en minuscules : « cl », « l » |
+| D14 | Aide « Ce produit existe déjà : il sera mis à jour. » sous le champ nom, avant l'enregistrement |
 | C1–C12 | Corrections de la revue de la version 2.0 |
-
-### À confirmer (ajoutées à la rédaction)
-
-| Réf. | Point | Proposition |
-|---|---|---|
-| D8 | Renommer vers le nom d'un **autre** produit existant | Bloquer avec un message |
-| D9 | Détail par défaut quand `pv_detail` n'existe pas | Fermé < 900 px, ouvert ≥ 900 px |
-| D10 | Famille du 37,5 cl | « autre » (pas de distinction tranquille / pétillant aujourd'hui) |
-| D11 | Plusieurs points sans virgule (`1.234.567`) | Invalide |
-| D12 | Frais visibles dans le sélecteur fermé | Non (dans les options ouvertes et le détail) |
-| D13 | Unité des contenances | « cl » et « l » en minuscules, comme l'app actuelle |
-| D14 | Aide « Ce produit existe déjà : il sera mis à jour » | Oui, sous le champ nom |
 
 ---
 
 **Règle finale :** la qualité visuelle ne masque jamais une incertitude
-métier. Tout point marqué [À CONFIRMER] est tranché avant
-`CALCULER_UI_MOCKUP.md`.
+métier. Toute nouvelle question apparue en maquette ou en développement est
+ajoutée au §19 et tranchée avant d'être implémentée.
