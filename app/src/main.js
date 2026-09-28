@@ -20,7 +20,8 @@ import { setSyncStatus } from './ui/statut.js';
 import { etat } from './data/etat.js';
 import { stockage } from './data/stockage.js';
 import { lirePin, scriptUrl } from './data/api.js';
-import { syncNow, enAttente } from './data/synchro.js';
+import { syncNow, enAttente, nombreConflits } from './data/synchro.js';
+import { garderMaVersion, garderVersionFeuille, confirmerRetrait, annulerRetrait } from './ui/conflits.js';
 
 // ===========================
 // ÉVÉNEMENTS (délégués)
@@ -32,10 +33,17 @@ document.addEventListener('click', e => {
     return;
   }
   switch (cible.dataset.action) {
-    case 'onglet': switchTab(cible.dataset.onglet); break;
+    case 'onglet':
+      // Pastille en conflit : directement vers les conflits à résoudre.
+      switchTab(cible.id === 'pastille' && nombreConflits() ? 'list' : cible.dataset.onglet);
+      break;
     case 'categorie': selectCat(cible.dataset.cat); break;
     case 'filtre': etat.filtreCat = cible.dataset.filtre; renderList(); break;
-    case 'fiche': openModal(Number(cible.dataset.id)); break;
+    case 'fiche': openModal(cible.dataset.id); break;
+    case 'conflit-mien': garderMaVersion(cible.dataset.id); break;
+    case 'conflit-feuille': garderVersionFeuille(cible.dataset.id); break;
+    case 'retrait-confirmer': confirmerRetrait(cible.dataset.sku); break;
+    case 'retrait-garder': annulerRetrait(cible.dataset.sku); break;
     case 'fermer': fermer('modal'); break;
     case 'pin': ouvrirPin(); break;
     case 'fermer-pin': fermer('pin-modal'); break;

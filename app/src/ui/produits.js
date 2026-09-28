@@ -1,46 +1,59 @@
 // ===========================
 // LISTE PRODUITS ET FICHE PRODUIT (onglet Produits)
 // ===========================
+// La liste est celle de la feuille (source commune), fusionnée avec ce que
+// cet appareil n'a pas encore envoyé. Les produits retirés sont masqués, sauf
+// avec le filtre « Retirés ».
 import { $ } from './dom.js';
 import { toast } from './toast.js';
 import { ouvrir, fermer } from './fenetres.js';
 import { messageErreur } from './messages.js';
 import { selectCat, calculer, detailHtml } from './calculateur.js';
 import { switchTab, rafraichir } from './onglets.js';
-import { CATEGORIES, categorie, cleValide } from '../core/categories.js';
+import { renderConflits } from './conflits.js';
+import { CATEGORIES, categorie, cleAffichee } from '../core/categories.js';
 import { fmt, esc, normNom } from '../core/format.js';
 import { etat, sauverProduits, sauverRetraits } from '../data/etat.js';
 import { syncNow } from '../data/synchro.js';
 
+const estRetire = p => p.disponibilite === 'retiré';
+
 export function renderFiltres() {
-  const produits = etat.produits;
+  const actifs = etat.produits.filter(p => !estRetire(p));
+  const retires = etat.produits.length - actifs.length;
   const comptes = {};
-  produits.forEach(p => { const c = cleValide(p.categorie); comptes[c] = (comptes[c] || 0) + 1; });
-  const cles = Object.keys(CATEGORIES).filter(c => comptes[c]);
-  if (etat.filtreCat !== 'tous' && !comptes[etat.filtreCat]) etat.filtreCat = 'tous';
+  actifs.forEach(p => { const c = cleAffichee(p.categorie); comptes[c] = (comptes[c] || 0) + 1; });
+  const cles = [...Object.keys(CATEGORIES), 'inconnue'].filter(c => comptes[c]);
+  if (etat.filtreCat === 'retires' ? !retires : (etat.filtreCat !== 'tous' && !comptes[etat.filtreCat])) etat.filtreCat = 'tous';
   const filtreCat = etat.filtreCat;
-  $('filtres').innerHTML = cles.length < 2 ? '' :
-    `<button class="filtre" data-action="filtre" data-filtre="tous" aria-pressed="${filtreCat === 'tous'}">Tous<small>${produits.length}</small></button>` +
-    cles.map(c => `<button class="filtre" data-cat="${c}" data-action="filtre" data-filtre="${c}" aria-pressed="${filtreCat === c}">${esc(categorie(c).court)}<small>${comptes[c]}</small></button>`).join('');
+  const filtres = cles.length < 2 && !retires ? [] : [
+    `<button class="filtre" data-action="filtre" data-filtre="tous" aria-pressed="${filtreCat === 'tous'}">Tous<small>${actifs.length}</small></button>`,
+    ...(cles.length < 2 ? [] : cles.map(c => `<button class="filtre" data-cat="${c}" data-action="filtre" data-filtre="${c}" aria-pressed="${filtreCat === c}">${esc(categorie(c).court)}<small>${comptes[c]}</small></button>`)),
+    ...(retires ? [`<button class="filtre" data-action="filtre" data-filtre="retires" aria-pressed="${filtreCat === 'retires'}">Retirés<small>${retires}</small></button>`] : []),
+  ];
+  $('filtres').innerHTML = filtres.join('');
 }
 
 export function statutProduit(p) {
+  if (p.conflit) return '<span class="statut-conflit">⚠ conflit : modifié sur un autre appareil</span>';
   if (p.erreur) return `<span class="statut-refus">⚠ refusé : ${esc(messageErreur(p.erreur))}</span>`;
   if (p.synced === false) return '<span class="statut-attente">en attente d\'envoi</span>';
+  if (estRetire(p)) return '<span class="statut-retire">retiré</span>';
   return '';
 }
 
 export function renderList() {
   etat.aRedessiner.list = false;
+  renderConflits();
   renderFiltres();
   const produits = etat.produits;
   const filtreCat = etat.filtreCat;
   const q = normNom($('search-input').value);
   const filtered = produits.filter(p =>
-    (filtreCat === 'tous' || cleValide(p.categorie) === filtreCat) &&
+    (filtreCat === 'retires' ? estRetire(p) : !estRetire(p) && (filtreCat === 'tous' || cleAffichee(p.categorie) === filtreCat)) &&
     (!q || normNom(p.nom).includes(q) || (p.sku && p.sku.toLowerCase().includes(q))));
   const el = $('product-list');
-  $('compte').textContent = produits.length ? `${filtered.length} produit${filtered.length > 1 ? 's' : ''}` : '';
+  $('compte').textContent = produits.length ? `${filtered.length} produit${filtered.length > 1 ? 's' : ''}${filtreCat === 'retires' ? ' retiré' + (filtered.length > 1 ? 's' : '') : ''}` : '';
 
   if (!filtered.length) {
     el.innerHTML = `<div class="vide">
@@ -50,8 +63,8 @@ export function renderList() {
   }
 
   el.innerHTML = filtered.map(p => {
-    const cle = cleValide(p.categorie);
-    return `<button class="produit" data-cat="${cle}" data-action="fiche" data-id="${Number(p.id)}">
+    const cle = cleAffichee(p.categorie);
+    return `<button class="produit${estRetire(p) ? ' retire' : ''}" data-cat="${cle}" data-action="fiche" data-id="${esc(String(p.id))}">
       <div class="produit-corps">
         <div class="produit-nom">${esc(p.nom)}</div>
         <div class="produit-meta">
@@ -67,7 +80,7 @@ export function renderList() {
 }
 
 export function afficherBadge() {
-  const n = etat.produits.filter(p => p.synced === false).length;
+  const n = etat.produits.filter(p => p.synced === false || p.conflit).length + etat.retraits.filter(r => r.conflit).length;
   const badge = $('badge-attente');
   badge.hidden = !n;
   badge.textContent = n;
@@ -77,26 +90,35 @@ export function afficherBadge() {
 // FICHE PRODUIT
 // ===========================
 export function openModal(id) {
-  const p = etat.produits.find(x => Number(x.id) === id);
+  const p = etat.produits.find(x => String(x.id) === String(id));
   if (!p) return;
-  const cle = cleValide(p.categorie);
+  const cle = cleAffichee(p.categorie);
   const fenetre = $('modal').querySelector('.fenetre');
   fenetre.dataset.cat = cle;
 
   $('modal-title').textContent = p.nom;
-  $('modal-delete-btn').onclick = () => supprimerProduit(p);
+  const bouton = $('modal-delete-btn');
+  if (estRetire(p)) {
+    bouton.textContent = 'Remettre en vente';
+    bouton.className = 'btn btn-secondaire';
+    bouton.onclick = () => remettreEnVente(p);
+  } else {
+    bouton.textContent = 'Supprimer';
+    bouton.className = 'btn btn-danger';
+    bouton.onclick = () => supprimerProduit(p);
+  }
   $('modal-modifier').onclick = () => recalculer(p);
 
   let html = `<div class="sous-titre">${esc(categorie(cle).label)}</div>
     <div class="prix-fiche">${fmt(p.prixTTC)}</div>`;
-  if (etat.config && etat.config.categories[cle]) {
+  if (etat.config && etat.config.categories[cle] && typeof p.prixAchat === 'number') {
     html += detailHtml(p.prixAchat, cle);
   } else {
     html += `<div class="ligne"><span>Prix d'achat HT</span><span>${fmt(p.prixAchat)}</span></div>`;
   }
   html += `<div class="ligne total"><span>Prix TTC</span><span>${fmt(p.prixTTC)}</span></div>`;
   if (p.sku) html += `<div class="ligne" style="margin-top:8px"><span>SKU</span><span>${esc(p.sku)}</span></div>`;
-  html += `<div class="ligne"><span>Enregistré le</span><span>${esc(p.date)}</span></div>`;
+  html += `<div class="ligne"><span>${p.appareil ? 'Modifié le' : 'Enregistré le'}</span><span>${esc(p.date)}${p.appareil ? ' · ' + esc(p.appareil) : ''}</span></div>`;
   const statut = statutProduit(p);
   if (statut) html += `<div class="ligne"><span>Feuille Google</span>${statut}</div>`;
 
@@ -108,7 +130,7 @@ export function openModal(id) {
 export function recalculer(p) {
   fermer('modal');
   selectCat(p.categorie);
-  $('input-prix').value = String(p.prixAchat).replace('.', ',');
+  $('input-prix').value = typeof p.prixAchat === 'number' ? String(p.prixAchat).replace('.', ',') : '';
   $('input-nom').value = p.nom;
   calculer();
   switchTab('calc');
@@ -119,11 +141,23 @@ export function recalculer(p) {
 export function supprimerProduit(p) {
   if (!confirm(`Supprimer « ${p.nom} » ?`)) return;
   etat.produits = etat.produits.filter(x => x !== p);
-  etat.retraits.push({ sku: p.sku || '', nom: p.nom });
+  etat.retraits.push({ sku: p.sku || '', nom: p.nom, version: p.version || 0 });
   sauverProduits();
   sauverRetraits();
   fermer('modal');
   rafraichir();
   toast('Produit supprimé');
+  syncNow();
+}
+
+// Produit retiré : réenregistré tel quel, il redevient disponible (même SKU).
+export function remettreEnVente(p) {
+  p.synced = false;
+  p.rev = (p.rev || 0) + 1;
+  delete p.erreur;
+  sauverProduits();
+  fermer('modal');
+  rafraichir();
+  toast(`${p.nom} va être remis en vente`);
   syncNow();
 }

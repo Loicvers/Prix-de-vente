@@ -34,7 +34,6 @@ npm run build            # compilation dans dist/
 npm run apercu           # sert dist/ en local
 npm test                 # calcul, script de la feuille, confidentialité
 npm run test:e2e         # compile, puis teste l'app compilée dans Chromium
-npm run test:e2e:ancienne  # mêmes tests sur l'ancienne app (comparaison)
 ```
 
 Node 22.12 ou plus est nécessaire (Vite 8).
@@ -68,8 +67,10 @@ Node 22.12 ou plus est nécessaire (Vite 8).
    dossier `/ (root)`, **Save**.
 2. Attends 1 à 3 minutes : l'ancienne app (racine du dépôt) est de nouveau
    servie. Sur chaque appareil, elle remplace la nouvelle à l'ouverture
-   suivante ; les données de l'appareil (produits, PIN, file d'attente) sont
-   les mêmes pour les deux versions.
+   suivante ; le PIN, l'adresse et la file d'attente sont conservés.
+   Limites depuis l'étape 3 : l'ancienne app ne relit pas la feuille, ne
+   gère pas les conflits, et ne peut pas ouvrir la fiche des produits venus
+   d'un autre appareil (elle les affiche seulement).
 
 ## Modifier l'adresse du script dans le code
 

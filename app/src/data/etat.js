@@ -16,6 +16,8 @@ export const etat = {
   historique: stockage.json('pv_historique', []),
   retraits: stockage.json('pv_retraits', []),   // produits supprimés à retirer côté feuille
   config: stockage.json('pv_config', null),
+  // Nom de cet appareil (« Comptoir »…), inscrit dans la feuille et le Journal.
+  appareil: stockage.lire('pv_appareil', ''),
   ongletActif: 'calc',
   aRedessiner: { list: true, history: true },
 };

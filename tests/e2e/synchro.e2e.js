@@ -95,9 +95,11 @@ describe('synchronisation', () => {
     assert.equal(script.requetes[0].operations.length, 3);
     assert.deepEqual(script.requetes[0].operations[0], {
       action: 'enregistrer', uid: '1001', nom: 'Vin 1', categorie: 'tranquille', prixAchat: 8, prixTTC: Calcul.prixTTC(8, 'tranquille', CONFIG_E2E),
+      version: 0,   // étape 3 : version connue de la feuille (0 = nouvelle fiche)
     });
     const produits = await lireJSON(page, 'pv_produits_v2');
-    assert.deepEqual(produits.map(p => [p.nom, p.sku, p.synced]), [['Vin 1', 'UCP-0001', true], ['Vin 2', 'UCP-0002', true], ['Vin 3', 'UCP-0003', true]]);
+    // Étape 3 : liste relue depuis la feuille, du plus récent au plus ancien.
+    assert.deepEqual(produits.map(p => [p.nom, p.sku, p.synced]).sort(), [['Vin 1', 'UCP-0001', true], ['Vin 2', 'UCP-0002', true], ['Vin 3', 'UCP-0003', true]]);
     assert.equal(await texte(page, '#sync-status'), 'Synchronisé avec Google Sheets');
     assert.equal(await page.isHidden('#badge-attente'), true);
     await context.close();
@@ -238,50 +240,66 @@ describe('synchronisation', () => {
 });
 
 describe('plusieurs appareils (même feuille)', () => {
-  it('LIMITE CONNUE B-05 : un produit créé sur A n\'apparaît jamais sur B', async () => {
+  it('B-05 CORRIGÉ (étape 3) : un produit créé ou modifié sur A apparaît sur B après synchronisation', async () => {
     const script = fauxScript();
     const a = await appareilConnecte(script);
     const b = await appareilConnecte(script);
-    await attendreEtat(a.page, 'ok');
+    await attendreEtat(a.page, 'ok'); await attendreEtat(b.page, 'ok');
     await enregistrer(a.page, 'tranquille', '8', 'Créé sur A');
     await attendreEtat(a.page, 'ok');
     await b.page.click('#onglet-history');
     await b.page.click('[data-action="sync"]');
     await attendreEtat(b.page, 'ok');
     await b.page.click('#onglet-list');
-    assert.equal(await texte(b.page, '#product-list'), 'Aucun produit enregistré');
-    assert.equal(script.prive().length, 1);
+    assert.equal(await texte(b.page, '.produit-nom'), 'Créé sur A');
+    assert.match(await texte(b.page, '.produit'), /UCP-0001/);
+    // Modification sur A, relue par B.
+    await enregistrer(a.page, 'mousseux', '9', 'Créé sur A');
+    await attendreEtat(a.page, 'ok');
+    await b.page.click('#onglet-history');
+    await b.page.click('[data-action="sync"]');
+    await attendreEtat(b.page, 'ok');
+    const [p] = await lireJSON(b.page, 'pv_produits_v2');
+    assert.deepEqual([p.sku, p.categorie, p.prixAchat, p.version, p.synced], ['UCP-0001', 'mousseux', 9, 2, true]);
     await a.context.close(); await b.context.close();
   });
 
-  it('LIMITE CONNUE B-06 (app actuelle) : modifications concurrentes, le dernier envoi écrase, désormais tracé dans le Journal', async () => {
+  it('B-06 CORRIGÉ (étape 3) : modification concurrente → conflit signalé, rien d\'écrasé, choix « Garder ma version »', async () => {
     const script = fauxScript();
     const a = await appareilConnecte(script);
     const b = await appareilConnecte(script);
     await attendreEtat(a.page, 'ok'); await attendreEtat(b.page, 'ok');
     await enregistrer(a.page, 'tranquille', '8', 'Disputé');
     await attendreEtat(a.page, 'ok');
+    await b.page.click('#onglet-history');
+    await b.page.click('[data-action="sync"]');
+    await attendreEtat(b.page, 'ok');                   // B connaît la version 1
     // A modifie hors ligne ; B modifie en ligne ; A revient en ligne.
     await a.context.setOffline(true);
     await enregistrer(a.page, 'tranquille', '10', 'Disputé');
     await enregistrer(b.page, 'tranquille', '20', 'Disputé');
     await attendreEtat(b.page, 'ok');
-    assert.equal(script.prive()[0][3], 20);
+    assert.deepEqual([script.prive()[0][3], script.prive()[0][7]], [20, 2]);
     await a.context.setOffline(false);
+    await attendreEtat(a.page, 'conflit');
+    assert.deepEqual([script.prive()[0][3], script.prive()[0][7]], [20, 2]);   // rien d'écrasé
+    assert.equal(await texte(a.page, '#pastille-texte'), '1 conflit');
+    assert.match(await texte(a.page, '#sync-status'), /1 conflit : modifié sur un autre appareil, à résoudre dans Produits/);
+    await a.page.click('#pastille');                     // mène aux conflits
+    assert.equal(await a.page.getAttribute('#onglet-list', 'aria-selected'), 'true');
+    assert.match(await texte(a.page, '#conflits'), /Conflit détecté · Disputé.*Ta version.*achat 10,00 €.*Version de la feuille.*achat 20,00 €/);
+    const journal = () => script.env.onglet('Journal').data.slice(1).map(r => [r[2], r[5]]);
+    assert.deepEqual(journal().at(-1), ['enregistrer', 'conflit']);
+    await a.page.click('[data-action="conflit-mien"]');
     await attendreEtat(a.page, 'ok');
-    assert.equal(script.prive().length, 1);
-    assert.equal(script.prive()[0][3], 10);             // la modification de B est perdue
-    assert.equal(await texte(b.page, '#pastille-texte'), 'Synchronisé');   // et B n'en sait rien
-    assert.equal((await lireJSON(b.page, 'pv_produits_v2'))[0].prixAchat, 20);
-    // Script v3 : l'app actuelle n'envoie pas de version, l'écrasement a
-    // encore lieu, mais le Journal garde les deux modifications.
-    const journal = script.env.onglet('Journal').data.slice(1);
-    assert.deepEqual(journal.map(r => [r[2], r[7]]), [
-      ['créer', 'Vin tranquille · achat 8 · TTC 21.5 · disponible'],
-      ['modifier', 'Vin tranquille · achat 20 · TTC 39.5 · disponible'],
-      ['modifier', 'Vin tranquille · achat 10 · TTC 24.5 · disponible'],
-    ]);
-    assert.ok(journal.slice(1).every(r => r[8] === 'sans contrôle de version (ancienne app)'));
+    assert.deepEqual([script.prive()[0][3], script.prive()[0][7]], [10, 3]);
+    assert.equal(await texte(a.page, '#conflits'), '');
+    assert.deepEqual(journal().at(-1), ['modifier', 'ok']);
+    // B relit la version gagnante.
+    await b.page.click('#onglet-history');
+    await b.page.click('[data-action="sync"]');
+    await attendreEtat(b.page, 'ok');
+    assert.equal((await lireJSON(b.page, 'pv_produits_v2'))[0].prixAchat, 10);
     await a.context.close(); await b.context.close();
   });
 });

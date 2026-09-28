@@ -103,7 +103,7 @@ describe('stockage local', () => {
     }) });
     await ouvrir(app, page, { connecter: false });
     await attendreEtat(page, 'ok');
-    assert.deepEqual(script.requetes[0].operations, [{ action: 'retirer', sku: 'UCP-0005', nom: 'Déjà supprimé' }]);
+    assert.deepEqual(script.requetes[0].operations, [{ action: 'retirer', sku: 'UCP-0005', nom: 'Déjà supprimé', version: 0 }]);
     assert.deepEqual(await lireJSON(page, 'pv_retraits'), []);           // « introuvable » : abandonné
     await page.click('#onglet-list');
     assert.equal(await texte(page, '.produit-nom'), 'Ancien format');
@@ -168,7 +168,7 @@ describe('stockage local', () => {
     assert.equal(await texte(page, '#toast-texte'), 'Mémoire de l\'appareil pleine : donnée non enregistrée');
     assert.equal(await texte(page, '#badge-attente'), '1');
     await page.reload();
-    assert.equal(await lireJSON(page, 'pv_produits_v2'), null);   // envoi en attente perdu
+    assert.deepEqual(await lireJSON(page, 'pv_produits_v2'), []);   // envoi en attente perdu
     await context.setOffline(false);
     await attendreEtat(page, 'ok');
     assert.equal(script.prive().length, 0);                        // jamais arrivé dans la feuille

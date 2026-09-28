@@ -155,6 +155,7 @@ async function attendreEtat(page, etat, delai = 5000) {
 }
 
 async function calculer(page, cat, prix) {
+  if (await page.getAttribute('#onglet-calc', 'aria-selected') !== 'true') await page.click('#onglet-calc');
   await page.click(`.cat[data-cat="${cat}"]`);
   await page.fill('#input-prix', prix);
   await page.waitForTimeout(50);   // calcul au prochain rafraîchissement d'écran

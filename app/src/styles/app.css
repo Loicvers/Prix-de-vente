@@ -34,6 +34,7 @@
 [data-cat="5l_tranquille"]     { --c: #c98ac0; }
 [data-cat="demie"]             { --c: #86c2ad; }
 [data-cat="intermediaire"]     { --c: #b196e8; }
+[data-cat="inconnue"]          { --c: #b8a898; }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { -webkit-text-size-adjust: 100%; }
@@ -90,6 +91,8 @@ header {
 [data-etat="ok"] .point { background: var(--success); box-shadow: 0 0 0 3px rgba(127, 209, 155, .15); }
 [data-etat="encours"] .point { background: var(--attente); animation: pulse 1s ease-in-out infinite; }
 [data-etat="erreur"] .point { background: var(--danger); }
+[data-etat="conflit"] { border-color: var(--attente); color: var(--text); }
+[data-etat="conflit"] .point { background: var(--attente); box-shadow: 0 0 0 3px rgba(230, 184, 92, .2); }
 @keyframes pulse { 50% { opacity: .35; } }
 .icone-btn {
   width: 36px; height: 36px; flex-shrink: 0;
@@ -297,6 +300,23 @@ details.detail[open] summary { margin-bottom: 8px; }
 .etiquette { color: var(--c); font-weight: 500; }
 .statut-attente { color: var(--attente); }
 .statut-refus { color: var(--danger); }
+.statut-conflit { color: var(--attente); font-weight: 600; }
+.statut-retire { color: var(--text3); font-style: italic; }
+.produit.retire { opacity: .7; }
+
+/* CONFLITS */
+.carte.conflit { border-color: var(--attente); }
+.conflit-titre { font-weight: 600; color: var(--attente); margin-bottom: 6px; }
+.carte.conflit p { font-size: 13px; color: var(--text2); }
+.carte.conflit p strong { color: var(--text); }
+.conflit-versions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+.conflit-versions div {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 12px; font-size: 13px;
+}
+.conflit-versions strong { display: block; font-size: 12px; color: var(--text2); margin-bottom: 3px; }
+.carte.conflit .actions { margin-top: 12px; }
+.carte.conflit .btn { white-space: normal; }
 
 .vide { text-align: center; color: var(--text3); padding: 48px 20px; font-size: 14px; }
 .vide svg { width: 40px; height: 40px; color: var(--border-fort); margin-bottom: 10px; }
