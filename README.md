@@ -47,6 +47,20 @@ La feuille Google est la source commune des produits (script version 3) :
 - un produit retiré puis réenregistré redevient disponible, sous le même SKU ;
 - l'action `produits` (et la réponse de `lot`) renvoie la liste complète.
 
+Dans l'app (étape 3) :
+
+- à chaque synchronisation, la liste de la feuille remplace celle de
+  l'appareil (`app/src/data/fusion.js`), sauf ce que l'appareil n'a pas
+  encore envoyé ou ce qui est en conflit ;
+- chaque envoi porte la version connue du produit ; un conflit est affiché en
+  tête de l'onglet Produits avec les deux versions, et l'utilisateur choisit
+  (« Garder ma version » / « Garder celle de la feuille », ou pour une
+  suppression « Retirer quand même » / « Garder le produit ») ;
+- les produits retirés sont masqués (filtre « Retirés ») et peuvent être
+  remis en vente depuis leur fiche ;
+- le nom de l'appareil, saisi avec le PIN, est inscrit dans Privé et le
+  Journal.
+
 Le détail du protocole est en tête de `apps-script/Code.gs`.
 
 ## Sécurité

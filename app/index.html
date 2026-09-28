@@ -75,6 +75,7 @@
 
   <!-- ===== PRODUITS ===== -->
   <section class="page" id="page-list" role="tabpanel" aria-labelledby="onglet-list">
+    <div id="conflits" aria-live="polite"></div>
     <div class="recherche">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <label class="visuellement-cache" for="search-input">Rechercher</label>
@@ -139,6 +140,10 @@
     <div>
       <label class="champ" for="pin-input">PIN</label>
       <input type="password" id="pin-input" inputmode="numeric" autocomplete="off"/>
+    </div>
+    <div>
+      <label class="champ" for="pin-appareil">Nom de cet appareil (facultatif)</label>
+      <input type="text" id="pin-appareil" maxlength="40" autocomplete="off" placeholder="ex. Comptoir, Téléphone"/>
     </div>
     <div class="pin-msg" id="pin-msg" role="alert"></div>
     <button class="btn btn-principal btn-large" id="pin-ok" type="submit">Valider</button>

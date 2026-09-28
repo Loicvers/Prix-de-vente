@@ -1,6 +1,7 @@
 // Mise en forme et lecture des montants et des noms.
 const fmtNombre = new Intl.NumberFormat('fr-BE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-export function fmt(n) { return fmtNombre.format(n) + ' €'; }
+// Montant absent ou illisible (cellule vide dans la feuille) : « — ».
+export function fmt(n) { return typeof n === 'number' && isFinite(n) ? fmtNombre.format(n) + ' €' : '—'; }
 export function fmtCoef(n) { return n.toFixed(3).replace('.', ','); }
 export function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

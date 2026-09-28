@@ -112,7 +112,7 @@ describe('produits', () => {
     await context.close();
   });
 
-  it('retrait : confirmation, produit retiré de l\'app, « retiré » dans Public, Privé intact', async () => {
+  it('retrait : confirmation, « retiré » dans Public, Privé intact ; masqué de la liste, visible avec le filtre « Retirés »', async () => {
     const script = fauxScript();
     const { page, context } = await appareilConnecte(script);
     await enregistrer(page, 'tranquille', '8', 'À retirer');
@@ -122,8 +122,13 @@ describe('produits', () => {
     await page.click('[data-action="fermer"]');
     await supprimer(page, 'À retirer', true);
     await attendreEtat(page, 'ok');
-    assert.deepEqual(await lireJSON(page, 'pv_produits_v2'), []);
+    // Étape 3 : la liste relue depuis la feuille garde le produit, marqué retiré.
+    assert.deepEqual((await lireJSON(page, 'pv_produits_v2')).map(p => [p.nom, p.disponibilite]), [['À retirer', 'retiré']]);
     assert.deepEqual(await lireJSON(page, 'pv_retraits'), []);
+    await page.click('#onglet-list');
+    assert.equal(await texte(page, '#product-list'), 'Aucun produit ne correspond');
+    await page.click('.filtre[data-filtre="retires"]');
+    assert.match(await texte(page, '.produit'), /À retirer.*retiré/);
     assert.equal(script.public()[0][4], 'retiré');
     assert.equal(script.prive().length, 1);
     // Un lot au démarrage (vide : sert à relire la config), un par action.
@@ -171,7 +176,7 @@ describe('produits', () => {
     const { page, context } = await appareilConnecte(script);
     await enregistrer(page, 'tranquille', '8', '   ');
     assert.equal(await texte(page, '#toast-texte'), 'Donne un nom au produit');
-    assert.equal(await lireJSON(page, 'pv_produits_v2'), null);
+    assert.deepEqual(await lireJSON(page, 'pv_produits_v2'), []);     // liste relue (vide) depuis la feuille
     await page.fill('#input-prix', '');
     await page.waitForTimeout(50);
     assert.equal(await page.isHidden('#form-enregistrer'), true);   // le formulaire est dans le résultat masqué
@@ -231,13 +236,13 @@ describe('produits', () => {
     await context.close();
   });
 
-  it('BUG CONNU B-04 : un produit de catégorie inconnue s\'affiche comme « Vin tranquille »', async () => {
+  it('B-04 CORRIGÉ (étape 3) : un produit de catégorie inconnue s\'affiche « Catégorie à compléter »', async () => {
     const produits = [{ id: 1, sku: 'UCP-0009', nom: 'Mystère', categorie: '', prixAchat: 5, prixTTC: 12, date: '01/01/2026', synced: true }];
     const { page, context } = await app.appareil(null, { stockage: connecte({ pv_produits_v2: produits }) });
     await ouvrir(app, page, { connecter: false });
     await page.click('#onglet-list');
-    assert.equal(await texte(page, '.produit .etiquette'), 'Vin tranquille');
-    assert.equal(await page.getAttribute('.produit', 'data-cat'), 'tranquille');
+    assert.equal(await texte(page, '.produit .etiquette'), 'Catégorie à compléter');
+    assert.equal(await page.getAttribute('.produit', 'data-cat'), 'inconnue');
     await context.close();
   });
 

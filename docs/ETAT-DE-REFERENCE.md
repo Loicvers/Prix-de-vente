@@ -16,6 +16,7 @@ voulu et validé ; les tests marqués **BUG CONNU**, **LIMITE CONNUE** ou
 | 0. État de référence | Fait | — |
 | 1. Script v3 : versions, conflits, Journal, réactivation, lecture des produits | Fait (à déployer dans Apps Script) | B-03 corrigé (test inversé volontairement) ; B-06 toujours présent avec l'app actuelle, mais tracé dans le Journal. Les 58 autres tests de l'app passent sans changement avec le nouveau script. |
 | 2. Vite, modules, publication par GitHub Actions, sans changement visible | Fait (à publier : voir `docs/DEPLOIEMENT.md`) | Les 59 tests de l'app passent à l'identique sur l'app compilée et sur l'ancienne app ; test ajouté : mise à jour depuis la version en ligne (cache `pv-v7`) avec un produit en attente. Le test du cache vérifie désormais une version calculée (`pv-` + empreinte) au lieu de `pv-v7`. |
+| 3. Synchronisation entre appareils : relecture de la feuille, versions, conflits résolus explicitement, produits retirés, nom de l'appareil | Fait (à publier) | B-04, B-05 et B-06 corrigés (tests inversés volontairement). Changements voulus : la liste de l'appareil est celle de la feuille (ordre du plus récent au plus ancien ; un produit retiré reste dans la liste, masqué, filtre « Retirés ») ; chaque envoi porte une version. Nouveaux tests : `tests/fusion.test.js` (7) et `tests/e2e/multi-appareils.e2e.js` (8). |
 
 ## Lancer les tests
 
@@ -55,9 +56,9 @@ Suite de l'app exécutée 3 fois de suite sans échec (stabilité).
 | B-01 | « 1.234,56 » est lu 1,234 : le séparateur de milliers « . » n'est pas géré (« 1 234,56 » fonctionne). | `calcul.e2e.js` |
 | B-02 | « Recalculer » puis changement de nom crée un second produit et un second SKU au lieu de renommer. | `produits.e2e.js` |
 | B-03 | Un produit retiré puis réenregistré garde son SKU mais reste « retiré » dans l'onglet Public. **Corrigé à l'étape 1.** | `produits.e2e.js` |
-| B-04 | Un produit de catégorie inconnue (ex. produit migré « à compléter ») s'affiche « Vin tranquille ». | `produits.e2e.js` |
-| B-05 | Pas de synchronisation descendante : un produit créé sur un appareil n'apparaît jamais sur un autre. | `synchro.e2e.js` |
-| B-06 | Modifications concurrentes : le dernier envoi écrase le précédent sans aucun signal (ex. appareil revenu en ligne après une modification faite ailleurs). **Étape 1 : le script sait refuser l'écrasement ; l'app le fera à l'étape 3. En attendant, chaque écriture est tracée dans le Journal.** | `synchro.e2e.js` |
+| B-04 | Un produit de catégorie inconnue (ex. produit migré « à compléter ») s'affiche « Vin tranquille ». **Corrigé à l'étape 3 : « Catégorie à compléter ».** | `produits.e2e.js` |
+| B-05 | Pas de synchronisation descendante : un produit créé sur un appareil n'apparaît jamais sur un autre. **Corrigé à l'étape 3.** | `synchro.e2e.js` |
+| B-06 | Modifications concurrentes : le dernier envoi écrasait le précédent sans aucun signal. **Corrigé à l'étape 3 : conflit détecté par le script, rien n'est écrit, choix explicite dans l'app, trace dans le Journal.** | `synchro.e2e.js`, `multi-appareils.e2e.js` |
 | R-01 | Mémoire de l'appareil pleine hors ligne : l'alerte s'affiche, mais l'envoi en attente est perdu si l'app est fermée avant le retour du réseau. | `navigation.e2e.js` |
 
 Constats sans test dédié (relevés à la lecture et aux mesures) :

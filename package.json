@@ -7,7 +7,6 @@
     "apercu": "vite preview",
     "test": "node --test",
     "test:e2e": "vite build && node --test --test-concurrency=2 \"tests/e2e/*.e2e.js\"",
-    "test:e2e:ancienne": "CIBLE=ancienne node --test --test-concurrency=2 \"tests/e2e/*.e2e.js\"",
     "test:tout": "npm test && npm run test:e2e"
   },
   "devDependencies": {

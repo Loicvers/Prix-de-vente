@@ -24,5 +24,10 @@ export const GROUPES = [
   ['4,5 et 5 litres', ['4_5l_tranquille', '5l_tranquille']],
   ['Autres formats', ['demie', 'intermediaire']],
 ];
-export function categorie(cle) { return CATEGORIES[cle] || CATEGORIES.tranquille; }
+// Catégorie absente ou inconnue (ex. produit migré dont la catégorie est
+// restée vide dans la feuille) : affichée « à compléter », jamais devinée.
+export const INCONNUE = { label: 'Catégorie à compléter', nom: 'À compléter', court: 'À compléter' };
+export function categorie(cle) { return CATEGORIES[cle] || INCONNUE; }
+export function cleAffichee(cle) { return CATEGORIES[cle] ? cle : 'inconnue'; }
+// Pour le calculateur, qui doit toujours avoir un format choisi.
 export function cleValide(cle) { return CATEGORIES[cle] ? cle : 'tranquille'; }

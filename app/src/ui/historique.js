@@ -2,7 +2,7 @@
 // HISTORIQUE (onglet Historique : derniers calculs de cet appareil)
 // ===========================
 import { $ } from './dom.js';
-import { categorie, cleValide } from '../core/categories.js';
+import { categorie, cleAffichee } from '../core/categories.js';
 import { fmt, esc } from '../core/format.js';
 import { etat } from '../data/etat.js';
 
@@ -14,7 +14,7 @@ export function renderHistory() {
     return;
   }
   el.innerHTML = etat.historique.slice(0, 100).map(p => {
-    const cle = cleValide(p.categorie);
+    const cle = cleAffichee(p.categorie);
     return `<div class="histo" data-cat="${cle}">
       <div class="histo-nom">${esc(p.nom)}</div>
       <div class="histo-prix">${fmt(p.prixTTC)}</div>

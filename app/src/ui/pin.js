@@ -7,6 +7,7 @@ import { toast } from './toast.js';
 import { messageErreur } from './messages.js';
 import { SCRIPT_URL } from '../config.js';
 import { stockage } from '../data/stockage.js';
+import { etat } from '../data/etat.js';
 import { chargerConfig } from '../data/api.js';
 import { syncNow } from '../data/synchro.js';
 
@@ -14,6 +15,7 @@ export function ouvrirPin(message) {
   $('pin-url-zone').hidden = !!SCRIPT_URL;
   $('pin-url').value = stockage.lire('pv_url', '');
   $('pin-input').value = '';
+  $('pin-appareil').value = etat.appareil;
   $('pin-msg').textContent = message || '';
   ouvrir('pin-modal');
   (SCRIPT_URL || $('pin-url').value ? $('pin-input') : $('pin-url')).focus();
@@ -36,6 +38,11 @@ export async function validerPin() {
     // Hors ligne : le PIN est gardé et sera vérifié au retour du réseau.
     stockage.ecrire('pv_pin', pin);
     if (!SCRIPT_URL) stockage.ecrire('pv_url', url);
+    const appareil = $('pin-appareil').value.replace(/\s+/g, ' ').trim().slice(0, 40);
+    if (appareil !== etat.appareil) {
+      etat.appareil = appareil;
+      stockage.ecrire('pv_appareil', appareil);
+    }
     fermer('pin-modal');
     if (rep.ok === true) toast('Connecté');
     syncNow();
