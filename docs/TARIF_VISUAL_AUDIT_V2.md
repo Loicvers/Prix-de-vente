@@ -58,6 +58,15 @@ trois cibles tactiles < 44 px, fenêtre produit sans gestion du focus) et
 > **voir l'écart avec le prix précédent avant d'enregistrer** et **afficher
 > la marge** ; l'onglet Historique devient « Évolution des prix » ;
 > l'adaptation ordinateur passe en P3. Détail en parties 15 à 20.
+>
+> **Deuxième validation (28/09/2026).** Marge calculée avec une TVA de
+> 21 % et exprimée en % du prix d'achat ; écart mesuré par rapport au
+> **prix enregistré** (feuille, commun à tous les appareils) ; **signal**
+> au-delà d'un seuil ; **historique des prix sur 5 ans**. Conséquence
+> principale : l'historique ne peut plus vivre sur le téléphone (300 lignes,
+> un seul appareil) ; il doit être conservé **dans la feuille** — l'onglet
+> privé Journal enregistre déjà l'avant/après de chaque écriture, mais sous
+> forme de texte.
 
 **Aucun P0.** Six P1. Direction recommandée : **évolution contrôlée**
 (« Étiquette de cave ») — garder l'univers, recomposer l'écran Calculer
@@ -459,11 +468,64 @@ validées, O5 déclassée, O9 facultative.**
 | O3 | **Formats par silhouettes de contenance** (37,5 cl → 5 l) dans le panneau « Autres formats ». | compréhension | facultative |
 | O4 | **Couleur réduite à deux familles** (tranquille / pétillant) + neutre ; états sortis de l'arc chaud, avec icône. | accessibilité, clarté | recommandée |
 | O5 | Deux colonnes ≥ 900 px ; Produits en tableau triable. | densité | **déclassée** (Q2 : smartphone) |
-| O6 | **Marge affichée** dans le résultat et la fiche : marge € et % sous le prix de vente, et dans le détail du calcul. | décision | **validée** (Q5) — définition à confirmer (Q12) |
+| O6 | **Marge affichée** dans le résultat et la fiche : marge € et % sous le prix de vente, et dans le détail du calcul. | décision | **validée** (Q5, Q12) — voir « Marge » ci-dessous |
 | O7 | Synchronisation déplacée dans le voyant (panneau d'état) ; l'onglet Historique libéré pour sa vraie fonction (O10). | architecture d'information | recommandée |
 | O8 | **Fiche en vraie feuille** : pas de poignée factice, confirmation de suppression intégrée, focus géré. | cohérence, accessibilité | recommandée |
 | O9 | Clé comme motif discret (état vide, écran PIN). | identité | facultative (Q7 : pas de charte) |
-| **O10** | **Voir l'augmentation avant d'enregistrer, et la retrouver ensuite.** (1) Dans Calculer : dès que le nom saisi correspond à un produit existant (ou après « Recalculer »), afficher sous le nouveau prix « Avant : 21,80 € · ▲ +1,20 € (+5,5 %) ». (2) L'onglet Historique devient **« Évolution des prix »** : une ligne par produit, *ancien → nouveau*, écart en € et en %, date, avec accès à tous les changements du produit. | décision, compréhension | **nouvelle** (Q4) |
+| **O10** | **Voir l'augmentation avant d'enregistrer, et la retrouver ensuite.** (1) Dans Calculer : dès que le nom saisi correspond à un produit existant (ou après « Recalculer »), afficher sous le nouveau prix « Avant : 21,80 € · ▲ +1,20 € (+5,5 %) », par rapport au **prix enregistré dans la feuille**. (2) **Signal** au-delà d'un seuil. (3) L'onglet Historique devient **« Évolution des prix »** : une ligne par produit, *ancien → nouveau*, écart en € et en %, date ; en touchant la ligne, la **courbe et la liste des prix du produit sur 5 ans**. | décision, compréhension | **validée** (Q4, Q13–Q15) |
+
+### Marge (O6) — définition validée
+
+- TVA : **21 %**, pour tous les formats.
+- Prix de vente HT = prix de vente TTC ÷ 1,21.
+- **Marge (€)** = prix de vente HT − prix d'achat HT.
+- **Marge (%)** = marge ÷ prix d'achat HT (taux de marge, « du prix
+  d'achat »).
+- Exemple (valeurs fictives) : achat 10,00 € HT, vente 24,50 € TTC → 20,25 €
+  HT → marge **10,25 €**, soit **102,5 %** du prix d'achat.
+- Présentation : une ligne sous le prix de vente, en `label` 13 px
+  (« Marge 10,25 € · 102,5 % »), et deux lignes en fin de détail du calcul
+  (« Prix de vente HT », « Marge »). Jamais plus grande que le prix.
+- Le taux de 21 % n'est pas secret, mais pour respecter la règle « aucun
+  montant dans le dépôt », il peut être ajouté à `CONFIG` (`tva: 0.21`)
+  *(recommandation)*.
+- Reste à trancher : frais fixes déduits ou non de la marge (Q16).
+
+### Signal d'écart (O10-2)
+
+- Écart toujours affiché : ▲ / ▼ + montant + %, en couleur de texte
+  normale (une hausse n'est pas une erreur).
+- **Au-delà du seuil** : pastille « Hausse importante » avec icône, dans une
+  couleur réservée à ce signal (ni l'or de l'action, ni l'ambre « en
+  attente », ni le rouge d'erreur) ; mêmes règles dans la fiche produit et
+  dans « Évolution des prix ».
+- Seuil proposé : **10 %**, réglable dans `CONFIG` comme les autres
+  paramètres (à confirmer, Q17).
+- Le signal n'empêche pas d'enregistrer : il demande de regarder, pas de
+  confirmer.
+
+### Historique sur 5 ans (O10-3) — conséquences
+
+- **L'appareil ne suffit pas** : `pv_historique` garde 300 lignes, sur un
+  seul téléphone, et disparaît si le stockage est effacé.
+- **La feuille a déjà une trace** : l'onglet privé **Journal** reçoit une
+  ligne à chaque création, modification, réactivation et retrait, avec des
+  colonnes « Avant » et « Après » (`resume_()` dans `apps-script/Code.gs`).
+  Mais ce sont des **textes** (« Vin tranquille · achat 10 · TTC 24,5 ·
+  disponible »), et la trace ne commence qu'au déploiement du script v3.
+- **Recommandation** : stocker l'historique des prix sous forme de
+  **colonnes chiffrées** (date, SKU, achat HT, vente TTC, appareil) — soit
+  dans un nouvel onglet privé « Prix », soit en ajoutant ces colonnes au
+  Journal — et une action du script qui renvoie l'historique d'un produit à
+  la demande (pas tout l'historique à chaque synchronisation). Les données du
+  Journal existant peuvent être reprises une fois.
+- **Volume** *(estimation)* : quelques centaines de produits × quelques
+  changements par an × 5 ans ≈ quelques milliers de lignes : très en dessous
+  des limites d'une feuille Google.
+- Au-delà de 5 ans : archiver ou garder ? (Q18)
+- ⚠ Nom : l'onglet de la feuille « Historique » (données de l'ancienne app,
+  avant migration) n'a rien à voir avec l'onglet de l'app. Nommer l'onglet
+  de l'app « Évolution des prix » évite la confusion.
 
 **Constats de code qui fondent O10** *(confirmé à la lecture)* :
 - Chaque enregistrement ajoute une ligne à l'historique avec l'identifiant du
@@ -559,8 +621,10 @@ avec les réponses : **smartphone seulement**, **75 cl majoritaire**,
 | --- | --- | --- | --- | --- |
 | **P1** | Calculer recomposé : 75 cl en accès direct, saisie + résultat dans le premier écran | Élevé | Moyen | **En premier** |
 | **P1** | Écart avec le prix précédent affiché avant d'enregistrer (O10-1) | Élevé | Moyen | **En premier** |
-| **P1** | Historique → « Évolution des prix » (O10-2) | Élevé | Moyen | À planifier |
-| **P1** | Marge € / % dans le résultat et la fiche (O6) | Élevé | Faible à moyen (selon Q12) | À planifier après Q12 |
+| **P1** | Signal au-delà du seuil | Moyen | Faible | Avec l'écart |
+| **P1** | Historique des prix sur 5 ans dans la feuille (script + onglet privé) | Élevé | Élevé | À planifier (touche le script) |
+| **P1** | Historique → « Évolution des prix » (O10-3) | Élevé | Moyen | Après l'historique dans la feuille |
+| **P1** | Marge € / % dans le résultat et la fiche (O6) | Élevé | Faible | **Gain rapide** (définition validée) |
 | **P1** | Prix principal en couleur stable | Élevé | Faible | **Gain rapide** |
 | **P1** | Séparer couleurs d'état et de catégorie | Élevé | Moyen | À planifier |
 | **P1** | `--text3` ≥ 4,5:1 (ex. `#9d8c7d` : 4,9 / 5,4), tailles ≥ 12 px | Moyen | Faible | **Gain rapide** |
@@ -588,8 +652,8 @@ textes du voyant). Ordre revu après validation.
 | **V1 — Socle** | Jetons : échelle d'espacement, échelle typographique, rôles de couleur sémantiques (primary, warning, danger, success, info, category-still, category-sparkling, category-other, **delta-up, delta-down**). Aucun changement de mise en page. | Presque rien |
 | **V2 — Gains rapides** | Prix en couleur stable ; `--text3` éclairci ; tailles ≥ 12 px ; cibles ≥ 44 px ; voyant avec compte d'attente ; en-tête 360 px. | Lisibilité, calme |
 | **V3 — Calculer recomposé** | 75 cl en accès direct + « Autres formats » ; saisie et étiquette résultat en tête ; nom + Enregistrer dans la zone du pouce. | Le changement majeur |
-| **V4 — Comparer et décider** | Écart avec le prix précédent avant d'enregistrer ; marge € / % (selon Q12) ; mêmes informations dans la fiche produit. | Nouvelle valeur métier |
-| **V5 — Évolution des prix** | Onglet Historique transformé : une ligne par produit, ancien → nouveau, écart, date ; détail des changements ; synchronisation déplacée dans le voyant. | Nouvelle valeur métier |
+| **V4 — Comparer et décider** | Écart avec le prix enregistré avant d'enregistrer ; signal au-delà du seuil ; marge € / % (TVA 21 %, % du prix d'achat) ; mêmes informations dans la fiche produit. | Nouvelle valeur métier |
+| **V5 — Évolution des prix** | *Script* : historique chiffré des prix dans la feuille (onglet privé), reprise du Journal, action de lecture par produit. *App* : onglet Historique transformé (une ligne par produit, ancien → nouveau, écart, signal) ; courbe et liste des prix sur 5 ans par produit ; synchronisation déplacée dans le voyant. | Nouvelle valeur métier |
 | **V6 — Couleur rationalisée** | Catégories en 2 familles + neutre ; états avec icône ; repli pour `color-mix` (iOS < 16.2). | Cohérence |
 | **V7 — Fenêtres et confirmations** | Fiche : actions en tête, focus géré, poignée retirée, suppression confirmée dans la fiche. | Finition |
 | ~~Grands écrans~~ | Retiré du plan (Q2). La colonne actuelle reste utilisable sur ordinateur. | — |
@@ -602,9 +666,10 @@ textes du voyant). Ordre revu après validation.
 | --- | --- | --- |
 | Premier écran | 10 formats, champ prix tronqué, résultat invisible | Prix d'achat, prix de vente, marge et écart visibles sans défiler |
 | Format | Grille toujours dépliée (532 px) pour un usage à 75 cl surtout | 75 cl en un geste ; 8 autres formats à la demande |
-| Prix précédent | Introuvable dans Calculer ; dans l'Historique, deux lignes séparées à comparer de tête | « Avant : … · ▲ +… € (+… %) » sous le nouveau prix |
-| Historique | Liste de calculs ≈ liste de produits | « Évolution des prix » : ancien → nouveau, écart, date |
-| Marge | Absente | € et % sous le prix, en plus petit |
+| Prix précédent | Introuvable dans Calculer ; dans l'Historique, deux lignes séparées à comparer de tête | « Avant : … · ▲ +… € (+… %) » sous le nouveau prix, par rapport au prix enregistré |
+| Hausse forte | Rien ne la signale | Pastille « Hausse importante » au-delà du seuil |
+| Historique | 300 calculs, sur un seul téléphone | 5 ans de prix par produit, dans la feuille, sur tous les appareils |
+| Marge | Absente | « Marge 10,25 € · 102,5 % » sous le prix, en plus petit |
 | Prix principal | Couleur du format (5 teintes) | Couleur stable, serif « étiquette » |
 | Catégories | 10 teintes voisines | 2 familles + neutre ; le texte nomme le format |
 | États | Ambre ≈ or ≈ pétillant ; rouge ≈ tranquille | Teintes réservées + icône ; hausse ≠ erreur |
@@ -633,12 +698,26 @@ mouvement, fonctionnement hors ligne, aucun montant de config dans le dépôt.
 | Q4 | Rôle de l'Historique | **Vérifier les augmentations par rapport au prix précédent.** | Écart affiché avant d'enregistrer ; Historique → « Évolution des prix » (O10, V4–V5). |
 | Q5 | Afficher la marge | **Oui.** | Marge € / % dans le résultat et la fiche (O6, V4). |
 | Q7 | Charte de la maison | **Non, pas vraiment.** | L'identité actuelle devient la charte ; O9 facultative. |
+| Q12 | Définition de la marge | **TVA toujours 21 % ; marge en % du prix d'achat.** | Marge € = TTC ÷ 1,21 − achat HT ; % = marge ÷ achat HT (partie 15). |
+| Q13 | Prix précédent de référence | **Le prix enregistré.** | Écart calculé par rapport au prix de la feuille, identique sur tous les appareils. |
+| Q14 | Signaler un écart | **Un signal est une bonne idée.** | Pastille « Hausse importante » au-delà d'un seuil (partie 15). |
+| Q15 | Profondeur de l'historique | **5 ans.** | Historique chiffré conservé dans la feuille, plus sur l'appareil (partie 15, V5). |
 
 ### Questions ouvertes
 
-Les numéros Q3, Q6, Q8 à Q11 sont ceux de la première liste ; Q12 à Q15
-découlent des réponses.
+Les numéros Q3, Q6, Q8 à Q11 sont ceux de la première liste ; Q16 à Q19
+découlent des dernières réponses.
 
+- **Q16 · Frais fixes et marge** : la marge doit-elle déduire les frais
+  fixes du format (bouchon, étiquette… : *vente HT − (achat HT + frais)*),
+  ou seulement le prix d'achat (*vente HT − achat HT*) ?
+- **Q17 · Seuil du signal** : 10 % convient-il ? Faut-il aussi signaler les
+  **baisses** ? Un seuil en € (par exemple + 2 €) en plus du % ?
+- **Q18 · Au-delà de 5 ans** : supprimer, archiver dans un autre onglet, ou
+  tout garder ?
+- **Q19 · Reprise** : faut-il reprendre dans l'historique des prix les
+  données déjà présentes dans le Journal, et, si c'est possible, celles de
+  l'onglet « Historique » de l'ancienne app ?
 - **Q3 · Couleurs de catégorie** : servent-elles à reconnaître un format
   d'un coup d'œil, ou sont-elles décoratives ? Le rose pour « tranquille »
   gêne-t-il ?
@@ -649,22 +728,6 @@ découlent des réponses.
 - **Q10 · Suppression** : la boîte de confirmation système gêne-t-elle ?
 - **Q11 · Direction** : valider « Étiquette de cave » telle que décrite en
   partie 16, ou voir d'abord des maquettes ?
-- **Q12 · Définition de la marge** : la config ne contient pas de taux de
-  TVA et l'app ne calcule qu'un prix TTC. Quelle marge veux-tu voir ?
-  - (a) prix de vente HT − prix d'achat HT (il faut alors le taux de TVA :
-    21 % pour tous les formats ?) ;
-  - (b) prix de vente HT − (prix d'achat HT + frais fixes) ;
-  - (c) en % du prix de vente (taux de marque) ou du prix d'achat (taux de
-    marge) ?
-- **Q13 · Prix précédent de référence** : le prix actuel de la feuille
-  (commun à tous les appareils), ou le dernier calcul de *cet* appareil ?
-  (recommandation : la feuille)
-- **Q14 · Écart à signaler** : faut-il attirer l'attention au-delà d'un seuil
-  (par exemple hausse > 10 %), ou toujours afficher l'écart de la même façon ?
-- **Q15 · Évolution des prix** : suffit-il de voir le dernier changement de
-  chaque produit, ou faut-il tout l'historique de ses prix (sur plusieurs
-  années, ce qui demanderait de le conserver dans la feuille plutôt que sur
-  l'appareil) ?
 
 ---
 
