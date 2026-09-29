@@ -8,8 +8,8 @@ import { $ } from './dom.js';
 import { toast } from './toast.js';
 import { ouvrir, fermer } from './fenetres.js';
 import { messageErreur } from './messages.js';
-import { selectCat, calculer, detailHtml } from './calculateur.js';
-import { switchTab, rafraichir } from './onglets.js';
+import { detailHtml, ouvrirModification } from './calculateur.js';
+import { rafraichir } from './onglets.js';
 import { renderConflits } from './conflits.js';
 import { CATEGORIES, categorie, cleAffichee } from '../core/categories.js';
 import { fmt, esc, normNom } from '../core/format.js';
@@ -126,15 +126,10 @@ export function openModal(id) {
   ouvrir('modal');
 }
 
-// Recharge le produit dans le calculateur (même nom = même SKU à l'enregistrement).
+// Recharge le produit dans le calculateur, en mode modification (spec
+// Calculer §11) : le produit est mis à jour, même renommé (même SKU).
 export function recalculer(p) {
-  fermer('modal');
-  selectCat(p.categorie);
-  $('input-prix').value = typeof p.prixAchat === 'number' ? String(p.prixAchat).replace('.', ',') : '';
-  $('input-nom').value = p.nom;
-  calculer();
-  switchTab('calc');
-  $('input-prix').focus();
+  ouvrirModification(p);
 }
 
 // Supprimer dans l'app = « retiré » dans l'onglet Public (rien n'est effacé).

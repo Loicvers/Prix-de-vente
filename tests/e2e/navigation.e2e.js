@@ -135,7 +135,9 @@ describe('stockage local', () => {
     await context.close();
   });
 
-  it('mémoire pleine en ligne : « enregistré » puis l\'alerte revient après l\'envoi (le produit est dans la feuille)', async () => {
+  // V2 (spec Calculer §10.4) : l'écriture sur l'appareil échoue → aucun
+  // succès annoncé, rien n'est envoyé, la saisie reste dans les champs.
+  it('mémoire pleine en ligne : rien n\'est annoncé comme enregistré ni envoyé, saisie conservée', async () => {
     const script = fauxScript();
     const { page, context } = await app.appareil(script, { stockage: connecte() });
     await ouvrir(app, page, { connecter: false });
@@ -145,13 +147,20 @@ describe('stockage local', () => {
       Storage.prototype.setItem = function (k, v) { if (k === 'pv_produits_v2') throw new Error('QuotaExceededError'); return orig.call(this, k, v); };
     });
     await enregistrer(page, 'tranquille', '8', 'Plein');
+    assert.equal(await texte(page, '#toast-texte'), 'Mémoire de l\'appareil pleine : le produit n\'est pas enregistré.');
+    assert.equal(await texte(page, '#nom-message'), 'Mémoire de l\'appareil pleine : le produit n\'est pas enregistré.');
+    assert.equal(await page.inputValue('#input-nom'), 'Plein');
+    assert.equal(await page.inputValue('#input-prix'), '8');
+    assert.equal(await page.isHidden('#badge-attente'), true);
+    assert.deepEqual(await lireJSON(page, 'pv_historique'), null);
+    await page.click('#onglet-history');
+    await page.click('[data-action="sync"]');
     await attendreEtat(page, 'ok');
-    assert.equal(await texte(page, '#toast-texte'), 'Mémoire de l\'appareil pleine : donnée non enregistrée');
-    assert.equal(script.prive()[0][1], 'Plein');
+    assert.equal(script.prive().length, 0);
     await context.close();
   });
 
-  it('RISQUE R-01 : mémoire pleine hors ligne, alerte affichée mais l\'envoi en attente est perdu au rechargement', async () => {
+  it('RISQUE R-01 (réduit) : mémoire pleine hors ligne, l\'échec est annoncé tout de suite, aucun envoi fantôme', async () => {
     const script = fauxScript();
     const { page, context } = await app.appareil(script, { stockage: connecte(), serviceWorkers: 'allow' });
     await ouvrir(app, page, { connecter: false });
@@ -164,14 +173,14 @@ describe('stockage local', () => {
     });
     await enregistrer(page, 'tranquille', '8', 'Perdu');
     await page.waitForTimeout(300);
-    // « Perdu enregistré » s'affiche d'abord, puis l'alerte (la synchro, hors ligne, réécrit la liste).
-    assert.equal(await texte(page, '#toast-texte'), 'Mémoire de l\'appareil pleine : donnée non enregistrée');
-    assert.equal(await texte(page, '#badge-attente'), '1');
+    assert.equal(await texte(page, '#toast-texte'), 'Mémoire de l\'appareil pleine : le produit n\'est pas enregistré.');
+    assert.equal(await page.isHidden('#badge-attente'), true);
+    assert.equal(await page.inputValue('#input-nom'), 'Perdu');
     await page.reload();
-    assert.deepEqual(await lireJSON(page, 'pv_produits_v2'), []);   // envoi en attente perdu
+    assert.deepEqual(await lireJSON(page, 'pv_produits_v2'), []);
     await context.setOffline(false);
     await attendreEtat(page, 'ok');
-    assert.equal(script.prive().length, 0);                        // jamais arrivé dans la feuille
+    assert.equal(script.prive().length, 0);
     await context.close();
   });
 

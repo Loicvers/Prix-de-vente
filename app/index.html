@@ -32,43 +32,68 @@
 
 <main>
   <!-- ===== CALCULER ===== -->
+  <!-- Ordre (spec Calculer §5, D1) : format → prix d'achat HT → prix de vente
+       TTC → détail → nom → enregistrer. Ordre du DOM = ordre de tabulation. -->
   <section class="page active" id="page-calc" role="tabpanel" aria-labelledby="onglet-calc">
     <div class="alerte danger" id="config-manquante" hidden>
       <strong>Connecte-toi une première fois avec ton PIN</strong> pour charger les frais et coefficients.
       <button data-action="pin">Entrer mon PIN</button>
     </div>
 
-    <div class="carte">
-      <div class="carte-titre">Catégorie</div>
-      <div id="categories"></div>
+    <div class="bandeau-modif" id="modification" role="status" hidden>
+      <p class="bandeau-titre">Tu modifies « <span id="modification-nom"></span> »</p>
+      <p class="bandeau-info" id="modification-info" hidden></p>
+      <button type="button" class="btn btn-secondaire btn-petit" data-action="nouveau-calcul">Nouveau calcul</button>
     </div>
 
-    <div class="carte">
-      <label class="champ" for="input-prix">Prix d'achat HT</label>
-      <div class="prix-saisie">
-        <input type="text" id="input-prix" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="0,00"/>
-        <span aria-hidden="true">€</span>
-      </div>
-    </div>
-
-    <div class="alerte" id="cat-manquante" hidden></div>
-
-    <div class="carte resultat" id="resultat" hidden aria-live="polite">
-      <div class="resultat-haut">
-        <div>
-          <div class="resultat-libelle">Prix de vente TTC</div>
-          <div class="resultat-cat" id="resultat-cat"></div>
+    <div class="calc-grille">
+      <div class="calc-saisie">
+        <!-- 1. Format : fermé par défaut, grille à la demande -->
+        <div class="calc-bloc">
+          <span class="calc-label" id="format-titre">Format</span>
+          <button type="button" class="format-bouton" id="format-bouton" aria-expanded="false" aria-controls="categories" aria-labelledby="format-titre format-courant">
+            <span class="format-courant" id="format-courant"></span>
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="formats" id="categories" role="radiogroup" aria-labelledby="format-titre" hidden></div>
         </div>
-        <div class="resultat-prix" id="resultat-prix">—</div>
+
+        <!-- 2. Prix d'achat HT -->
+        <div class="calc-bloc">
+          <label class="calc-label" for="input-prix">Prix d'achat HT</label>
+          <div class="prix-saisie">
+            <input type="text" id="input-prix" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="0,00" aria-describedby="prix-message"/>
+            <span aria-hidden="true">€</span>
+          </div>
+          <p class="message-champ erreur" id="prix-message" hidden></p>
+        </div>
+
+        <div class="alerte" id="cat-manquante" hidden></div>
       </div>
-      <details class="detail" id="detail">
-        <summary>Détail du calcul</summary>
-        <div id="resultat-detail"></div>
-      </details>
-      <form class="enregistrer" id="form-enregistrer" autocomplete="off">
-        <label class="visuellement-cache" for="input-nom">Nom du produit</label>
-        <input type="text" id="input-nom" placeholder="Nom du produit" enterkeyhint="send"/>
-        <button class="btn btn-principal" type="submit">Enregistrer</button>
+
+      <!-- 3. Prix de vente TTC (étiquette) et 4. détail -->
+      <div class="calc-resultat">
+        <div class="etiquette-prix" id="resultat" data-statut="vide">
+          <p class="etiquette-libelle">Prix de vente TTC</p>
+          <p class="etiquette-montant" id="resultat-prix">—</p>
+          <p class="etiquette-format" id="resultat-cat"></p>
+          <p class="etiquette-etat" id="resultat-etat"></p>
+          <p class="etiquette-enregistre" id="prix-enregistre" hidden></p>
+          <p class="visuellement-cache" id="resultat-annonce" aria-live="polite" aria-atomic="true"></p>
+          <details class="detail" id="detail" hidden>
+            <summary>Détail du calcul</summary>
+            <dl id="resultat-detail"></dl>
+          </details>
+        </div>
+      </div>
+
+      <!-- 5. Nom et 6. Enregistrer -->
+      <form class="enregistrer" id="form-enregistrer" autocomplete="off" novalidate>
+        <label class="calc-label" for="input-nom">Nom du produit</label>
+        <input type="text" id="input-nom" enterkeyhint="send" aria-describedby="nom-message"/>
+        <p class="message-champ" id="nom-message" hidden></p>
+        <button class="btn btn-principal btn-large" id="btn-enregistrer" type="submit" aria-describedby="enregistrer-raison">Enregistrer</button>
+        <p class="message-champ" id="enregistrer-raison" hidden></p>
       </form>
     </div>
   </section>
