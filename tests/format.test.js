@@ -2,7 +2,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { analyserMontant, lireMontant } = require('../app/src/core/format.js');
+const { analyserMontant, lireMontant, fmtPct } = require('../app/src/core/format.js');
 
 test('saisies acceptées avant la V2 : même valeur', () => {
   const cas = {
@@ -31,4 +31,10 @@ test('D11 et saisies ambiguës : illisible, jamais deviné', () => {
 test('vide, zéro et négatif : erreurs distinctes (messages différents dans l\'écran)', () => {
   for (const saisie of ['', '   ', ' € ', null, undefined]) assert.deepEqual(analyserMontant(saisie), { erreur: 'vide' }, String(saisie));
   for (const saisie of ['0', '0,00', '-3', '-0,5', '- 2']) assert.deepEqual(analyserMontant(saisie), { erreur: 'negatif' }, saisie);
+});
+
+test('pourcentage de marge : une décimale, format belge', () => {
+  assert.equal(fmtPct(34.567).replace(/\s/g, ' '), '34,6 %');
+  assert.equal(fmtPct(-5).replace(/\s/g, ' '), '-5,0 %');
+  assert.equal(fmtPct(null), '—');
 });

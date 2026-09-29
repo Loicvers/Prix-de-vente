@@ -268,6 +268,44 @@ describe('Calculer V2', () => {
     await context.close();
   });
 
+  it('D4 révisée : sans TVA dans la config, prix inchangé et marge « indisponible » (jamais inventée)', async () => {
+    const config = JSON.parse(JSON.stringify(CONFIG_E2E));
+    delete config.tva;
+    const { page, context } = await app.appareil(null, { stockage: connecte({ pv_config: config, pv_detail: 'ouvert' }) });
+    await ouvrir(app, page, { connecter: false });
+    await calculer(page, 'mousseux', '20');
+    assert.equal(await texte(page, '#resultat-prix'), prixAffiche(Calcul.prixTTC(20, 'mousseux', CONFIG_E2E)));
+    const lignes = await page.$$eval('#resultat-detail .ligne', ls => ls.map(l => [...l.children].map(c => c.textContent.replace(/\s+/g, ' ').trim()).join(' | ')));
+    assert.equal(lignes.at(-1), 'Marge | indisponible : taux de TVA absent de la config');
+    assert.equal(lignes.some(l => l.startsWith('Prix de vente HT')), false);
+    assert.ok(lignes.includes(`dont accises | ${prixAffiche(2)}`));
+    await context.close();
+  });
+
+  it('D15 : Réhoboam pétillant 4,5 l et Pétillant 5 l proposés seulement s\'ils sont dans la config ; calcul et enregistrement', async () => {
+    const sans = JSON.parse(JSON.stringify(CONFIG_E2E));
+    delete sans.categories['4_5l_mousseux'];
+    delete sans.categories['5l_mousseux'];
+    let { page, context } = await app.appareil(null, { stockage: connecte({ pv_config: sans }) });
+    await ouvrir(app, page, { connecter: false });
+    await page.click('#format-bouton');
+    assert.equal(await page.$('.cat[data-cat="4_5l_mousseux"]'), null);
+    assert.equal(await page.$('.cat[data-cat="5l_mousseux"]'), null);
+    assert.ok(await page.$('.cat[data-cat="5l_tranquille"]'));      // formats historiques toujours proposés
+    await context.close();
+
+    const script = fauxScript();
+    ({ page, context } = await appareilConnecte(script));
+    await enregistrer(page, '4_5l_mousseux', '30', 'Grand pétillant');
+    assert.equal(await texte(page, '#resultat-cat'), 'Réhoboam pétillant · 4,5 l');
+    assert.equal(await texte(page, '#resultat-prix'), prixAffiche(Calcul.prixTTC(30, '4_5l_mousseux', CONFIG_E2E)));
+    await choisirFormat(page, '5l_mousseux');
+    assert.equal(await texte(page, '#resultat-cat'), 'Pétillant · 5 l');
+    await attendreEtat(page, 'ok');
+    assert.deepEqual(script.prive()[0].slice(1, 3), ['Grand pétillant', 'Réhoboam pétillant (4,5 l)']);
+    await context.close();
+  });
+
   it('synchronisation pendant une modification : produit retrouvé par identifiant / SKU, renommé sans doublon ni conflit', async () => {
     const script = fauxScript();
     const a = await appareilConnecte(script);

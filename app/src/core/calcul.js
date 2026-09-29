@@ -72,5 +72,48 @@ export function prixTTC(prixAchat, categorie, config) {
   return calculerPrixTTC(prixAchat + frais(categorie, config), config);
 }
 
-const Calcul = { configValide, detailTranches, calculerPrixTTC, frais, prixTTC };
+// ===========================
+// MARGE (décision D4 révisée)
+// ===========================
+// Calculée après coup à partir du prix de vente : elle ne change rien au
+// calcul du prix. Données facultatives de la config :
+//   tva      taux de TVA (ex. 0.21), au premier niveau de la config ;
+//   accises  par format, PARTIE des frais (« dont accises ») : jamais
+//            ajoutées une seconde fois au coût.
+// Coût de revient HT = prix d'achat HT + frais (accises comprises)
+// Prix de vente HT   = prix de vente TTC / (1 + tva)
+// Marge €            = prix de vente HT − coût de revient HT
+// Marge %            = marge € / prix de vente HT × 100
+
+// Taux de TVA : { taux } ou { erreur: 'absente' | 'invalide' }.
+export function tauxTVA(config) {
+  if (!config || config.tva === undefined || config.tva === null) return { erreur: 'absente' };
+  return estNombre(config.tva) && config.tva >= 0 && config.tva < 1 ? { taux: config.tva } : { erreur: 'invalide' };
+}
+
+// Accises du format : { montant }, { erreur: 'invalide' } ou null si la
+// config ne les distingue pas des autres frais.
+export function accises(categorie, config) {
+  const cat = config.categories[categorie];
+  if (!cat) throw new Error('Catégorie inconnue : ' + categorie);
+  if (cat.accises === undefined || cat.accises === null) return null;
+  return estNombre(cat.accises) && cat.accises >= 0 && cat.accises <= cat.frais ? { montant: cat.accises } : { erreur: 'invalide' };
+}
+
+export function coutRevient(prixAchat, categorie, config) {
+  return prixAchat + frais(categorie, config);
+}
+
+// { prixTTC, prixHT, cout, marge, margePct } ou { erreur } (TVA absente ou invalide).
+export function marge(prixAchat, categorie, config) {
+  const tva = tauxTVA(config);
+  if (tva.erreur) return { erreur: 'tva-' + tva.erreur };
+  const ttc = prixTTC(prixAchat, categorie, config);
+  const prixHT = ttc / (1 + tva.taux);
+  const cout = coutRevient(prixAchat, categorie, config);
+  const m = prixHT - cout;
+  return { prixTTC: ttc, prixHT, cout, marge: m, margePct: prixHT > 0 ? m / prixHT * 100 : null };
+}
+
+const Calcul = { configValide, detailTranches, calculerPrixTTC, frais, prixTTC, tauxTVA, accises, coutRevient, marge };
 export default Calcul;

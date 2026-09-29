@@ -53,7 +53,9 @@ var LIBELLES = {
   '3l_tranquille': 'Double magnum tranquille (3 l)',
   '3l_mousseux': 'Jéroboam pétillant (3 l)',
   '4_5l_tranquille': 'Tranquille 4,5 l',
-  '5l_tranquille': 'Jéroboam tranquille (5 l)'
+  '5l_tranquille': 'Jéroboam tranquille (5 l)',
+  '4_5l_mousseux': 'Réhoboam pétillant (4,5 l)',
+  '5l_mousseux': 'Pétillant (5 l)'
 };
 
 // Catégories de l'ancienne app : les seules possibles dans Historique.
@@ -438,6 +440,12 @@ function diagnostic() {
         if (typeof frais !== 'number' || !isFinite(frais) || frais < 0) {
           problemes.push('CONFIG : les frais de « ' + cle + ' » doivent être un nombre sans guillemets, avec un point (ex. 6.7).');
         }
+        // Accises (facultatives) : une PARTIE des frais, jamais en plus.
+        var accises = cats[cle] && cats[cle].accises;
+        if (accises !== undefined && accises !== null &&
+            (typeof accises !== 'number' || !isFinite(accises) || accises < 0 || (typeof frais === 'number' && accises > frais))) {
+          problemes.push('CONFIG : les accises de « ' + cle + ' » doivent être un nombre avec un point, compris dans les frais (pas plus grand qu\'eux).');
+        }
       });
       var presentes = Object.keys(LIBELLES).filter(function (cle) { return cats[cle]; });
       var absentes = Object.keys(LIBELLES).filter(function (cle) { return !cats[cle]; });
@@ -455,6 +463,10 @@ function diagnostic() {
     });
     if (!tranchesOk) problemes.push('CONFIG : "tranches" abîmées (chaque tranche : "jusqua" et "coef" ; la dernière a "jusqua":null).');
     if (typeof config.arrondi !== 'number' || !(config.arrondi > 0)) problemes.push('CONFIG : "arrondi" manquant ou invalide.');
+    // TVA (facultative) : sert à afficher la marge dans l'app.
+    if (config.tva === undefined || config.tva === null) ok.push('"tva" absente : l\'app n\'affiche pas la marge.');
+    else if (typeof config.tva !== 'number' || !(config.tva >= 0 && config.tva < 1)) problemes.push('CONFIG : "tva" doit être un taux avec un point, par exemple 0.21 pour 21 %.');
+    else ok.push('TVA présente : l\'app affiche la marge.');
   }
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();

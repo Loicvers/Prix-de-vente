@@ -283,6 +283,26 @@ test('diagnostic : config correcte, puis erreurs typiques d\'une modification à
   assert.deepEqual(Array.from(d.problemes.slice(0, 2)), ['Propriété PIN absente : ajoute-la (Paramètres du projet › Propriétés du script).', 'Propriété CONFIG absente.']);
 });
 
+test('diagnostic : TVA et accises (facultatives, D4 révisée) ; formats pétillants 4,5 l et 5 l connus', () => {
+  const onglets = () => [fausseFeuille('Privé'), fausseFeuille('Public')];
+  let d = environnement({ onglets: onglets() }).ctx.diagnostic();
+  assert.match(Array.from(d.verifie).join('\n'), /"tva" absente/);
+  // Valeurs fictives.
+  const bonne = Object.assign({}, CONFIG, { tva: 0.2, categories: Object.assign({}, CONFIG.categories, {
+    tranquille: Object.assign({}, CONFIG.categories.tranquille, { accises: 1 }),
+    '4_5l_mousseux': { frais: 20 }, '5l_mousseux': { frais: 22, accises: 5 },
+  }) });
+  d = environnement({ onglets: onglets(), props: { CONFIG: JSON.stringify(bonne) } }).ctx.diagnostic();
+  assert.equal(d.ok, true, JSON.stringify(d.problemes));
+  const mauvaise = Object.assign({}, CONFIG, { tva: 21, categories: Object.assign({}, CONFIG.categories, {
+    tranquille: Object.assign({}, CONFIG.categories.tranquille, { accises: CONFIG.categories.tranquille.frais + 1 }),
+  }) });
+  d = environnement({ onglets: onglets(), props: { CONFIG: JSON.stringify(mauvaise) } }).ctx.diagnostic();
+  const tout = d.problemes.join('\n');
+  assert.match(tout, /"tva" doit être un taux/);
+  assert.match(tout, /accises de « tranquille »/);
+});
+
 test('le calcul du script est identique à celui de l\'app', () => {
   const Calcul = require('../app/src/core/calcul.js');
   const env = environnement();

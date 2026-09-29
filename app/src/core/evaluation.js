@@ -17,19 +17,32 @@
 import Calcul from './calcul.js';
 import { analyserMontant } from './format.js';
 
-// Lignes du détail : achat, frais, base, une ligne par tranche, total.
+// Lignes du détail (D4 révisée) : achat, frais, dont accises (si la config
+// les distingue), coût de revient HT, une ligne par tranche, prix de vente
+// TTC arrondi, puis prix de vente HT, marge € et marge % (ou la raison pour
+// laquelle la marge est indisponible).
 export function lignesDetail(prixAchat, cle, config) {
   const frais = Calcul.frais(cle, config);
-  const base = prixAchat + frais;
+  const cout = Calcul.coutRevient(prixAchat, cle, config);
   const lignes = [
     { type: 'achat', montant: prixAchat },
     { type: 'frais', montant: frais, texte: config.categories[cle].detail || '' },
-    { type: 'base', montant: base },
   ];
-  for (const t of Calcul.detailTranches(base, config)) {
+  const acc = Calcul.accises(cle, config);
+  if (acc) lignes.push(acc.erreur ? { type: 'accises', invalide: true } : { type: 'accises', montant: acc.montant });
+  lignes.push({ type: 'cout', montant: cout });
+  for (const t of Calcul.detailTranches(cout, config)) {
     lignes.push({ type: 'tranche', debut: t.debut, fin: t.fin, coef: t.coef, montant: t.montant });
   }
   lignes.push({ type: 'total', montant: Calcul.prixTTC(prixAchat, cle, config) });
+  const m = Calcul.marge(prixAchat, cle, config);
+  if (m.erreur) {
+    lignes.push({ type: 'marge-indisponible', raison: m.erreur });
+  } else {
+    lignes.push({ type: 'prix-ht', montant: m.prixHT });
+    lignes.push({ type: 'marge', montant: m.marge });
+    lignes.push({ type: 'marge-pct', valeur: m.margePct });
+  }
   return lignes;
 }
 

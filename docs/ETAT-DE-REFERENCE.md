@@ -18,6 +18,7 @@ voulu et validé ; les tests marqués **BUG CONNU**, **LIMITE CONNUE** ou
 | 2. Vite, modules, publication par GitHub Actions, sans changement visible | Fait (à publier : voir `docs/DEPLOIEMENT.md`) | Les 59 tests de l'app passent à l'identique sur l'app compilée et sur l'ancienne app ; test ajouté : mise à jour depuis la version en ligne (cache `pv-v7`) avec un produit en attente. Le test du cache vérifie désormais une version calculée (`pv-` + empreinte) au lieu de `pv-v7`. |
 | 3. Synchronisation entre appareils : relecture de la feuille, versions, conflits résolus explicitement, produits retirés, nom de l'appareil | Fait (à publier) | B-04, B-05 et B-06 corrigés (tests inversés volontairement). Changements voulus : la liste de l'appareil est celle de la feuille (ordre du plus récent au plus ancien ; un produit retiré reste dans la liste, masqué, filtre « Retirés ») ; chaque envoi porte une version. Nouveaux tests : `tests/fusion.test.js` (7) et `tests/e2e/multi-appareils.e2e.js` (8). |
 | 4. Écran Calculer V2 (`docs/CALCULER_SPEC_V2.md`) : ordre format → prix d'achat → étiquette → détail → nom → enregistrer, sélecteur de format replié, mode modification, tokens V2 | Fait (à publier) | B-01 et B-02 corrigés (tests inversés volontairement). Changements voulus : libellés V2 des formats dans Calculer ; prix jamais coloré selon le format ; étiquette toujours affichée avec un état explicite (au lieu d'être masquée) ; « 12,5abc » refusé ; détail replié sous 900 px sans préférence (`pv_detail` = `ouvert` / `ferme`, ancien `1` ignoré, ancien `0` gardé) ; échec d'écriture sur l'appareil : aucun succès annoncé, rien envoyé (R-01 réduit). Nouveaux tests : `tests/format.test.js`, `tests/evaluation.test.js`, `tests/produits.test.js` (20) et `tests/e2e/calculer.e2e.js` (14, plus 1 test D9 dans `calcul.e2e.js`). |
+| 5. Marge dans Calculer (D4 révisée) et formats pétillants 4,5 l et 5 l (D15) | Fait (à publier ; script à mettre à jour pour les 2 formats) | Changements voulus : « Base de calcul » devient « Coût de revient HT » ; lignes « dont accises », « Prix de vente HT », « Marge », « Marge % » ; config fictive des tests avec TVA et accises. Script : 2 libellés ajoutés, diagnostic de `tva` et `accises`. Nouveaux tests : 5 unitaires, 1 du script, 2 dans l'app. |
 
 ## Lancer les tests
 
@@ -51,6 +52,8 @@ Total : **102 tests, 90 réussis, 12 ignorés (config réelle absente), 0 échec
 Suite de l'app exécutée 3 fois de suite sans échec (stabilité).
 
 Après l'étape 4 : **153 tests (70 unitaires dont 12 ignorés sans config réelle, 83 dans l'app), 0 échec** ; suite de l'app exécutée 2 fois de suite sans échec.
+
+Après l'étape 5 : **160 tests (75 unitaires dont 12 ignorés, 85 dans l'app), 0 échec**.
 
 ## Bugs et limites constatés
 

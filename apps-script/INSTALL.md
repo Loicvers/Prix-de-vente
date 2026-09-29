@@ -52,9 +52,30 @@ montants dans le fichier privé) :
 Pour changer plus tard un frais ou un coefficient : modifie seulement cette
 propriété. L'app récupère la nouvelle config à sa prochaine synchronisation.
 
+### Marge : TVA et accises (facultatif)
+
+Pour que l'app affiche le prix de vente HT et la marge, ajoute à `CONFIG` :
+
+- `"tva":0.21` au premier niveau (juste après la première accolade `{`,
+  suivi d'une virgule) : le taux de TVA, avec un point ;
+- dans un format, `"accises":…` à côté de `"frais":…` pour voir la ligne
+  « dont accises ». Les accises sont une **partie** des frais : le montant
+  des frais doit déjà les contenir (ils ne sont pas ajoutés deux fois), et
+  les accises ne peuvent pas dépasser les frais.
+
+Exemple de forme (les `…` sont tes montants, dans ton document privé) :
+
+```json
+{"tva":0.21,"categories":{"tranquille":{"frais":…,"accises":…,"detail":"…"},…},"tranches":[…],"arrondi":…}
+```
+
+Sans `"tva"`, l'app calcule le prix comme avant et indique « Marge :
+indisponible ». La fonction `diagnostic` du script vérifie ces deux valeurs.
+
 ### Ajouter une catégorie (par exemple les grands formats)
 
-L'app connaît six catégories de grands formats :
+L'app connaît huit catégories de grands formats (les deux dernières ne sont
+proposées dans l'app que si elles sont dans `CONFIG`) :
 
 | Clé | Libellé |
 | --- | --- |
@@ -64,6 +85,8 @@ L'app connaît six catégories de grands formats :
 | `3l_mousseux` | Jéroboam pétillant (3 l) |
 | `4_5l_tranquille` | Tranquille 4,5 l |
 | `5l_tranquille` | Jéroboam tranquille (5 l) |
+| `4_5l_mousseux` | Réhoboam pétillant (4,5 l) |
+| `5l_mousseux` | Pétillant (5 l) |
 
 Tant que leurs frais ne sont pas dans `CONFIG`, l'app les affiche avec
 « frais à charger » et ne calcule pas leur prix. Tu peux n'en ajouter que

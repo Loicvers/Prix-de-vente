@@ -3,6 +3,8 @@ const fmtNombre = new Intl.NumberFormat('fr-BE', { minimumFractionDigits: 2, max
 // Montant absent ou illisible (cellule vide dans la feuille) : « — ».
 export function fmt(n) { return typeof n === 'number' && isFinite(n) ? fmtNombre.format(n) + ' €' : '—'; }
 export function fmtCoef(n) { return n.toFixed(3).replace('.', ','); }
+const fmtPourcent = new Intl.NumberFormat('fr-BE', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+export function fmtPct(n) { return typeof n === 'number' && isFinite(n) ? fmtPourcent.format(n) + ' %' : '—'; }
 export function esc(s) {
   return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }

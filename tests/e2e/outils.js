@@ -21,11 +21,13 @@ if (CIBLE === 'dist' && !fs.existsSync(path.join(DOSSIERS.dist, 'index.html'))) 
 }
 const URL_SCRIPT = 'https://script.test/macros/s/faux/exec';
 
-// Config fictive couvrant les 10 catégories (aucune valeur réelle).
+// Config fictive couvrant les 12 catégories (aucune valeur réelle), avec TVA
+// et accises (D4 révisée).
 const CONFIG_E2E = {
+  tva: 0.2,
   categories: {
-    tranquille: { frais: 3, detail: 'bouchon et étiquette' },
-    mousseux: { frais: 4 },
+    tranquille: { frais: 3, accises: 1, detail: 'bouchon et étiquette' },
+    mousseux: { frais: 4, accises: 2 },
     demie: { frais: 2 },
     intermediaire: { frais: 5 },
     magnum_tranquille: { frais: 6 },
@@ -34,6 +36,8 @@ const CONFIG_E2E = {
     '3l_mousseux': { frais: 16 },
     '4_5l_tranquille': { frais: 18 },
     '5l_tranquille': { frais: 20 },
+    '4_5l_mousseux': { frais: 22 },
+    '5l_mousseux': { frais: 24 },
   },
   tranches: [{ jusqua: 10, coef: 2 }, { jusqua: 30, coef: 1.5 }, { jusqua: null, coef: 1.25 }],
   arrondi: 0.1,
