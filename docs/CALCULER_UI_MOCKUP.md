@@ -2,7 +2,7 @@
 
 ## Maquette de l'écran « Calculer » — alignée sur `CALCULER_SPEC_V2.md` 2.2
 
-**Version :** 2.2 — 29/09/2026
+**Version :** 2.3 — 29/09/2026 (marge D4 révisée, formats D15)
 **Statut :** référence UI de l'écran implémenté (étape 4)
 
 Cette version remplace la maquette dérivée de la spec 2.0 (recherche de
@@ -74,9 +74,14 @@ minimum par option).
 │ Nom du produit               │ ⌄ Détail du calcul (ouvert)   │
 │ [                          ] │   Prix d'achat HT      …      │
 │ [ Enregistrer ]              │   Frais fixes (…)      + …    │
-│                              │   Base de calcul       …      │
+│                              │     dont accises       …      │
+│                              │   Coût de revient HT   …      │
 │                              │   a → b × coef         …      │
 │                              │   Prix de vente TTC    …      │
+│                              │   - - - - - - - - - - - - -   │
+│                              │   Prix de vente HT     …      │
+│                              │   Marge                …      │
+│                              │   Marge %            …,… %    │
 └──────────────────────────────┴───────────────────────────────┘
 ```
 

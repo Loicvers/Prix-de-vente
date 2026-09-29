@@ -3,7 +3,7 @@
 ## Spécification fonctionnelle et UX — écran « Calculer »
 
 **Projet :** Tarif (Prix de vente — Une Autre Clé du Paradis)
-**Version :** 2.2 — 28/09/2026
+**Version :** 2.3 — 29/09/2026 (D4 révisée : marge ; D15 : formats pétillants 4,5 l et 5 l)
 **Statut :** spécification fonctionnelle définitive — base de `CALCULER_UI_MOCKUP.md`
 **Références :** `00_MASTER_SYSTEM.md`, `DESIGN_SYSTEM_V2.md`, `UI_COMPONENT_LIBRARY_V2.md`,
 `docs/ETAT-DE-REFERENCE.md`, code de `app/src/`
@@ -54,7 +54,7 @@ Le prix de vente TTC est l'élément visuel dominant. Le nom du produit n'est
   l'onglet Produits).
 - Modification des frais, tranches, coefficients ou arrondi : ils viennent
   uniquement de la propriété `CONFIG` du script et sont en lecture seule.
-- Affichage d'une marge ou d'un coefficient global (**D4**).
+- Affichage d'un coefficient global (la marge est affichée dans le détail depuis D4 révisée, §9.1).
 - Affichage du SKU dans Calculer (**D3**).
 - Action « réinitialiser / revenir aux valeurs de référence » (n'existe pas).
 - Recalcul automatique des prix déjà enregistrés quand la config change
@@ -268,14 +268,18 @@ modifie jamais la valeur métier.
 ## 9. Détail du calcul
 
 - Généré à partir du **même** appel au moteur que le prix affiché.
-- Lignes, dans l'ordre (conformes à `detailHtml` actuel) :
+- Lignes, dans l'ordre (D4 révisée) :
   1. Prix d'achat HT ;
   2. Frais fixes (+ texte `detail` de la config s'il existe) ;
-  3. Base de calcul ;
-  4. une ligne par tranche utilisée : « début → fin × coefficient » et montant ;
-  5. total « Prix de vente TTC », séparé visuellement.
+  3. dont accises — seulement si la config les distingue (§9.1) ;
+  4. Coût de revient HT (= ancienne « base de calcul ») ;
+  5. une ligne par tranche utilisée : « début → fin × coefficient » et montant ;
+  6. Prix de vente TTC arrondi, séparé visuellement ;
+  7. Prix de vente HT ;
+  8. Marge (€) ;
+  9. Marge % (une décimale).
 - Libellés à gauche, montants à droite, chiffres tabulaires.
-- Pas de ligne « marge » ni « coefficient global » (**D4**).
+- Pas de « coefficient global ».
 - Repliable. On distingue **l'état initial** et **la préférence mémorisée**
   (D9) :
   - sans préférence mémorisée : replié sous 900 px, ouvert à partir de 900 px
@@ -293,6 +297,29 @@ modifie jamais la valeur métier.
     lue comme « fermé » ;
   - valeur héritée `'1'`, absente ou illisible : aucune préférence, état
     initial responsive.
+### 9.1 Marge, TVA et accises (D4 révisée)
+
+- Coût de revient HT = prix d'achat HT + frais fixes HT, **accises comprises**.
+- Prix de vente HT = prix de vente TTC arrondi / (1 + taux de TVA).
+- Marge € = prix de vente HT − coût de revient HT.
+- Marge % = marge € / prix de vente HT × 100.
+- La marge est calculée **après** le prix : elle ne change rien au calcul du
+  prix de vente (moteur `core/calcul.js`, fonctions `tauxTVA`, `accises`,
+  `coutRevient`, `marge`).
+- Données de la propriété `CONFIG` du script, jamais du code :
+  - `"tva"` au premier niveau (taux, ex. `0.21` pour 21 %) ;
+  - `"accises"` par format, facultatives, **partie des `"frais"`** (« dont
+    accises ») : elles ne sont jamais ajoutées une seconde fois ; des accises
+    plus grandes que les frais sont refusées.
+- TVA absente ou invalide : prix calculé normalement, ligne « Marge :
+  indisponible : taux de TVA absent (ou invalide) de la config ».
+- Accises invalides : ligne « dont accises : invalides dans la config » ; le
+  coût reste achat + frais.
+- La fiche produit reprend le détail jusqu'aux tranches (avec « dont
+  accises » et « Coût de revient HT »), sans la marge.
+- Les montants réels des frais et accises sont confidentiels : jamais dans le
+  dépôt (tests avec des valeurs fictives).
+
 - Sémantique : liste de paires libellé / montant (`dl`) ou tableau à deux
   colonnes ; le choix final se fait en maquette, avec en-têtes associés si
   tableau.
@@ -577,7 +604,7 @@ Seuils de `DESIGN_SYSTEM_V2` §16 : < 600, 600–899, ≥ 900, ≥ 1200 px.
 | D1 | Ordre : Format → Prix d'achat HT → Prix de vente TTC → Détail → Nom → Enregistrer |
 | D2 | Table de référence unique des 10 formats (libellé + famille), réutilisée partout |
 | D3 | SKU non exposé ; « même nom = même produit » clarifié ; renommage via Recalculer corrigé |
-| D4 | Ni marge ni coefficient global ; détail par tranches seulement |
+| D4 (révisée) | Détail : tranches et coefficients, puis prix HT, marge € et marge % ; TVA et accises dans `CONFIG` ; accises comprises dans les frais (§9.1) |
 | D5 | Correction de B-01, compatibilité des saisies actuelles |
 | D6 | Historique = calculs enregistrés uniquement |
 | D7 | Étiquette de cave crème pour le prix de vente TTC |
@@ -588,6 +615,7 @@ Seuils de `DESIGN_SYSTEM_V2` §16 : < 600, 600–899, ≥ 900, ≥ 1200 px.
 | D12 | Pas de frais dans le sélecteur fermé ; frais dans les options ouvertes et dans le détail |
 | D13 | Contenances en minuscules : « cl », « l » |
 | D14 | Aide « Ce produit existe déjà : il sera mis à jour. » sous le champ nom, avant l'enregistrement |
+| D15 | Formats « Réhoboam pétillant · 4,5 l » (`4_5l_mousseux`) et « Pétillant · 5 l » (`5l_mousseux`), proposés dans Calculer seulement s'ils sont dans `CONFIG` |
 | C1–C12 | Corrections de la revue de la version 2.0 |
 
 ---

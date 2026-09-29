@@ -16,7 +16,7 @@ import { fermer } from './fenetres.js';
 import { afficherBadge } from './produits.js';
 import { switchTab } from './onglets.js';
 import { CATEGORIES, GROUPES, categorie, estConnue, cleValide } from '../core/categories.js';
-import { fmt, fmtCoef, esc } from '../core/format.js';
+import { fmt, fmtCoef, fmtPct, esc } from '../core/format.js';
 import { evaluerCalcul, lignesDetail } from '../core/evaluation.js';
 import { etat } from '../data/etat.js';
 import { stockage } from '../data/stockage.js';
@@ -47,7 +47,9 @@ const texteInfo = (cle, conf) => {
 
 export function renderCategories() {
   const config = etat.config;
-  $('categories').innerHTML = GROUPES.map(([titre, cles], i) => `
+  // Format « optionnel » absent de la config : pas proposé (D15).
+  const proposes = cles => cles.filter(cle => !CATEGORIES[cle].optionnel || (config && config.categories[cle]) || cle === etat.currentCat);
+  $('categories').innerHTML = GROUPES.map(([titre, toutes], i) => [titre, proposes(toutes), i]).filter(([, cles]) => cles.length).map(([titre, cles, i]) => `
     <div class="groupe" role="group" aria-labelledby="groupe-${i}">
       <div class="groupe-titre" id="groupe-${i}">${esc(titre)}</div>
       <div class="cats">${cles.map(cle => {
@@ -116,21 +118,34 @@ const MESSAGES_PRIX = {
   negatif: 'Le prix d\'achat doit être supérieur à 0',
 };
 
+const RAISONS_MARGE = {
+  'tva-absente': 'indisponible : taux de TVA absent de la config',
+  'tva-invalide': 'indisponible : taux de TVA invalide dans la config',
+};
+
 function ligneHtml(l, balises) {
   const [a, b] = balises;
+  const ligne = (classe, libelle, valeur) => `<div class="ligne${classe ? ' ' + classe : ''}"><${a}>${libelle}</${a}><${b}>${valeur}</${b}></div>`;
   switch (l.type) {
-    case 'achat': return `<div class="ligne"><${a}>Prix d'achat HT</${a}><${b}>${fmt(l.montant)}</${b}></div>`;
-    case 'frais': return `<div class="ligne"><${a}>Frais fixes${l.texte ? ' (' + esc(l.texte) + ')' : ''}</${a}><${b}>+ ${fmt(l.montant)}</${b}></div>`;
-    case 'base': return `<div class="ligne"><${a}>Base de calcul</${a}><${b}>${fmt(l.montant)}</${b}></div>`;
-    case 'tranche': return `<div class="ligne"><${a}>${fmt(l.debut)} → ${fmt(l.fin)} × ${fmtCoef(l.coef)}</${a}><${b}>${fmt(l.montant)}</${b}></div>`;
-    case 'total': return `<div class="ligne total"><${a}>Prix de vente TTC</${a}><${b}>${fmt(l.montant)}</${b}></div>`;
+    case 'achat': return ligne('', 'Prix d\'achat HT', fmt(l.montant));
+    case 'frais': return ligne('', `Frais fixes${l.texte ? ' (' + esc(l.texte) + ')' : ''}`, '+ ' + fmt(l.montant));
+    case 'accises': return ligne('sous', 'dont accises', l.invalide ? 'invalides dans la config' : fmt(l.montant));
+    case 'cout': return ligne('', 'Coût de revient HT', fmt(l.montant));
+    case 'tranche': return ligne('', `${fmt(l.debut)} → ${fmt(l.fin)} × ${fmtCoef(l.coef)}`, fmt(l.montant));
+    case 'total': return ligne('total', 'Prix de vente TTC', fmt(l.montant));
+    case 'prix-ht': return ligne('marge-debut', 'Prix de vente HT', fmt(l.montant));
+    case 'marge': return ligne('', 'Marge', fmt(l.montant));
+    case 'marge-pct': return ligne('', 'Marge %', fmtPct(l.valeur));
+    case 'marge-indisponible': return ligne('marge-debut', 'Marge', RAISONS_MARGE[l.raison] || 'indisponible');
     default: return '';
   }
 }
 
-// Détail pour la fiche produit (sans la ligne de total, ajoutée par la fiche).
+const LIGNES_FICHE = ['achat', 'frais', 'accises', 'cout', 'tranche'];
+// Détail pour la fiche produit : jusqu'aux tranches (la fiche ajoute son
+// propre total, le prix enregistré ; la marge reste propre à Calculer).
 export function detailHtml(prixAchat, cle) {
-  return lignesDetail(prixAchat, cle, etat.config).filter(l => l.type !== 'total').map(l => ligneHtml(l, ['span', 'span'])).join('');
+  return lignesDetail(prixAchat, cle, etat.config).filter(l => LIGNES_FICHE.includes(l.type)).map(l => ligneHtml(l, ['span', 'span'])).join('');
 }
 
 function afficherManque(cle) {

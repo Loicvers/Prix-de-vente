@@ -356,6 +356,11 @@ input::placeholder { color: var(--text3); }
   font-weight: 600;
 }
 #resultat-detail .total dt { color: var(--color-label-text); }
+#resultat-detail .sous dt { padding-left: var(--space-4); }
+#resultat-detail .marge-debut {
+  margin-top: var(--space-2); padding-top: var(--space-2);
+  border-top: var(--border-width) dashed var(--color-label-text-secondary);
+}
 
 /* 5. Nom et 6. Enregistrer */
 #page-calc .enregistrer { display: grid; gap: var(--space-2); }

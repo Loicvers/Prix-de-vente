@@ -2,7 +2,7 @@
 
 ## Implémentation de l'écran « Calculer » — alignée sur `CALCULER_SPEC_V2.md` 2.2
 
-**Version :** 2.2 — 29/09/2026
+**Version :** 2.3 — 29/09/2026 (marge D4 révisée, formats D15)
 **Statut :** implémenté (étape 4)
 
 Remplace le plan dérivé de la spec 2.0 (ProductSelector, formats par produit,
@@ -22,7 +22,8 @@ Données       app/src/data/produits.js (enregistrement, D3/D8/D14)
               app/src/data/synchro.js → api.js → apps-script/Code.gs
   ↓
 Métier        app/src/core/evaluation.js (statuts, détail)
-              app/src/core/calcul.js (moteur, inchangé)
+              app/src/core/calcul.js (moteur : prix inchangé ; marge ajoutée :
+                tauxTVA, accises, coutRevient, marge — D4 révisée)
               app/src/core/format.js (lecture et mise en forme)
               app/src/core/categories.js (table des 10 formats)
 ```

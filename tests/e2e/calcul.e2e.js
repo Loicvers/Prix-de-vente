@@ -15,7 +15,7 @@ const ACHATS = ['0,5', '8', '10', '12,34', '29,99', '30', '57,8', '250'];
 describe('calcul', () => {
   // V2 (spec Calculer §6, §8.2) : libellé V2 de la table unique ; le prix
   // n'est plus coloré selon le format (plus de data-cat sur le résultat).
-  it('les 10 formats donnent le prix de calcul.js, avec leur libellé V2', async () => {
+  it('les 12 formats donnent le prix de calcul.js, avec leur libellé V2', async () => {
     const { page, context } = await app.appareil(null, { stockage: connecte() });
     await ouvrir(app, page, { connecter: false });
     const libelles = Object.fromEntries(Object.entries(require('../../app/src/core/categories.js').CATEGORIES).map(([k, v]) => [k, v.libelle]));
@@ -47,7 +47,9 @@ describe('calcul', () => {
     await context.close();
   });
 
-  it('détail du calcul : achat, frais (avec leur texte), base, une ligne par tranche, total', async () => {
+  // D4 révisée : coût de revient HT (au lieu de « base »), « dont accises »,
+  // puis prix de vente HT, marge € et marge %.
+  it('détail du calcul : achat, frais, dont accises, coût de revient, tranches, TTC, HT, marge € et %', async () => {
     const { page, context } = await app.appareil(null, { stockage: connecte() });
     await ouvrir(app, page, { connecter: false });
     await calculer(page, 'tranquille', '40');
@@ -55,11 +57,16 @@ describe('calcul', () => {
     assert.deepEqual(lignes, [
       `Prix d'achat HT | ${prixAffiche(40)}`,
       `Frais fixes (bouchon et étiquette) | + ${prixAffiche(3)}`,
-      `Base de calcul | ${prixAffiche(43)}`,
+      `dont accises | ${prixAffiche(1)}`,
+      `Coût de revient HT | ${prixAffiche(43)}`,
       `${prixAffiche(0)} → ${prixAffiche(10)} × 2,000 | ${prixAffiche(20)}`,
       `${prixAffiche(10)} → ${prixAffiche(30)} × 1,500 | ${prixAffiche(30)}`,
       `${prixAffiche(30)} → ${prixAffiche(43)} × 1,250 | ${prixAffiche(16.25)}`,
       `Prix de vente TTC | ${prixAffiche(66.3)}`,
+      // TVA fictive 20 % : 66,30 / 1,2 = 55,25 ; marge 55,25 − 43 = 12,25 ; 12,25 / 55,25 = 22,2 %
+      `Prix de vente HT | ${prixAffiche(55.25)}`,
+      `Marge | ${prixAffiche(12.25)}`,
+      'Marge % | 22,2 %',
     ]);
     // D9 : sur mobile (390 px), replié par défaut ; le choix de
     // l'utilisateur est mémorisé (« ouvert » / « ferme »).
@@ -216,7 +223,7 @@ describe('calcul', () => {
       ['Bouteille 75 cl', ['tranquille', 'mousseux']],
       ['Magnum 1,5 l', ['magnum_tranquille', 'magnum_mousseux']],
       ['3 litres', ['3l_tranquille', '3l_mousseux']],
-      ['4,5 et 5 litres', ['4_5l_tranquille', '5l_tranquille']],
+      ['4,5 et 5 litres', ['4_5l_tranquille', '5l_tranquille', '4_5l_mousseux', '5l_mousseux']],
       ['Autres formats', ['demie', 'intermediaire']],
     ]);
     assert.equal(await texte(page, '.cat[data-cat="intermediaire"] .cat-info'), `+${prixAffiche(5)} de frais · Maury, Porto, VDN…`);
