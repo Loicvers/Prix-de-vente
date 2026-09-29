@@ -81,7 +81,7 @@ Aucun framework ajouté. Aucun accès à Google Sheets depuis l'UI.
 | `tests/format.test.js` | lecture des montants (B-01, D11, compatibilité) |
 | `tests/evaluation.test.js` | statuts, moteur réel, détail, changement d'entrée, échec du moteur |
 | `tests/produits.test.js` | création, mise à jour, renommage, D8, D14, échec de stockage, retraits |
-| `tests/e2e/calculer.e2e.js` | D1, responsive 320–1440, clavier, invalidation, local puis synchro, hors ligne, double soumission, D8, D14, format inconnu, mode modification |
+| `tests/e2e/calculer.e2e.js` | D1, responsive 320–1440, clavier, invalidation, local puis synchro, hors ligne, double soumission, D4 (coefficients issus de la config), D8, D14, format inconnu, mode modification, synchronisation pendant une modification |
 | `tests/e2e/calcul.e2e.js`, `produits.e2e.js`, `navigation.e2e.js` | tests de référence adaptés aux changements voulus (libellés V2, B-01, B-02, D9, §10.4) |
 
 ## 7. Hors périmètre (non modifié)

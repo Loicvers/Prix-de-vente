@@ -248,6 +248,51 @@ describe('Calculer V2', () => {
     await context.close();
   });
 
+  it('D4 : tranches et coefficients du détail viennent de la config reçue, jamais du prix principal', async () => {
+    // Autre config fictive : le détail doit suivre la config, pas des valeurs fixes.
+    const config = { categories: { tranquille: { frais: 1 } }, tranches: [{ jusqua: 5, coef: 3 }, { jusqua: null, coef: 1.1 }], arrondi: 0.5 };
+    const { page, context } = await app.appareil(null, { stockage: connecte({ pv_config: config, pv_detail: 'ouvert' }) });
+    await ouvrir(app, page, { connecter: false });
+    await calculer(page, 'tranquille', '9');
+    const prix = Calcul.prixTTC(9, 'tranquille', config);
+    assert.equal(await texte(page, '#resultat-prix'), prixAffiche(prix));
+    const lignes = await page.$$eval('#resultat-detail .ligne', ls => ls.map(l => [...l.children].map(c => c.textContent.replace(/\s+/g, ' ').trim()).join(' | ')));
+    assert.deepEqual(lignes.filter(l => l.includes('×')), [
+      `${prixAffiche(0)} → ${prixAffiche(5)} × 3,000 | ${prixAffiche(15)}`,
+      `${prixAffiche(5)} → ${prixAffiche(10)} × 1,100 | ${prixAffiche(5 * 1.1)}`,
+    ]);
+    // Coefficients seulement dans le bloc « Détail du calcul ».
+    for (const sel of ['#resultat-prix', '#resultat-cat', '#resultat-etat', '#format-bouton']) {
+      assert.equal((await texte(page, sel)).includes('×'), false, sel);
+    }
+    await context.close();
+  });
+
+  it('synchronisation pendant une modification : produit retrouvé par identifiant / SKU, renommé sans doublon ni conflit', async () => {
+    const script = fauxScript();
+    const a = await appareilConnecte(script);
+    await enregistrer(a.page, 'tranquille', '8', 'Partagé');
+    await attendreEtat(a.page, 'ok');
+    const b = await appareilConnecte(script);
+    // A ouvre la modification, puis B modifie le produit et l'envoie.
+    await recalculer(a.page, 'Partagé');
+    await enregistrer(b.page, 'tranquille', '12', 'Partagé');
+    await attendreEtat(b.page, 'ok');
+    // A se resynchronise : la liste de la feuille remplace les objets de A.
+    await a.page.click('#onglet-history');
+    await a.page.click('[data-action="sync"]');
+    await attendreEtat(a.page, 'ok');
+    await a.page.click('#onglet-calc');
+    assert.equal(await texte(a.page, '#modification .bandeau-titre'), 'Tu modifies « Partagé »');
+    await a.page.fill('#input-nom', 'Partagé 2024');
+    await a.page.click('#btn-enregistrer');
+    await attendreEtat(a.page, 'ok');
+    assert.deepEqual(script.prive().map(r => r.slice(0, 4)), [['UCP-0001', 'Partagé 2024', 'Vin tranquille', 8]]);
+    assert.deepEqual((await lireJSON(a.page, 'pv_produits_v2')).map(p => [p.sku, p.nom, p.conflit]), [['UCP-0001', 'Partagé 2024', undefined]]);
+    await a.context.close();
+    await b.context.close();
+  });
+
   it('mode modification : produit supprimé entre-temps → retour en nouveau calcul, annoncé, rien d\'écrasé', async () => {
     const produits = [PRODUIT(1, 'Éphémère'), PRODUIT(2, 'Autre')];
     const { page, context } = await appareilConnecte(null, { pv_produits_v2: produits });

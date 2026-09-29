@@ -80,6 +80,7 @@ describe('calcul', () => {
     const cas = [
       [{ width: 1024, height: 768 }, undefined, true],
       [{ width: 899, height: 800 }, undefined, false],
+      [{ width: 768, height: 1024 }, undefined, false],   // tablette : replié (seuil 900 px)
       [{ width: 390, height: 844 }, '1', false],      // « 1 » : écrit par l'ancienne app à chaque démarrage
       [{ width: 1440, height: 900 }, '1', true],
       [{ width: 1440, height: 900 }, '0', false],     // « 0 » : l'utilisateur avait replié
