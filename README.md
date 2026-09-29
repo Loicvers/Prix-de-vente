@@ -9,6 +9,7 @@ GitHub Pages : https://loicvers.github.io/Prix-de-vente/
 | --- | --- |
 | `app/` | L'app (Vite, JavaScript sans framework) : calcul, produits, synchronisation, hors ligne. Détail dans `docs/DEPLOIEMENT.md`. |
 | `app/src/core/calcul.js` | Le calcul par tranches cumulées. Aucun montant : tout vient de la config. |
+| `docs/CALCULER_SPEC_V2.md`, `docs/CALCULER_UI_MOCKUP.md`, `docs/CALCULER_IMPLEMENTATION.md` | Écran Calculer V2 : spécification validée, maquette et plan d'implémentation. |
 | `vite.config.mjs` | Compilation vers `dist/` et génération du service worker. |
 | `.github/workflows/publication.yml` | Tests, puis publication sur GitHub Pages depuis `main`. |
 | `index.html`, `calcul.js`, `sw.js`, `manifest.json`, icônes (racine) | Ancienne app, gardée comme solution de repli le temps de valider la nouvelle publication. |

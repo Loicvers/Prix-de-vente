@@ -9,8 +9,9 @@ export const stockage = {
   lire(cle, defaut) {
     try { const v = localStorage.getItem(cle); return v === null ? defaut : v; } catch { return defaut; }
   },
+  // Renvoie true si l'écriture a réussi (spec Calculer §10.4).
   ecrire(cle, valeur) {
-    try { localStorage.setItem(cle, valeur); } catch { toast('Mémoire de l\'appareil pleine : donnée non enregistrée'); }
+    try { localStorage.setItem(cle, valeur); return true; } catch { toast('Mémoire de l\'appareil pleine : donnée non enregistrée'); return false; }
   },
   json(cle, defaut) {
     try { const v = localStorage.getItem(cle); return v ? JSON.parse(v) : defaut; } catch { return defaut; }

@@ -154,9 +154,18 @@ async function attendreEtat(page, etat, delai = 5000) {
   await page.waitForSelector(`#pastille[data-etat="${etat}"]`, { timeout: delai });
 }
 
+// Choisit un format dans le sélecteur (fermé par défaut depuis la V2 de
+// Calculer : il s'ouvre, puis se referme au choix). L'ancienne app (racine,
+// grille toujours ouverte) n'a pas de bouton de format.
+async function choisirFormat(page, cat) {
+  const bouton = await page.$('#format-bouton');
+  if (bouton && await bouton.getAttribute('aria-expanded') !== 'true') await bouton.click();
+  await page.click(`.cat[data-cat="${cat}"]`);
+}
+
 async function calculer(page, cat, prix) {
   if (await page.getAttribute('#onglet-calc', 'aria-selected') !== 'true') await page.click('#onglet-calc');
-  await page.click(`.cat[data-cat="${cat}"]`);
+  await choisirFormat(page, cat);
   await page.fill('#input-prix', prix);
   await page.waitForTimeout(50);   // calcul au prochain rafraîchissement d'écran
 }
@@ -179,4 +188,4 @@ const prixAffiche = n => (fmtNombre.format(n) + ' €').replace(/\s+/g, ' ');
 const lireJSON = (page, cle) => page.evaluate(k => JSON.parse(localStorage.getItem(k)), cle);
 const texte = (page, sel) => page.textContent(sel).then(t => (t || '').replace(/\s+/g, ' ').trim());
 
-module.exports = { CIBLE, DOSSIERS, connecte, prixAffiche, PIN, URL_SCRIPT, CONFIG_E2E, fauxScript, lancer, ouvrir, attendreEtat, calculer, enregistrer, lireJSON, texte };
+module.exports = { CIBLE, DOSSIERS, choisirFormat, connecte, prixAffiche, PIN, URL_SCRIPT, CONFIG_E2E, fauxScript, lancer, ouvrir, attendreEtat, calculer, enregistrer, lireJSON, texte };

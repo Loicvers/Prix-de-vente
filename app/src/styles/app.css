@@ -22,6 +22,58 @@
   --haut: env(safe-area-inset-top, 0px);
   --bas: env(safe-area-inset-bottom, 0px);
   color-scheme: dark;
+
+  /* Tokens du Design System V2 (DESIGN_SYSTEM_V2.md §5, §8, §11, §12, §14).
+     Ajoutés à côté des anciens, sans les remplacer : seuls les écrans refaits
+     (Calculer) les utilisent. « --radius-sm » (8 px en V2) n'est pas redéfini :
+     l'ancien --radius-sm (12 px) sert encore aux autres écrans. */
+  --color-bg: #16100f;
+  --color-surface: #211817;
+  --color-surface-2: #2b201e;
+  --color-surface-3: #362826;
+  --color-text: #f5eee6;
+  --color-text-secondary: #b8a898;
+  --color-text-tertiary: #9d8c7d;
+  --color-border: #3d2e2b;
+  --color-border-strong: #574240;
+  --color-focus: #d4ad6a;
+  --color-primary: #d4ad6a;
+  --color-primary-hover: #e1bd7d;
+  --color-primary-active: #bd9553;
+  --color-primary-contrast: #16100f;
+  --color-danger: #ec8a80;
+  --color-success: #7fd19b;
+  --color-warning: #e6b85c;
+  /* Étiquette de cave (D7) : uniquement des couleurs existantes du système. */
+  --color-label-surface: var(--color-text);
+  --color-label-text: var(--color-bg);
+  --color-label-text-secondary: var(--color-surface-3);
+  --color-label-rule: var(--color-primary);
+  --color-label-focus: var(--color-bg);
+  --font-display: var(--serif);
+  --font-sans: var(--sans);
+  --type-display: 48px;          /* plage 48–56 : 56 px à partir de 900 px */
+  --type-price-lg: 36px;
+  --type-title: 22px;
+  --type-body: 15px;
+  --type-label: 13px;
+  --type-caption: 12px;
+  --type-price-list: 16px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-pill: 999px;
+  --border-width: 1px;
+  --focus-width: 2px;
+  --cible-min: 44px;
 }
 /* Couleur de chaque catégorie */
 [data-cat="tranquille"]        { --c: #e0848c; }
@@ -135,35 +187,6 @@ main { padding: 16px 16px calc(96px + var(--bas)); }
   color: var(--accent); font-weight: 600; text-decoration: underline;
 }
 
-/* CATÉGORIES */
-.groupe + .groupe { margin-top: 14px; }
-.groupe-titre { font-size: 12px; color: var(--text3); margin-bottom: 7px; }
-.cats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.cat {
-  position: relative; text-align: left;
-  background: var(--surface2);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 11px 12px 10px 14px;
-  min-height: 62px;
-  transition: border-color .15s, background-color .15s, transform .1s;
-  overflow: hidden;
-}
-.cat::before {
-  content: ''; position: absolute; left: 0; top: 10px; bottom: 10px;
-  width: 3px; border-radius: 0 3px 3px 0; background: var(--c); opacity: .55;
-}
-.cat:active { transform: scale(.98); }
-.cat[aria-pressed="true"] {
-  border-color: var(--c);
-  background: color-mix(in srgb, var(--c) 13%, var(--surface2));
-}
-.cat[aria-pressed="true"]::before { opacity: 1; }
-.cat-nom { display: block; font-weight: 600; font-size: 14px; line-height: 1.25; }
-.cat[aria-pressed="true"] .cat-nom { color: var(--c); }
-.cat-info { display: block; font-size: 11.5px; color: var(--text3); margin-top: 3px; }
-.cat-info.manque { color: var(--danger); }
-
 /* SAISIE */
 .champ { display: block; font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 7px; }
 input[type="text"], input[type="password"], input[type="search"] {
@@ -181,46 +204,7 @@ input[type="text"], input[type="password"], input[type="search"] {
 }
 input:focus { border-color: var(--accent); }
 input::placeholder { color: var(--text3); }
-.prix-saisie { position: relative; }
-.prix-saisie input {
-  font-family: var(--serif); font-size: 34px; line-height: 1;
-  padding: 14px 52px 14px 16px;
-}
-.prix-saisie span {
-  position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
-  font-family: var(--serif); font-size: 26px; color: var(--text3); pointer-events: none;
-}
-
-/* RÉSULTAT */
-.resultat {
-  border-color: color-mix(in srgb, var(--c) 55%, var(--border));
-  background:
-    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--c) 16%, transparent) 0%, transparent 60%),
-    var(--surface);
-  box-shadow: var(--ombre);
-}
-.resultat-haut { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 4px 12px; }
-.resultat-libelle { font-size: 12px; color: var(--text2); text-transform: uppercase; letter-spacing: .09em; }
-.resultat-cat { font-size: 13px; color: var(--c); margin-top: 2px; }
-.resultat-prix {
-  font-family: var(--serif); font-size: 50px; line-height: 1;
-  color: var(--c); white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-details.detail { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 10px; }
-details.detail summary {
-  list-style: none; cursor: pointer;
-  font-size: 13px; color: var(--text2);
-  display: flex; align-items: center; gap: 6px;
-}
-details.detail summary::-webkit-details-marker { display: none; }
-details.detail summary::before {
-  content: ''; width: 6px; height: 6px;
-  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
-  transform: rotate(-45deg); transition: transform .15s;
-}
-details.detail[open] summary::before { transform: rotate(45deg); }
-details.detail[open] summary { margin-bottom: 8px; }
+/* LIGNES DE DÉTAIL (fiche produit) */
 .ligne {
   display: flex; justify-content: space-between; gap: 12px;
   font-size: 13px; color: var(--text2); padding: 3px 0;
@@ -231,8 +215,169 @@ details.detail[open] summary { margin-bottom: 8px; }
   border-top: 1px solid var(--border); margin-top: 5px; padding-top: 8px;
   font-weight: 600; color: var(--text);
 }
-.enregistrer { margin-top: 16px; display: flex; gap: 8px; }
-.enregistrer input { flex: 1; min-width: 0; }
+
+/* CALCULER (docs/CALCULER_SPEC_V2.md) : tokens V2 uniquement.
+   Ordre D1 : format → prix d'achat → étiquette (prix, détail) → nom → enregistrer. */
+#page-calc [hidden] { display: none !important; }
+#page-calc .calc-grille { display: grid; gap: var(--space-5); }
+#page-calc .calc-saisie { display: grid; gap: var(--space-5); }
+#page-calc .calc-saisie > .alerte { margin-bottom: 0; }
+.calc-bloc { display: grid; gap: var(--space-2); }
+.calc-label {
+  font-size: var(--type-label); font-weight: 600;
+  color: var(--color-text-secondary);
+}
+.message-champ { font-size: var(--type-caption); color: var(--color-text-secondary); }
+.message-champ.erreur { color: var(--color-danger); font-weight: 600; }
+#page-calc input[aria-invalid="true"] { border-color: var(--color-danger); }
+
+/* Bandeau du mode modification (« Recalculer ») */
+.bandeau-modif {
+  display: grid; gap: var(--space-2); justify-items: start;
+  padding: var(--space-3) var(--space-4); margin-bottom: var(--space-5);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-left: 3px solid var(--color-primary);
+  border-radius: var(--radius-md);
+}
+.bandeau-titre { font-weight: 600; font-size: var(--type-body); overflow-wrap: anywhere; }
+.bandeau-info { font-size: var(--type-label); color: var(--color-text-secondary); }
+.bandeau-modif .btn { min-height: var(--cible-min); }
+
+/* 1. Format : fermé par défaut (D1, D12) */
+.format-bouton {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+  width: 100%; min-height: var(--cible-min);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-surface-2);
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  font-size: var(--type-body); font-weight: 600; text-align: left;
+  color: var(--color-text);
+}
+.format-courant { min-width: 0; overflow-wrap: anywhere; }
+.format-bouton .chevron { width: 20px; height: 20px; flex-shrink: 0; color: var(--color-text-secondary); transition: transform .2s; }
+.format-bouton[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+.formats {
+  display: grid; gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+.groupe-titre { font-size: var(--type-caption); color: var(--color-text-tertiary); margin-bottom: var(--space-2); }
+.cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr)); gap: var(--space-2); }
+.cat {
+  position: relative; display: flex; flex-direction: column; gap: 2px;
+  min-height: var(--cible-min);
+  padding: var(--space-3) var(--space-3) var(--space-3) var(--space-6);
+  background: var(--color-surface-2);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color .15s, transform .1s;
+}
+.cat:active { transform: scale(.98); }
+.cat input {
+  position: absolute; left: var(--space-3); top: 14px;
+  width: 16px; height: 16px; margin: 0;
+  accent-color: var(--color-primary);
+}
+/* Sélection : bouton radio coché + bordure + fond (jamais la couleur seule). */
+.cat:has(input:checked) { border-color: var(--color-primary); background: var(--color-surface-3); }
+.cat-nom { font-size: var(--type-label); font-weight: 600; line-height: 1.3; color: var(--color-text); overflow-wrap: anywhere; }
+.cat-info { font-size: var(--type-caption); color: var(--color-text-tertiary); }
+.cat-info.manque { color: var(--color-danger); }
+
+/* 2. Prix d'achat HT */
+.prix-saisie { position: relative; }
+.prix-saisie input {
+  font-family: var(--font-display); font-size: var(--type-price-lg); line-height: 1;
+  padding: var(--space-3) var(--space-7) var(--space-3) var(--space-4);
+}
+.prix-saisie span {
+  position: absolute; right: var(--space-4); top: 50%; transform: translateY(-50%);
+  font-family: var(--font-display); font-size: var(--type-title);
+  color: var(--color-text-tertiary); pointer-events: none;
+}
+
+/* 3. Étiquette de cave (D7) : crème, texte sombre, serif, filet or */
+.etiquette-prix {
+  display: grid; gap: var(--space-1);
+  padding: var(--space-5);
+  background: var(--color-label-surface);
+  color: var(--color-label-text);
+  border-radius: var(--radius-lg);
+}
+.etiquette-prix :focus-visible { outline-color: var(--color-label-focus); }
+.etiquette-libelle {
+  font-size: var(--type-label); font-weight: 600;
+  letter-spacing: .09em; text-transform: uppercase;
+  color: var(--color-label-text-secondary);
+}
+.etiquette-montant {
+  margin-top: var(--space-2);
+  font-family: var(--font-display); font-size: var(--type-display); line-height: 1.05;
+  font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+}
+.etiquette-prix:not([data-statut="valide"]) .etiquette-montant { color: var(--color-label-text-secondary); }
+.etiquette-format { font-size: var(--type-body); font-weight: 600; }
+.etiquette-etat, .etiquette-enregistre { font-size: var(--type-label); color: var(--color-label-text-secondary); }
+
+/* 4. Détail du calcul, sous le filet or (D9 : replié < 900 px sans préférence) */
+.etiquette-prix .detail {
+  margin-top: var(--space-3);
+  border-top: 2px solid var(--color-label-rule);
+  padding-top: var(--space-1);
+}
+.etiquette-prix .detail summary {
+  display: flex; align-items: center; gap: var(--space-2);
+  min-height: var(--cible-min);
+  list-style: none; cursor: pointer;
+  font-size: var(--type-label); font-weight: 600;
+}
+.etiquette-prix .detail summary::-webkit-details-marker { display: none; }
+.etiquette-prix .detail summary::before {
+  content: ''; width: 6px; height: 6px;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+  transform: rotate(-45deg); transition: transform .15s;
+}
+.etiquette-prix .detail[open] summary::before { transform: rotate(45deg); }
+#resultat-detail .ligne {
+  display: flex; justify-content: space-between; gap: var(--space-3);
+  padding: var(--space-1) 0;
+  font-size: var(--type-label); font-variant-numeric: tabular-nums;
+}
+#resultat-detail dt { color: var(--color-label-text-secondary); }
+#resultat-detail dd { margin: 0; white-space: nowrap; color: var(--color-label-text); }
+#resultat-detail .total {
+  margin-top: var(--space-1); padding-top: var(--space-2);
+  border-top: var(--border-width) solid var(--color-label-text-secondary);
+  font-weight: 600;
+}
+#resultat-detail .total dt { color: var(--color-label-text); }
+
+/* 5. Nom et 6. Enregistrer */
+#page-calc .enregistrer { display: grid; gap: var(--space-2); }
+#page-calc .enregistrer .btn { margin-top: var(--space-2); min-height: var(--cible-min); white-space: normal; }
+
+/* ≥ 900 px : deux colonnes, étiquette collante (DESIGN_SYSTEM_V2 §17, §49) */
+@media (min-width: 900px) {
+  #page-calc { max-width: 960px; }
+  #page-calc .calc-grille {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;   /* la hauteur de l'étiquette va à la 2e rangée */
+    column-gap: var(--space-6); align-items: start;
+  }
+  #page-calc .calc-saisie { grid-column: 1; grid-row: 1; }
+  #page-calc .enregistrer { grid-column: 1; grid-row: 2; }
+  #page-calc .calc-resultat {
+    grid-column: 2; grid-row: 1 / span 2;
+    position: sticky; top: calc(var(--space-8) + var(--space-5) + var(--haut));
+  }
+  .etiquette-prix { padding: var(--space-6); }
+  .etiquette-montant { font-size: 56px; }
+}
 
 /* BOUTONS */
 .btn {
@@ -406,7 +551,6 @@ nav.onglets {
 
 @media (min-width: 700px) {
   main { padding-top: 28px; }
-  .resultat-prix { font-size: 58px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }

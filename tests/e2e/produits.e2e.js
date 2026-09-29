@@ -76,7 +76,7 @@ describe('produits', () => {
     await context.close();
   });
 
-  it('fiche produit : détail, SKU, date ; « Recalculer » recharge format, prix et nom', async () => {
+  it('fiche produit : détail, SKU, date ; « Recalculer » recharge format, prix et nom (mode modification)', async () => {
     const script = fauxScript();
     const { page, context } = await appareilConnecte(script);
     await enregistrer(page, '3l_mousseux', '20', 'Jéroboam Test');
@@ -86,18 +86,27 @@ describe('produits', () => {
     assert.match(await texte(page, '#modal-content'), /Jéroboam pétillant \(3 l\).*SKU\s*UCP-0001.*Enregistré le\s*\d{2}\/\d{2}\/\d{4}/);
     await page.click('#modal-modifier');
     assert.equal(await page.getAttribute('#onglet-calc', 'aria-selected'), 'true');
-    assert.equal(await page.getAttribute('.cat[data-cat="3l_mousseux"]', 'aria-pressed'), 'true');
+    assert.equal(await page.isChecked('.cat[data-cat="3l_mousseux"] input'), true);
     assert.equal(await page.inputValue('#input-prix'), '20');
     assert.equal(await page.inputValue('#input-nom'), 'Jéroboam Test');
+    // Spec Calculer §11.2 : bandeau, bouton dédié, aide D14.
+    assert.equal(await texte(page, '#modification .bandeau-titre'), 'Tu modifies « Jéroboam Test »');
+    assert.equal(await texte(page, '#btn-enregistrer'), 'Enregistrer les modifications');
+    assert.equal(await texte(page, '#nom-message'), 'Ce produit existe déjà : il sera mis à jour.');
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'input-prix');
     await page.fill('#input-prix', '22');
+    await page.waitForTimeout(50);
+    assert.equal(await texte(page, '#prix-enregistre'), 'Prix enregistré : ' + prixAffiche(Calcul.prixTTC(20, '3l_mousseux', CONFIG_E2E)));
     await page.click('#form-enregistrer button[type="submit"]');
     await attendreEtat(page, 'ok');
     assert.equal(script.prive().length, 1);
     assert.equal(script.prive()[0][3], 22);
+    // Fin du mode modification après l'enregistrement.
+    assert.equal(await page.isHidden('#modification'), true);
     await context.close();
   });
 
-  it('BUG CONNU B-02 : « Recalculer » puis changement de nom crée un second produit (pas un renommage)', async () => {
+  it('B-02 CORRIGÉ : « Recalculer » puis changement de nom renomme le produit (même SKU, aucun second produit)', async () => {
     const script = fauxScript();
     const { page, context } = await appareilConnecte(script);
     await enregistrer(page, 'tranquille', '8', 'Vin A');
@@ -105,10 +114,12 @@ describe('produits', () => {
     await ouvrirFiche(page, 'Vin A');
     await page.click('#modal-modifier');
     await page.fill('#input-nom', 'Vin A 2023');
+    assert.equal(await page.isHidden('#nom-message'), true);        // renommage libre : aucun message
     await page.click('#form-enregistrer button[type="submit"]');
     await attendreEtat(page, 'ok');
-    assert.equal((await lireJSON(page, 'pv_produits_v2')).length, 2);
-    assert.deepEqual(script.prive().map(r => r[0]), ['UCP-0001', 'UCP-0002']);
+    assert.deepEqual((await lireJSON(page, 'pv_produits_v2')).map(p => [p.nom, p.sku]), [['Vin A 2023', 'UCP-0001']]);
+    assert.deepEqual(script.prive().map(r => r.slice(0, 2)), [['UCP-0001', 'Vin A 2023']]);
+    assert.deepEqual(script.public().map(r => r.slice(0, 2)), [['UCP-0001', 'Vin A 2023']]);
     await context.close();
   });
 
@@ -171,15 +182,21 @@ describe('produits', () => {
     await context.close();
   });
 
-  it('saisie incomplète : sans nom ou sans prix, rien n\'est enregistré', async () => {
+  it('saisie incomplète : sans nom ou sans prix, rien n\'est enregistré (bouton désactivé sans prix, V2)', async () => {
     const script = fauxScript();
     const { page, context } = await appareilConnecte(script);
     await enregistrer(page, 'tranquille', '8', '   ');
     assert.equal(await texte(page, '#toast-texte'), 'Donne un nom au produit');
     assert.deepEqual(await lireJSON(page, 'pv_produits_v2'), []);     // liste relue (vide) depuis la feuille
+    assert.equal(await texte(page, '#nom-message'), 'Donne un nom au produit');
+    assert.equal(await page.getAttribute('#input-nom', 'aria-invalid'), 'true');
     await page.fill('#input-prix', '');
+    await page.fill('#input-nom', 'Sans prix');
     await page.waitForTimeout(50);
-    assert.equal(await page.isHidden('#form-enregistrer'), true);   // le formulaire est dans le résultat masqué
+    assert.equal(await page.isDisabled('#btn-enregistrer'), true);
+    assert.equal(await texte(page, '#enregistrer-raison'), 'Saisis un prix d\'achat valide pour enregistrer.');
+    await page.press('#input-nom', 'Enter');                         // Entrée ne contourne pas le blocage
+    assert.deepEqual(await lireJSON(page, 'pv_produits_v2'), []);
     assert.equal(script.prive().length, 0);
     await context.close();
   });

@@ -13,12 +13,11 @@ import { $ } from './ui/dom.js';
 import { fermer } from './ui/fenetres.js';
 import { toast } from './ui/toast.js';
 import { ouvrirPin, validerPin } from './ui/pin.js';
-import { selectCat, afficherConfig, calculer, sauvegarder } from './ui/calculateur.js';
+import { afficherConfig, initCalculateur, quitterModification } from './ui/calculateur.js';
 import { renderList, openModal, afficherBadge } from './ui/produits.js';
 import { switchTab } from './ui/onglets.js';
 import { setSyncStatus } from './ui/statut.js';
 import { etat } from './data/etat.js';
-import { stockage } from './data/stockage.js';
 import { lirePin, scriptUrl } from './data/api.js';
 import { syncNow, enAttente, nombreConflits } from './data/synchro.js';
 import { garderMaVersion, garderVersionFeuille, confirmerRetrait, annulerRetrait } from './ui/conflits.js';
@@ -37,7 +36,7 @@ document.addEventListener('click', e => {
       // Pastille en conflit : directement vers les conflits à résoudre.
       switchTab(cible.id === 'pastille' && nombreConflits() ? 'list' : cible.dataset.onglet);
       break;
-    case 'categorie': selectCat(cible.dataset.cat); break;
+    case 'nouveau-calcul': quitterModification(); break;
     case 'filtre': etat.filtreCat = cible.dataset.filtre; renderList(); break;
     case 'fiche': openModal(cible.dataset.id); break;
     case 'conflit-mien': garderMaVersion(cible.dataset.id); break;
@@ -54,13 +53,6 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { fermer('modal'); fermer('pin-modal'); }
 });
 
-let calculPrevu = 0;
-$('input-prix').addEventListener('input', () => {
-  cancelAnimationFrame(calculPrevu);
-  calculPrevu = requestAnimationFrame(calculer);
-});
-$('input-prix').addEventListener('keydown', e => { if (e.key === 'Enter') $('input-nom').focus(); });
-$('form-enregistrer').addEventListener('submit', e => { e.preventDefault(); sauvegarder(); });
 $('form-pin').addEventListener('submit', e => { e.preventDefault(); validerPin(); });
 
 let recherchePrevue = 0;
@@ -69,9 +61,6 @@ $('search-input').addEventListener('input', () => {
   recherchePrevue = setTimeout(renderList, 80);
 });
 
-const detail = $('detail');
-detail.open = stockage.lire('pv_detail', '1') === '1';
-detail.addEventListener('toggle', () => stockage.ecrire('pv_detail', detail.open ? '1' : '0'));
 
 window.addEventListener('online', () => syncNow());
 window.addEventListener('offline', () => setSyncStatus(false, 'hors ligne'));
@@ -95,6 +84,7 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator && location.protocol !=
 // ===========================
 // INIT
 // ===========================
+initCalculateur();
 afficherConfig();
 afficherBadge();
 setSyncStatus(false, navigator.onLine === false ? 'hors ligne' : '');
