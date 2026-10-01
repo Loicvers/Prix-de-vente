@@ -110,7 +110,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 /* EN-TÊTE */
 header {
   position: sticky; top: 0; z-index: 50;
-  padding: calc(12px + var(--haut)) 16px 12px;
+  padding: calc(8px + var(--haut)) 16px 8px;
   background: rgba(11, 11, 11, .92);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
@@ -121,7 +121,7 @@ header {
   display: flex; align-items: center; gap: 12px;
 }
 .marque { flex: 1; min-width: 0; }
-.marque .logo { display: block; width: auto; height: 62px; margin: -6px 0 -6px -4px; }
+.marque .logo { display: block; width: auto; height: 50px; margin: -2px 0 -2px -4px; }
 .pastille {
   display: inline-flex; align-items: center; gap: 8px;
   min-height: 36px;
@@ -146,7 +146,7 @@ header {
 .icone-btn svg { width: 15px; height: 15px; stroke-width: 1.5; }
 
 /* PAGES */
-main { padding: 16px 16px calc(96px + var(--bas)); }
+main { padding: 12px 16px calc(76px + var(--bas)); }
 .page { display: none; max-width: 560px; margin: 0 auto; }
 .page.active { display: block; animation: apparition .6s var(--lent); }
 @keyframes apparition { from { opacity: 0; } }
@@ -210,10 +210,10 @@ input::placeholder { color: var(--text3); }
 /* CALCULER (docs/CALCULER_SPEC_V2.md) — direction « Maison noire ».
    Ordre D1 : format → prix d'achat → prix de vente (détail) → nom → enregistrer. */
 #page-calc [hidden] { display: none !important; }
-#page-calc .calc-grille { display: grid; gap: var(--space-5); }
-#page-calc .calc-saisie { display: grid; gap: var(--space-5); }
+#page-calc .calc-grille { display: grid; gap: var(--space-4); }
+#page-calc .calc-saisie { display: grid; gap: var(--space-4); }
 #page-calc .calc-saisie > .alerte { margin-bottom: 0; }
-.calc-bloc { display: grid; gap: var(--space-2); }
+.calc-bloc { display: grid; gap: var(--space-1); }
 /* Libellés : capitales espacées, sans fine. */
 .calc-label {
   font-size: 9.5px; font-weight: 500; letter-spacing: .28em; text-transform: uppercase;
@@ -228,7 +228,7 @@ input::placeholder { color: var(--text3); }
   background: transparent;
   border: 0; border-bottom: 1px solid var(--border-fort);
   border-radius: 0;
-  padding: 10px 0;
+  padding: 6px 0;
   transition: border-color .6s var(--lent);
 }
 #page-calc input[type="text"]:focus { border-bottom-color: var(--text); }
@@ -236,19 +236,19 @@ input::placeholder { color: var(--text3); }
 
 /* Bandeau du mode modification (« Recalculer ») */
 .bandeau-modif {
-  display: grid; gap: var(--space-2); justify-items: start;
-  padding: var(--space-3) var(--space-4); margin-bottom: var(--space-5);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 var(--space-3);
+  padding: 2px 4px 2px var(--space-3); margin-bottom: var(--space-3);
   background: transparent;
   border: var(--border-width) solid var(--color-border-strong);
   border-radius: var(--radius-md);
 }
-.bandeau-titre { font-family: var(--serif); font-size: 19px; font-weight: 500; overflow-wrap: anywhere; }
-.bandeau-info { font-family: var(--serif); font-style: italic; font-size: 15px; color: var(--color-text-secondary); }
-.bandeau-modif .btn { min-height: var(--cible-min); }
+.bandeau-titre { font-family: var(--serif); font-size: 17px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bandeau-info { grid-column: 1 / -1; padding-bottom: var(--space-2); font-family: var(--serif); font-style: italic; font-size: 15px; color: var(--color-text-secondary); }
+.bandeau-modif .btn { grid-column: 2; grid-row: 1; min-height: var(--cible-min); padding: 6px 4px; border: 0; background: none; font-size: 9.5px; letter-spacing: .16em; text-decoration: underline; text-underline-offset: 3px; }
 
 /* 1. Format : type de vin, puis contenance — deux rangées de mots, toujours
    visibles. Sélection : texte ivoire + filet dessous (jamais la couleur seule). */
-.selection { display: grid; gap: var(--space-2); }
+.selection { display: grid; gap: 0; }
 .choix { display: flex; justify-content: space-between; gap: var(--space-2); }
 .choix-type { border-bottom: 1px solid var(--color-border); }
 .choix-option {
@@ -281,7 +281,7 @@ input::placeholder { color: var(--text3); }
 }
 .format-resume {
   display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 2px var(--space-3);
-  padding-top: var(--space-1);
+  min-height: 16px;
 }
 .format-courant { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--color-text-secondary); overflow-wrap: anywhere; }
 .format-info { font-size: 11px; color: var(--color-text-tertiary); letter-spacing: .02em; }
@@ -303,7 +303,7 @@ input::placeholder { color: var(--text3); }
 /* 3. Prix de vente : posé sur le noir, centré, chiffres en sans fine */
 .etiquette-prix {
   display: grid; gap: var(--space-1); justify-items: center; text-align: center;
-  padding: var(--space-5) 0 0;
+  padding: var(--space-4) 0 0;
   background: var(--color-label-surface);
   color: var(--color-label-text);
   border-top: 1px solid var(--color-border);
@@ -315,7 +315,7 @@ input::placeholder { color: var(--text3); }
   color: var(--color-label-text-secondary);
 }
 .etiquette-montant {
-  margin-top: var(--space-3);
+  margin-top: var(--space-2);
   font-family: var(--font-chiffres); font-weight: 300; font-size: var(--type-display); line-height: 1;
   letter-spacing: .03em;
   font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
@@ -325,7 +325,7 @@ input::placeholder { color: var(--text3); }
 @keyframes maj { from { opacity: .2; } }
 .etiquette-prix:not([data-statut="valide"]) .etiquette-montant { color: var(--color-text-tertiary); }
 .etiquette-format {
-  margin-top: var(--space-3);
+  margin-top: var(--space-1);
   font-family: var(--serif); font-style: italic; font-size: 19px; font-weight: 500;
   color: var(--color-label-text-secondary);
 }
@@ -334,7 +334,7 @@ input::placeholder { color: var(--text3); }
 /* 4. Détail du calcul (D9 : replié < 900 px sans préférence) */
 .etiquette-prix .detail {
   width: 100%;
-  margin-top: var(--space-2);
+  margin-top: 0;
   text-align: left;
 }
 .etiquette-prix .detail summary {
@@ -368,7 +368,9 @@ input::placeholder { color: var(--text3); }
 
 /* 5. Nom et 6. Enregistrer */
 #page-calc .enregistrer { display: grid; gap: var(--space-2); }
-#page-calc .enregistrer .btn { margin-top: var(--space-4); min-height: 54px; white-space: normal; }
+.enregistrer-ligne { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--space-3); }
+#page-calc .enregistrer .btn { min-height: 50px; max-width: 168px; padding: 10px 16px; white-space: normal; line-height: 1.5; }
+#input-nom::placeholder { font-style: italic; color: var(--color-text-tertiary); }
 
 /* ≥ 900 px : deux colonnes, prix collant (DESIGN_SYSTEM_V2 §17, §49) */
 @media (min-width: 900px) {

@@ -86,10 +86,13 @@
 
       <!-- 5. Nom et 6. Enregistrer -->
       <form class="enregistrer" id="form-enregistrer" autocomplete="off" novalidate>
-        <label class="calc-label" for="input-nom">Nom du produit</label>
-        <input type="text" id="input-nom" enterkeyhint="send" aria-describedby="nom-message"/>
+        <label class="visuellement-cache" for="input-nom">Nom du produit</label>
+        <!-- Nom et bouton sur une ligne : tout Calculer tient sans défiler. -->
+        <div class="enregistrer-ligne">
+          <input type="text" id="input-nom" enterkeyhint="send" placeholder="Nom du produit" aria-describedby="nom-message"/>
+          <button class="btn btn-principal" id="btn-enregistrer" type="submit" aria-describedby="enregistrer-raison">Enregistrer</button>
+        </div>
         <p class="message-champ" id="nom-message" hidden></p>
-        <button class="btn btn-principal btn-large" id="btn-enregistrer" type="submit" aria-describedby="enregistrer-raison">Enregistrer</button>
         <p class="message-champ" id="enregistrer-raison" hidden></p>
       </form>
     </div>
