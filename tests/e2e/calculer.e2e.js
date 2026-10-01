@@ -119,8 +119,11 @@ describe('Calculer V2', () => {
     await page.fill('#input-prix', '9');
     await page.waitForTimeout(50);
     assert.equal(await texte(page, '#resultat-prix'), prixAffiche(Calcul.prixTTC(9, 'magnum_mousseux', CONFIG_E2E)));
-    await page.waitForFunction(() => document.getElementById('resultat-annonce').textContent.startsWith('Prix de vente TTC'));
-    assert.equal(await texte(page, '#resultat-annonce'), `Prix de vente TTC ${prixAffiche(Calcul.prixTTC(9, 'magnum_mousseux', CONFIG_E2E))}, Magnum pétillant · 1,5 l`);
+    // L'annonce part après une pause de frappe : on attend celle du nouveau prix
+    // (une annonce plus ancienne a pu partir entre-temps).
+    const annonceAttendue = `Prix de vente TTC ${prixAffiche(Calcul.prixTTC(9, 'magnum_mousseux', CONFIG_E2E))}, Magnum pétillant · 1,5 l`;
+    await page.waitForFunction(t => document.getElementById('resultat-annonce').textContent === t, annonceAttendue, { timeout: 3000 });
+    assert.equal(await texte(page, '#resultat-annonce'), annonceAttendue);
     assert.equal(await page.getAttribute('#resultat-annonce', 'aria-live'), 'polite');
     await context.close();
   });

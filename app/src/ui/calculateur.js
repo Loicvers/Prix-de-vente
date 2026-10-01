@@ -174,7 +174,15 @@ export function calculer() {
   const valide = r.statut === 'valide';
 
   $('resultat').dataset.statut = r.statut;
-  $('resultat-prix').textContent = valide ? fmt(r.prixTTC) : '—';
+  const montant = $('resultat-prix');
+  const nouveau = valide ? fmt(r.prixTTC) : '—';
+  if (montant.textContent !== nouveau) {
+    montant.textContent = nouveau;
+    // Changement de prix : fondu lent (direction « Maison noire »).
+    montant.classList.remove('maj');
+    void montant.offsetWidth;
+    montant.classList.add('maj');
+  }
   $('resultat-cat').textContent = r.categorie ? categorie(r.categorie).libelle : '';
   const etatTexte = MESSAGES_ETAT[r.statut] || '';
   $('resultat-etat').textContent = etatTexte;

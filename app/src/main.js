@@ -3,10 +3,11 @@
 // ===========================
 // Polices servies avec l'app (plus d'appel à Google Fonts) : disponibles hors
 // ligne dès la première ouverture.
-import '@fontsource/dm-sans/400.css';
-import '@fontsource/dm-sans/500.css';
-import '@fontsource/dm-sans/600.css';
-import '@fontsource/dm-serif-display/400.css';
+import '@fontsource/jost/300.css';
+import '@fontsource/jost/400.css';
+import '@fontsource/jost/500.css';
+import '@fontsource/cormorant-garamond/500.css';
+import '@fontsource/cormorant-garamond/500-italic.css';
 import './styles/app.css';
 
 import { $ } from './ui/dom.js';

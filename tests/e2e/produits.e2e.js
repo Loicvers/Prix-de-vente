@@ -227,7 +227,7 @@ describe('produits', () => {
     await page.click('#onglet-list');
     assert.equal(await texte(page, '#compte'), '3 produits');
     assert.deepEqual(await page.$$eval('.filtre', fs => fs.map(f => f.textContent.replace(/\s+/g, ' ').trim())),
-      ['Tous3', 'Pétillant2', 'Intermédiaire1']);
+      ['Tous3', 'Pétillant2', 'Vin doux 75 cl1']);
     await page.click('.filtre[data-filtre="mousseux"]');
     assert.equal(await texte(page, '#compte'), '2 produits');
     await page.fill('#search-input', 'rosé');

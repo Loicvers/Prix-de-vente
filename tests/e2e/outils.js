@@ -38,6 +38,7 @@ const CONFIG_E2E = {
     '5l_tranquille': { frais: 20 },
     '4_5l_mousseux': { frais: 22 },
     '5l_mousseux': { frais: 24 },
+    intermediaire_50cl: { frais: 4 },
   },
   tranches: [{ jusqua: 10, coef: 2 }, { jusqua: 30, coef: 1.5 }, { jusqua: null, coef: 1.25 }],
   arrondi: 0.1,

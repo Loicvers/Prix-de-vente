@@ -88,6 +88,15 @@ proposées dans l'app que si elles sont dans `CONFIG`) :
 | `4_5l_mousseux` | Réhoboam pétillant (4,5 l) |
 | `5l_mousseux` | Pétillant (5 l) |
 
+Même principe pour le **vin doux naturel en 50 cl** (Maury, Porto, VDN…),
+proposé dans l'app seulement une fois dans `CONFIG` :
+
+| Clé | Libellé |
+| --- | --- |
+| `intermediaire_50cl` | Produit intermédiaire 50cl |
+
+Pour l'ajouter, colle à l'étape 5 `,"intermediaire_50cl":{"frais":…}`.
+
 Tant que leurs frais ne sont pas dans `CONFIG`, l'app les affiche avec
 « frais à charger » et ne calcule pas leur prix. Tu peux n'en ajouter que
 certaines.

@@ -155,8 +155,8 @@ describe('PWA', () => {
     assert.deepEqual(m, JSON.parse(fs.readFileSync(path.join(SOURCES_PUBLIQUES, 'manifest.json'), 'utf8')));
     assert.deepEqual({ name: m.name, short_name: m.short_name, start_url: m.start_url, scope: m.scope, display: m.display, orientation: m.orientation, lang: m.lang },
       { name: 'Prix de vente – Une Autre Clé du Paradis', short_name: 'Prix de vente', start_url: './', scope: './', display: 'standalone', orientation: 'portrait', lang: 'fr' });
-    assert.equal(m.theme_color, '#16100f');
-    assert.equal(m.background_color, '#16100f');
+    assert.equal(m.theme_color, '#0b0b0b');
+    assert.equal(m.background_color, '#0b0b0b');
     assert.deepEqual(taillePng('icon-192.png'), [192, 192]);
     assert.deepEqual(taillePng('icon-512.png'), [512, 512]);
     assert.deepEqual(taillePng('apple-touch-icon.png'), [180, 180]);
@@ -177,7 +177,7 @@ describe('PWA', () => {
       lang: document.documentElement.lang,
     }));
     assert.deepEqual(tete, {
-      manifest: 'manifest.json', apple: 'apple-touch-icon.png', icone: 'icon.svg', theme: '#16100f', capable: 'yes',
+      manifest: 'manifest.json', apple: 'apple-touch-icon.png', icone: 'icon.svg', theme: '#0b0b0b', capable: 'yes',
       viewport: 'width=device-width, initial-scale=1.0, viewport-fit=cover', lang: 'fr',
     });
     await context.close();

@@ -224,7 +224,8 @@ describe('calcul', () => {
       ['Magnum 1,5 l', ['magnum_tranquille', 'magnum_mousseux']],
       ['3 litres', ['3l_tranquille', '3l_mousseux']],
       ['4,5 et 5 litres', ['4_5l_tranquille', '5l_tranquille', '4_5l_mousseux', '5l_mousseux']],
-      ['Autres formats', ['demie', 'intermediaire']],
+      ['Vins doux naturels', ['intermediaire', 'intermediaire_50cl']],
+      ['Autres formats', ['demie']],
     ]);
     assert.equal(await texte(page, '.cat[data-cat="intermediaire"] .cat-info'), `+${prixAffiche(5)} de frais · Maury, Porto, VDN…`);
     // Complément déjà dans le libellé V2 : pas répété.
