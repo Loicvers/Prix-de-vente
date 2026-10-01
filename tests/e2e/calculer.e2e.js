@@ -39,10 +39,15 @@ describe('Calculer V2', () => {
     const { page, context } = await appareilConnecte(null);
     await page.fill('#input-prix', '12,5');
     await page.waitForTimeout(50);
-    const ordre = ['#types', '#categories', '#input-prix', '#resultat-prix', '#detail summary', '#input-nom', '#btn-enregistrer'];
+    const ordre = ['#types', '#categories', '#input-prix', '#resultat-prix', '#detail summary', '#input-nom'];
     const hauts = [];
     for (const sel of ordre) hauts.push((await page.$eval(sel, e => e.getBoundingClientRect().top)));
     assert.deepEqual([...hauts].sort((a, b) => a - b), hauts, 'ordre visuel');
+    // Nom et bouton sur la même ligne (gain de hauteur), le bouton à droite.
+    const nom = await page.$eval('#input-nom', e => e.getBoundingClientRect().toJSON());
+    const bouton = await page.$eval('#btn-enregistrer', e => e.getBoundingClientRect().toJSON());
+    assert.ok(bouton.left >= nom.right, 'bouton à droite du nom');
+    assert.ok(bouton.top < nom.bottom && bouton.bottom > nom.top, 'nom et bouton sur la même ligne');
     // Tabulation : même ordre (le montant n'est pas un contrôle).
     await page.focus('#categories input:checked');
     const focus = [];
@@ -53,7 +58,7 @@ describe('Calculer V2', () => {
   });
 
   it('390 × 844 : prix de vente visible sans défilement ; aucune largeur ne déborde (320 à 1440 px)', async () => {
-    for (const [width, height] of [[320, 568], [390, 844], [768, 1024], [1024, 768], [1440, 900]]) {
+    for (const [width, height] of [[320, 568], [375, 627], [390, 844], [768, 1024], [1024, 768], [1440, 900]]) {
       const { page, context } = await appareilConnecte(null, {}, { viewport: { width, height } });
       await page.fill('#input-prix', '1 234,56');
       await page.waitForTimeout(50);
@@ -67,6 +72,8 @@ describe('Calculer V2', () => {
       assert.equal(m.deborde, false, `${width} px : débordement horizontal`);
       assert.ok(m.bouton.width >= 44 && m.bouton.height >= 44, `${width} px : bouton ≥ 44 px`);
       if (width === 390) assert.ok(m.prix.bottom <= m.nav, 'prix visible sans défilement à 390 × 844');
+      // Téléphone (barres du navigateur comprises) : tout Calculer tient sans défiler.
+      if (width < 900 && height >= 620) assert.ok(m.bouton.bottom <= m.nav, `${width} × ${height} : Enregistrer visible sans défilement`);
       // ≥ 900 px : deux colonnes, étiquette à droite de la saisie.
       if (width >= 900) assert.ok(m.prix.left > m.entree.right, `${width} px : deux colonnes`);
       else assert.ok(m.prix.top > m.entree.bottom, `${width} px : une colonne`);
