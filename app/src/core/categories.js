@@ -24,15 +24,56 @@ export const CATEGORIES = {
   '4_5l_mousseux':   { label: 'Réhoboam pétillant (4,5 l)', nom: 'Réhoboam',       court: 'Réhoboam 4,5 l',    libelle: 'Réhoboam pétillant · 4,5 l',     famille: 'petillant', info: 'pétillant', optionnel: true },
   '5l_mousseux':     { label: 'Pétillant (5 l)',            nom: 'Pétillant 5 l',  court: 'Pétillant 5 l',     libelle: 'Pétillant · 5 l',                famille: 'petillant', info: 'pétillant', optionnel: true },
   demie:             { label: '37,5 cl',                    nom: 'Demi-bouteille', court: '37,5 cl',           libelle: 'Demi-bouteille · 37,5 cl',       famille: 'autre', info: '37,5 cl' },
-  intermediaire:     { label: 'Produit intermédiaire 75cl', nom: 'Intermédiaire',  court: 'Intermédiaire',     libelle: 'Intermédiaire · 75 cl',          famille: 'autre', info: 'Maury, Porto, VDN…' },
+  intermediaire:     { label: 'Produit intermédiaire 75cl', nom: 'Vin doux naturel', court: 'Vin doux 75 cl',  libelle: 'Vin doux naturel · 75 cl',       famille: 'autre', info: 'Maury, Porto, VDN…' },
+  intermediaire_50cl: { label: 'Produit intermédiaire 50cl', nom: 'Vin doux naturel', court: 'Vin doux 50 cl', libelle: 'Vin doux naturel · 50 cl',       famille: 'autre', info: 'Maury, Porto, VDN…', optionnel: true },
 };
 export const GROUPES = [
   ['Bouteille 75 cl', ['tranquille', 'mousseux']],
   ['Magnum 1,5 l', ['magnum_tranquille', 'magnum_mousseux']],
   ['3 litres', ['3l_tranquille', '3l_mousseux']],
   ['4,5 et 5 litres', ['4_5l_tranquille', '5l_tranquille', '4_5l_mousseux', '5l_mousseux']],
-  ['Autres formats', ['demie', 'intermediaire']],
+  ['Vins doux naturels', ['intermediaire', 'intermediaire_50cl']],
+  ['Autres formats', ['demie']],
 ];
+
+// Sélection dans Calculer (direction « Maison noire », 01/10/2026, validée
+// par Loïc) : une rangée « type de vin », puis une rangée de contenances.
+// La grille donne la catégorie de chaque paire ; une paire absente n'existe
+// pas (ex. pétillant 50 cl). La demi-bouteille n'a qu'une catégorie : elle
+// est proposée quel que soit le type.
+export const TYPES = [
+  { id: 'tranquille', nom: 'Tranquille' },
+  { id: 'petillant', nom: 'Pétillant' },
+  { id: 'vdn', nom: 'Vin doux', long: 'Vin doux naturel' },
+];
+export const CONTENANCES = [
+  { id: '37_5', nom: '37,5 cl' },
+  { id: '50', nom: '50 cl' },
+  { id: '75', nom: '75 cl' },
+  { id: '150', nom: '1,5 l' },
+  { id: '300', nom: '3 l' },
+  { id: '450', nom: '4,5 l' },
+  { id: '500', nom: '5 l' },
+];
+export const GRILLE = {
+  tranquille: { '37_5': 'demie', '75': 'tranquille', '150': 'magnum_tranquille', '300': '3l_tranquille', '450': '4_5l_tranquille', '500': '5l_tranquille' },
+  petillant:  { '37_5': 'demie', '75': 'mousseux', '150': 'magnum_mousseux', '300': '3l_mousseux', '450': '4_5l_mousseux', '500': '5l_mousseux' },
+  vdn:        { '37_5': 'demie', '50': 'intermediaire_50cl', '75': 'intermediaire' },
+};
+// Type d'une catégorie (null pour la demi-bouteille, commune aux trois, et
+// pour une catégorie inconnue).
+export function typeDe(cle) {
+  if (!cle || cle === 'demie') return null;
+  const t = TYPES.find(t => Object.values(GRILLE[t.id]).includes(cle));
+  return t ? t.id : null;
+}
+export function contenanceDe(cle) {
+  for (const t of TYPES) {
+    const c = Object.keys(GRILLE[t.id]).find(c => GRILLE[t.id][c] === cle);
+    if (c) return c;
+  }
+  return null;
+}
 // Catégorie absente ou inconnue (ex. produit migré dont la catégorie est
 // restée vide dans la feuille) : affichée « à compléter », jamais devinée.
 export const INCONNUE = { label: 'Catégorie à compléter', nom: 'À compléter', court: 'À compléter', libelle: 'Format à compléter', famille: 'autre' };

@@ -39,7 +39,8 @@ test('la config chargée est valide', { skip: sansConfig }, () => {
   // Magnums : facultatifs tant que leurs frais ne sont pas ajoutés.
   for (const cle of Object.keys(config.categories)) {
     assert.ok(['tranquille', 'mousseux', 'demie', 'intermediaire', 'magnum_tranquille', 'magnum_mousseux',
-      '3l_tranquille', '3l_mousseux', '4_5l_tranquille', '5l_tranquille'].includes(cle),
+      '3l_tranquille', '3l_mousseux', '4_5l_tranquille', '5l_tranquille', '4_5l_mousseux', '5l_mousseux',
+      'intermediaire_50cl'].includes(cle),
       'catégorie inconnue de l\'app : ' + cle);
   }
 });

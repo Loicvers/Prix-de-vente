@@ -55,7 +55,8 @@ var LIBELLES = {
   '4_5l_tranquille': 'Tranquille 4,5 l',
   '5l_tranquille': 'Jéroboam tranquille (5 l)',
   '4_5l_mousseux': 'Réhoboam pétillant (4,5 l)',
-  '5l_mousseux': 'Pétillant (5 l)'
+  '5l_mousseux': 'Pétillant (5 l)',
+  intermediaire_50cl: 'Produit intermédiaire 50cl'
 };
 
 // Catégories de l'ancienne app : les seules possibles dans Historique.
