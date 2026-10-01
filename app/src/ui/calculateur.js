@@ -15,7 +15,7 @@ import { ouvrirPin } from './pin.js';
 import { fermer } from './fenetres.js';
 import { afficherBadge } from './produits.js';
 import { switchTab } from './onglets.js';
-import { CATEGORIES, GROUPES, categorie, estConnue, cleValide } from '../core/categories.js';
+import { CATEGORIES, TYPES, CONTENANCES, GRILLE, typeDe, contenanceDe, categorie, estConnue, cleValide } from '../core/categories.js';
 import { fmt, fmtCoef, fmtPct, esc } from '../core/format.js';
 import { evaluerCalcul, lignesDetail } from '../core/evaluation.js';
 import { etat } from '../data/etat.js';
@@ -27,7 +27,7 @@ const DESKTOP = '(min-width: 900px)';
 const DUREE_CONFIRMATION = 1600;
 
 let calcul = { statut: 'vide' };      // dernière évaluation affichée
-let formatAvantOuverture = null;
+let typeCourant = null;                // type de vin affiché (la demi-bouteille n'en impose pas)
 let enregistrement = 'repos';         // repos | encours | enregistre
 let minuteurEnregistre = 0;
 let minuteurAnnonce = 0;
@@ -45,44 +45,68 @@ const texteInfo = (cle, conf) => {
   return info ? frais + ' · ' + info : frais;
 };
 
+// Sélection en deux rangées (type de vin, puis contenance), construite une
+// fois puis mise à jour sur place : le focus clavier reste sur le bouton
+// radio en cours (les flèches parcourent une rangée, les contenances
+// indisponibles pour ce type sont sautées).
+// Format « optionnel » absent de la config : pas proposé (D15).
+const proposee = cle => !!cle && estConnue(cle) &&
+  (!CATEGORIES[cle].optionnel || !!(etat.config && etat.config.categories[cle]) || cle === etat.currentCat);
+
 export function renderCategories() {
-  const config = etat.config;
-  // Format « optionnel » absent de la config : pas proposé (D15).
-  const proposes = cles => cles.filter(cle => !CATEGORIES[cle].optionnel || (config && config.categories[cle]) || cle === etat.currentCat);
-  $('categories').innerHTML = GROUPES.map(([titre, toutes], i) => [titre, proposes(toutes), i]).filter(([, cles]) => cles.length).map(([titre, cles, i]) => `
-    <div class="groupe" role="group" aria-labelledby="groupe-${i}">
-      <div class="groupe-titre" id="groupe-${i}">${esc(titre)}</div>
-      <div class="cats">${cles.map(cle => {
-        const conf = config && config.categories[cle];
-        return `<label class="cat" data-cat="${cle}">
-          <input type="radio" name="format" value="${cle}"${cle === etat.currentCat ? ' checked' : ''}/>
-          <span class="cat-nom">${esc(CATEGORIES[cle].libelle)}</span>
-          <span class="cat-info${config && !conf ? ' manque' : ''}">${esc(texteInfo(cle, conf))}</span>
-        </label>`;
-      }).join('')}</div>
-    </div>`).join('');
+  if (!typeCourant) typeCourant = typeDe(etat.currentCat) || 'tranquille';
+  $('types').innerHTML = TYPES.map(t => `
+    <label class="choix-option" data-type="${t.id}"${t.long ? ` title="${esc(t.long)}"` : ''}>
+      <input type="radio" name="type" value="${t.id}"/>
+      <span>${esc(t.nom)}</span>
+    </label>`).join('');
+  $('categories').innerHTML = CONTENANCES.map(c => `
+    <label class="choix-option cat" data-format="${c.id}">
+      <input type="radio" name="format" value="${c.id}"/>
+      <span>${esc(c.nom)}</span>
+    </label>`).join('');
   afficherFormatCourant();
 }
 
 function afficherFormatCourant() {
-  $('format-courant').textContent = etat.currentCat ? categorie(etat.currentCat).libelle : 'Choisis un format';
-  document.querySelectorAll('#categories input[name="format"]').forEach(r => { r.checked = r.value === etat.currentCat; });
+  const cle = etat.currentCat;
+  const choisi = !!cle && estConnue(cle);
+  document.querySelectorAll('#types .choix-option').forEach(l => {
+    l.querySelector('input').checked = choisi && l.dataset.type === typeCourant;
+  });
+  document.querySelectorAll('#categories .choix-option').forEach(l => {
+    const c = l.dataset.format;
+    const ici = GRILLE[typeCourant][c];
+    // Contenance proposée par aucun type (ex. 50 cl hors config) : masquée.
+    l.hidden = !TYPES.some(t => proposee(GRILLE[t.id][c]));
+    const dispo = proposee(ici);
+    l.dataset.cat = dispo ? ici : '';
+    const radio = l.querySelector('input');
+    radio.disabled = !dispo;
+    radio.checked = choisi && dispo && ici === cle;
+  });
+  $('format-courant').textContent = choisi ? categorie(cle).libelle : 'Choisis un format';
+  const conf = etat.config && choisi && etat.config.categories[cle];
+  const info = choisi ? texteInfo(cle, conf) : '';
+  $('format-info').textContent = info;
+  $('format-info').hidden = !info;
+  $('format-info').classList.toggle('manque', !!(etat.config && choisi && !conf));
 }
 
-export function ouvrirFormats() {
-  formatAvantOuverture = etat.currentCat;
-  $('categories').hidden = false;
-  $('format-bouton').setAttribute('aria-expanded', 'true');
-  const coche = document.querySelector('#categories input[name="format"]:checked') ||
-    document.querySelector('#categories input[name="format"]');
-  if (coche) coche.focus();
+// Changement de type : même contenance si elle existe pour ce type, sinon
+// 75 cl. Sans format choisi (produit au format inconnu), on attend la
+// contenance.
+function choisirType(type) {
+  typeCourant = type;
+  if (!etat.currentCat || !estConnue(etat.currentCat)) { afficherFormatCourant(); return; }
+  const c = contenanceDe(etat.currentCat);
+  const cle = proposee(GRILLE[type][c]) ? GRILLE[type][c] : GRILLE[type]['75'];
+  selectCat(cle);
 }
 
-export function fermerFormats(focusSuivant) {
-  $('categories').hidden = true;
-  $('format-bouton').setAttribute('aria-expanded', 'false');
-  if (focusSuivant === 'prix') $('input-prix').focus();
-  else if (focusSuivant === 'bouton') $('format-bouton').focus();
+function choisirContenance(c) {
+  const cle = GRILLE[typeCourant][c];
+  if (proposee(cle)) selectCat(cle);
 }
 
 // Choix d'un format : mémorisé, puis nouvelle évaluation immédiate.
@@ -90,6 +114,7 @@ export function selectCat(cle) {
   if (!estConnue(cle)) return;
   finConfirmation();
   etat.currentCat = cle;
+  typeCourant = typeDe(cle) || typeCourant;
   stockage.ecrire('pv_categorie', cle);
   afficherFormatCourant();
   calculer();
@@ -214,6 +239,7 @@ export function ouvrirModification(p) {
   etat.modification = { id: p.id, sku: p.sku || '' };
   if (estConnue(p.categorie)) {
     etat.currentCat = p.categorie;
+    typeCourant = typeDe(p.categorie) || typeCourant;
     stockage.ecrire('pv_categorie', p.categorie);
   } else {
     etat.currentCat = null;
@@ -224,7 +250,7 @@ export function ouvrirModification(p) {
   calculer();
   switchTab('calc');
   if (etat.currentCat) $('input-prix').focus();
-  else ouvrirFormats();
+  else document.querySelector('#types input')?.focus();
 }
 
 export function quitterModification() {
@@ -330,7 +356,7 @@ export function sauvegarder() {
   const r = calcul;
   if (r.statut === 'format-manquant') { toast('Frais de cette catégorie absents de la config'); return; }
   if (r.statut !== 'valide') {
-    if (r.statut === 'sans-format') ouvrirFormats(); else $('input-prix').focus();
+    if (r.statut === 'sans-format') document.querySelector('#types input')?.focus(); else $('input-prix').focus();
     return;
   }
   const champNom = $('input-nom');
@@ -414,25 +440,8 @@ export function initCalculateur() {
   $('input-nom').addEventListener('input', () => { finConfirmation(); afficherNom(); });
   $('form-enregistrer').addEventListener('submit', e => { e.preventDefault(); sauvegarder(); });
 
-  const formats = $('categories');
-  $('format-bouton').addEventListener('click', () => {
-    if (formats.hidden) ouvrirFormats(); else fermerFormats('bouton');
-  });
-  formats.addEventListener('change', e => { if (e.target.name === 'format') selectCat(e.target.value); });
-  // Choix au doigt ou à la souris : on referme et on passe au prix. Au
-  // clavier, les flèches parcourent les formats ; Entrée ou Espace valident.
-  formats.addEventListener('click', e => {
-    if (e.detail > 0 && e.target.closest('.cat')) setTimeout(() => fermerFormats('prix'), 0);
-  });
-  formats.addEventListener('keydown', e => {
-    if (e.key === 'Enter') { e.preventDefault(); fermerFormats('prix'); }
-    if (e.key === 'Escape') {
-      e.stopPropagation();
-      if (formatAvantOuverture && formatAvantOuverture !== etat.currentCat) selectCat(formatAvantOuverture);
-      fermerFormats('bouton');
-    }
-  });
-  formats.addEventListener('keyup', e => { if (e.key === ' ') fermerFormats('prix'); });
+  $('types').addEventListener('change', e => { if (e.target.name === 'type') choisirType(e.target.value); });
+  $('categories').addEventListener('change', e => { if (e.target.name === 'format') choisirContenance(e.target.value); });
 
   calculer();
 }

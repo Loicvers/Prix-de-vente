@@ -4,7 +4,7 @@
 const { describe, it, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const Calcul = require('../../app/src/core/calcul.js');
-const { lancer, ouvrir, fauxScript, connecte, enregistrer, attendreEtat, lireJSON, texte, URL_SCRIPT, CONFIG_E2E, PIN } = require('./outils');
+const { lancer, ouvrir, fauxScript, connecte, enregistrer, choisirFormat, attendreEtat, lireJSON, texte, URL_SCRIPT, CONFIG_E2E, PIN } = require('./outils');
 
 let app;
 before(async () => { app = await lancer(); });
@@ -140,7 +140,8 @@ describe('synchronisation', () => {
     assert.equal(await texte(page, '#sync-status'), 'Non synchronisé (1 en attente) · 1 refusé par le script');
     assert.equal(await texte(page, '#pastille-texte'), '1 en attente');
     // La config du script (sans ce format) remplace celle en cache.
-    assert.equal(await texte(page, '.cat[data-cat="magnum_mousseux"] .cat-info'), 'frais à charger');
+    await choisirFormat(page, 'magnum_mousseux');
+    assert.equal(await texte(page, '#format-info'), 'frais à charger');
     await page.click('#onglet-list');
     assert.match(await texte(page, '.produit:has(.produit-nom:text-is("Vin 1"))'), /⚠ refusé : catégorie inconnue du script/);
     await page.click('#onglet-history');

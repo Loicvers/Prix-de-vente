@@ -166,8 +166,8 @@ describe('calcul', () => {
     const script = fauxScript({ config });
     const { page, context } = await app.appareil(script, { stockage: connecte({ pv_config: config }) });
     await ouvrir(app, page, { connecter: false });
-    assert.match(await texte(page, '.cat[data-cat="magnum_mousseux"] .cat-info'), /^frais à charger$/);
     await calculer(page, 'magnum_mousseux', '20');
+    assert.match(await texte(page, '#format-info'), /^frais à charger$/);
     assert.equal(await page.getAttribute('#resultat', 'data-statut'), 'format-manquant');
     assert.equal(await texte(page, '#resultat-prix'), '—');
     assert.match(await texte(page, '#cat-manquante'), /Connecte-toi une première fois avec ton PIN.*Magnum pétillant · 1,5 l.*magnum_mousseux/);
@@ -214,25 +214,21 @@ describe('calcul', () => {
     await context.close();
   });
 
-  it('libellés des boutons de format (groupes et infos de frais)', async () => {
+  it('libellés de la sélection (types, contenances, infos de frais)', async () => {
     const { page, context } = await app.appareil(null, { stockage: connecte() });
     await ouvrir(app, page, { connecter: false });
-    const groupes = await page.$$eval('.groupe', gs => gs.map(g => [g.querySelector('.groupe-titre').textContent,
-      [...g.querySelectorAll('.cat')].map(c => c.dataset.cat)]));
-    assert.deepEqual(groupes, [
-      ['Bouteille 75 cl', ['tranquille', 'mousseux']],
-      ['Magnum 1,5 l', ['magnum_tranquille', 'magnum_mousseux']],
-      ['3 litres', ['3l_tranquille', '3l_mousseux']],
-      ['4,5 et 5 litres', ['4_5l_tranquille', '5l_tranquille', '4_5l_mousseux', '5l_mousseux']],
-      ['Vins doux naturels', ['intermediaire', 'intermediaire_50cl']],
-      ['Autres formats', ['demie']],
-    ]);
-    assert.equal(await texte(page, '.cat[data-cat="intermediaire"] .cat-info'), `+${prixAffiche(5)} de frais · Maury, Porto, VDN…`);
+    assert.deepEqual(await page.$$eval('#types .choix-option', ls => ls.map(l => [l.dataset.type, l.textContent.trim()])),
+      [['tranquille', 'Tranquille'], ['petillant', 'Pétillant'], ['vdn', 'Vin doux']]);
+    assert.deepEqual(await page.$$eval('#categories .choix-option:not([hidden])', ls => ls.map(l => l.textContent.trim())),
+      ['37,5 cl', '50 cl', '75 cl', '1,5 l', '3 l', '4,5 l', '5 l']);
+    // Format par défaut et ses frais.
+    assert.equal(await texte(page, '#format-courant'), 'Tranquille · 75 cl');
+    assert.equal(await texte(page, '#format-info'), `+${prixAffiche(3)} de frais`);
+    await choisirFormat(page, 'intermediaire');
+    assert.equal(await texte(page, '#format-info'), `+${prixAffiche(5)} de frais · Maury, Porto, VDN…`);
     // Complément déjà dans le libellé V2 : pas répété.
-    assert.equal(await texte(page, '.cat[data-cat="demie"] .cat-info'), `+${prixAffiche(2)} de frais`);
-    // D12 : sélecteur fermé, aucun frais affiché.
-    assert.equal(await page.isHidden('#categories'), true);
-    assert.equal(await texte(page, '#format-bouton'), 'Tranquille · 75 cl');
+    await choisirFormat(page, 'demie');
+    assert.equal(await texte(page, '#format-info'), `+${prixAffiche(2)} de frais`);
     await context.close();
   });
 });

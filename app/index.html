@@ -18,8 +18,8 @@
 <header>
   <div class="entete">
     <div class="marque">
-      <h1>Prix de vente</h1>
-      <p>Une Autre Clé du Paradis</p>
+      <img class="logo" src="logo.svg" width="371" height="324" alt="Une Autre Clé du Paradis"/>
+      <h1 class="visuellement-cache">Prix de vente</h1>
     </div>
     <button class="pastille" id="pastille" data-etat="off" data-action="onglet" data-onglet="history" aria-label="État de la synchronisation">
       <span class="point"></span><span id="pastille-texte">Hors ligne</span>
@@ -48,14 +48,11 @@
 
     <div class="calc-grille">
       <div class="calc-saisie">
-        <!-- 1. Format : fermé par défaut, grille à la demande -->
-        <div class="calc-bloc">
-          <span class="calc-label" id="format-titre">Format</span>
-          <button type="button" class="format-bouton" id="format-bouton" aria-expanded="false" aria-controls="categories" aria-labelledby="format-titre format-courant">
-            <span class="format-courant" id="format-courant"></span>
-            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="formats" id="categories" role="radiogroup" aria-labelledby="format-titre" hidden></div>
+        <!-- 1. Format : type de vin, puis contenance (toujours visibles) -->
+        <div class="calc-bloc selection" id="selection">
+          <div class="choix choix-type" id="types" role="radiogroup" aria-label="Type de vin"></div>
+          <div class="choix choix-format" id="categories" role="radiogroup" aria-label="Contenance"></div>
+          <p class="format-resume"><span class="format-courant visuellement-cache" id="format-courant"></span><span class="format-info" id="format-info"></span></p>
         </div>
 
         <!-- 2. Prix d'achat HT -->

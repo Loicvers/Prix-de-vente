@@ -163,10 +163,23 @@ async function attendreEtat(page, etat, delai = 5000) {
 // Calculer : il s'ouvre, puis se referme au choix). L'ancienne app (racine,
 // grille toujours ouverte) n'a pas de bouton de format.
 async function choisirFormat(page, cat) {
-  const bouton = await page.$('#format-bouton');
-  if (bouton && await bouton.getAttribute('aria-expanded') !== 'true') await bouton.click();
-  await page.click(`.cat[data-cat="${cat}"]`);
+  // Ancienne app (racine) : grille de formats toujours ouverte.
+  if (!(await page.$('#types'))) { await page.click(`.cat[data-cat="${cat}"]`); return; }
+  // Depuis le 01/10/2026 : type de vin, puis contenance. La demi-bouteille
+  // existe pour tous les types : on garde le type affiché.
+  const [type, contenance] = TYPE_CONTENANCE[cat];
+  if (type && !(await page.isChecked(`#types [data-type="${type}"] input`))) await page.click(`#types [data-type="${type}"]`);
+  await page.click(`#categories [data-format="${contenance}"]`);
 }
+// Catégorie → [type de vin, contenance] (app/src/core/categories.js, GRILLE).
+const TYPE_CONTENANCE = {
+  tranquille: ['tranquille', '75'], mousseux: ['petillant', '75'],
+  magnum_tranquille: ['tranquille', '150'], magnum_mousseux: ['petillant', '150'],
+  '3l_tranquille': ['tranquille', '300'], '3l_mousseux': ['petillant', '300'],
+  '4_5l_tranquille': ['tranquille', '450'], '5l_tranquille': ['tranquille', '500'],
+  '4_5l_mousseux': ['petillant', '450'], '5l_mousseux': ['petillant', '500'],
+  demie: [null, '37_5'], intermediaire: ['vdn', '75'], intermediaire_50cl: ['vdn', '50'],
+};
 
 async function calculer(page, cat, prix) {
   if (await page.getAttribute('#onglet-calc', 'aria-selected') !== 'true') await page.click('#onglet-calc');

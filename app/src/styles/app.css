@@ -121,15 +121,7 @@ header {
   display: flex; align-items: center; gap: 12px;
 }
 .marque { flex: 1; min-width: 0; }
-.marque h1 {
-  font-family: var(--serif); font-weight: 500; font-style: italic;
-  font-size: 22px; line-height: 1.1; color: var(--text);
-}
-.marque p {
-  margin-top: 4px; max-width: 16em;
-  font-size: 9px; font-weight: 500; line-height: 1.6; color: var(--text2);
-  letter-spacing: .26em; text-transform: uppercase;
-}
+.marque .logo { display: block; width: auto; height: 62px; margin: -6px 0 -6px -4px; }
 .pastille {
   display: inline-flex; align-items: center; gap: 8px;
   min-height: 36px;
@@ -254,54 +246,46 @@ input::placeholder { color: var(--text3); }
 .bandeau-info { font-family: var(--serif); font-style: italic; font-size: 15px; color: var(--color-text-secondary); }
 .bandeau-modif .btn { min-height: var(--cible-min); }
 
-/* 1. Format : fermé par défaut (D1, D12) */
-.format-bouton {
-  display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
-  width: 100%; min-height: var(--cible-min);
-  padding: var(--space-2) 0 10px;
-  background: transparent;
-  border: 0; border-bottom: 1px solid var(--color-border-strong);
-  border-radius: 0;
-  font-family: var(--serif); font-size: 22px; font-weight: 500; text-align: left;
-  color: var(--color-text);
-  transition: border-color .6s var(--lent);
+/* 1. Format : type de vin, puis contenance — deux rangées de mots, toujours
+   visibles. Sélection : texte ivoire + filet dessous (jamais la couleur seule). */
+.selection { display: grid; gap: var(--space-2); }
+.choix { display: flex; justify-content: space-between; gap: var(--space-2); }
+.choix-type { border-bottom: 1px solid var(--color-border); }
+.choix-option {
+  position: relative; flex: 0 1 auto; min-width: 0;
+  display: flex; align-items: center; justify-content: center;
+  min-height: var(--cible-min); padding: 0 2px;
+  cursor: pointer; white-space: nowrap;
+  color: var(--color-text-secondary);
+  transition: color .6s var(--lent);
 }
-.format-bouton:hover, .format-bouton[aria-expanded="true"] { border-bottom-color: var(--text); }
-.format-courant { min-width: 0; overflow-wrap: anywhere; }
-.format-bouton .chevron { width: 18px; height: 18px; flex-shrink: 0; stroke-width: 1.3; color: var(--color-text-secondary); transition: transform .6s var(--lent); }
-.format-bouton[aria-expanded="true"] .chevron { transform: rotate(180deg); }
-.formats {
-  display: grid; gap: var(--space-5);
-  padding: var(--space-5) 0 var(--space-2);
-  animation: deroule .6s var(--lent);
+.choix-option[hidden] { display: none; }
+.choix-option input {
+  position: absolute; inset: 0; width: 100%; height: 100%; margin: 0;
+  opacity: 0; cursor: inherit;
 }
-@keyframes deroule { from { opacity: 0; transform: translateY(-4px); } }
-.groupe-titre {
-  font-size: 9.5px; font-weight: 500; letter-spacing: .26em; text-transform: uppercase;
-  color: var(--color-text-tertiary); margin-bottom: var(--space-2);
+.choix-option span { position: relative; }
+.choix-option span::after {
+  content: ''; position: absolute; left: 50%; bottom: -7px;
+  width: 0; height: 1px; background: var(--text);
+  transform: translateX(-50%);
+  transition: width .6s var(--lent);
 }
-.cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 140px), 1fr)); gap: 0 var(--space-4); }
-.cat {
-  position: relative; display: flex; flex-direction: column; gap: 2px;
-  min-height: var(--cible-min);
-  padding: var(--space-3) 0 var(--space-3) var(--space-5);
-  background: transparent;
-  border: 0; border-bottom: 1px solid var(--color-border);
-  border-radius: 0;
-  cursor: pointer;
-  transition: border-color .6s var(--lent);
+.choix-option:has(input:checked) { color: var(--color-text); }
+.choix-option:has(input:checked) span::after { width: 100%; }
+.choix-option:has(input:disabled) { color: var(--color-text-tertiary); opacity: .35; cursor: default; }
+.choix-option:has(input:focus-visible) { outline: 1px solid var(--text); outline-offset: 2px; }
+.choix-type .choix-option { font-family: var(--serif); font-size: 21px; font-weight: 500; }
+.choix-format .choix-option {
+  font-family: var(--font-chiffres); font-size: 15px; font-weight: 300; letter-spacing: .03em;
 }
-.cat input {
-  position: absolute; left: 0; top: 17px;
-  width: 12px; height: 12px; margin: 0;
-  accent-color: var(--color-text);
+.format-resume {
+  display: flex; flex-wrap: wrap; align-items: baseline; justify-content: flex-end; gap: 2px var(--space-3);
+  padding-top: var(--space-1);
 }
-/* Sélection : bouton radio coché + filet ivoire (jamais la couleur seule). */
-.cat:has(input:checked) { border-bottom-color: var(--text); }
-.cat-nom { font-family: var(--serif); font-size: 18px; font-weight: 500; line-height: 1.2; color: var(--color-text-secondary); overflow-wrap: anywhere; transition: color .6s var(--lent); }
-.cat:has(input:checked) .cat-nom { color: var(--color-text); }
-.cat-info { font-size: 11px; color: var(--color-text-tertiary); letter-spacing: .02em; }
-.cat-info.manque { color: var(--color-danger); }
+.format-courant { font-family: var(--serif); font-style: italic; font-size: 16px; color: var(--color-text-secondary); overflow-wrap: anywhere; }
+.format-info { font-size: 11px; color: var(--color-text-tertiary); letter-spacing: .02em; }
+.format-info.manque { color: var(--color-danger); }
 
 /* 2. Prix d'achat HT : chiffres en sans fine */
 .prix-saisie { position: relative; }

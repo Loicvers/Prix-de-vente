@@ -39,12 +39,12 @@ describe('Calculer V2', () => {
     const { page, context } = await appareilConnecte(null);
     await page.fill('#input-prix', '12,5');
     await page.waitForTimeout(50);
-    const ordre = ['#format-bouton', '#input-prix', '#resultat-prix', '#detail summary', '#input-nom', '#btn-enregistrer'];
+    const ordre = ['#types', '#categories', '#input-prix', '#resultat-prix', '#detail summary', '#input-nom', '#btn-enregistrer'];
     const hauts = [];
     for (const sel of ordre) hauts.push((await page.$eval(sel, e => e.getBoundingClientRect().top)));
     assert.deepEqual([...hauts].sort((a, b) => a - b), hauts, 'ordre visuel');
     // Tabulation : même ordre (le montant n'est pas un contrôle).
-    await page.focus('#format-bouton');
+    await page.focus('#categories input:checked');
     const focus = [];
     for (let i = 0; i < 4; i++) { await page.keyboard.press('Tab'); focus.push(await page.evaluate(() => document.activeElement.id || document.activeElement.tagName)); }
     assert.deepEqual(focus, ['input-prix', 'SUMMARY', 'input-nom', 'btn-enregistrer']);
@@ -74,37 +74,39 @@ describe('Calculer V2', () => {
     }
   });
 
-  it('sélecteur de format : fermé par défaut, clavier (flèches, Entrée, Échap), recalcul immédiat', async () => {
+  it('sélection : type de vin puis contenance, toujours visibles ; clavier (flèches) ; recalcul immédiat', async () => {
     const { page, context } = await appareilConnecte(null);
     await page.fill('#input-prix', '8');
     await page.waitForTimeout(50);
-    assert.equal(await page.isHidden('#categories'), true);
-    await page.focus('#format-bouton');
-    await page.keyboard.press('Enter');
-    assert.equal(await page.getAttribute('#format-bouton', 'aria-expanded'), 'true');
-    assert.equal(await page.evaluate(() => document.activeElement.value), 'tranquille');
-    // Flèche : le format change et le prix est recalculé tout de suite.
+    // Rien à ouvrir : les deux rangées sont visibles d'emblée.
+    assert.equal(await page.isVisible('#types'), true);
+    assert.equal(await page.isVisible('#categories'), true);
+    assert.equal(await page.$('#format-bouton'), null);
+    assert.equal(await page.isChecked('#types [data-type="tranquille"] input'), true);
+    assert.equal(await page.isChecked('#categories [data-format="75"] input'), true);
+    // Flèche dans la rangée des types : même contenance, prix recalculé tout de suite.
+    await page.focus('#types input:checked');
     await page.keyboard.press('ArrowRight');
-    assert.equal(await texte(page, '#resultat-prix'), prixAffiche(Calcul.prixTTC(8, 'mousseux', CONFIG_E2E)));
-    // Échap : on revient au format d'avant l'ouverture, sélecteur fermé.
-    await page.keyboard.press('Escape');
-    assert.equal(await page.isHidden('#categories'), true);
-    assert.equal(await page.evaluate(() => document.activeElement.id), 'format-bouton');
-    assert.equal(await texte(page, '#format-courant'), 'Tranquille · 75 cl');
-    assert.equal(await texte(page, '#resultat-prix'), prixAffiche(Calcul.prixTTC(8, 'tranquille', CONFIG_E2E)));
-    // Entrée valide le choix et passe au prix.
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('ArrowDown');
-    await page.keyboard.press('Enter');
-    assert.equal(await page.isHidden('#categories'), true);
-    assert.equal(await page.evaluate(() => document.activeElement.id), 'input-prix');
     assert.equal(await texte(page, '#format-courant'), 'Pétillant · 75 cl');
-    // Au doigt : le choix referme le sélecteur et passe au prix.
+    assert.equal(await texte(page, '#resultat-prix'), prixAffiche(Calcul.prixTTC(8, 'mousseux', CONFIG_E2E)));
+    assert.equal(await page.evaluate(() => document.activeElement.value), 'petillant');
+    // Flèche dans la rangée des contenances : 1,5 l pétillant.
+    await page.focus('#categories input:checked');
+    await page.keyboard.press('ArrowRight');
+    assert.equal(await texte(page, '#format-courant'), 'Magnum pétillant · 1,5 l');
+    assert.equal(await texte(page, '#resultat-prix'), prixAffiche(Calcul.prixTTC(8, 'magnum_mousseux', CONFIG_E2E)));
+    // Vin doux : 1,5 l n'existe pas pour ce type → 75 cl ; grands formats indisponibles, 50 cl proposé.
+    await page.click('#types [data-type="vdn"]');
+    assert.equal(await texte(page, '#format-courant'), 'Vin doux naturel · 75 cl');
+    assert.equal(await page.isDisabled('#categories [data-format="150"] input'), true);
+    assert.equal(await page.isDisabled('#categories [data-format="50"] input'), false);
+    await choisirFormat(page, 'intermediaire_50cl');
+    assert.equal(await texte(page, '#resultat-cat'), 'Vin doux naturel · 50 cl');
+    // Demi-bouteille : proposée pour tous les types, le type affiché reste.
     await choisirFormat(page, 'demie');
-    await page.waitForTimeout(20);
-    assert.equal(await page.isHidden('#categories'), true);
-    assert.equal(await page.evaluate(() => document.activeElement.id), 'input-prix');
     assert.equal(await texte(page, '#resultat-cat'), 'Demi-bouteille · 37,5 cl');
+    assert.equal(await page.isChecked('#types [data-type="vdn"] input'), true);
+    assert.equal(await texte(page, '#format-info'), `+${prixAffiche(2)} de frais`);
     await context.close();
   });
 
@@ -224,12 +226,13 @@ describe('Calculer V2', () => {
     const { page, context } = await appareilConnecte(null, { pv_produits_v2: produits });
     await recalculer(page, 'Migré');
     assert.equal(await texte(page, '#format-courant'), 'Choisis un format');
-    assert.equal(await page.getAttribute('#format-bouton', 'aria-expanded'), 'true');
+    assert.equal(await page.$('#types input:checked'), null);
     assert.equal(await page.$('#categories input:checked'), null);
+    assert.equal(await page.evaluate(() => document.activeElement.name), 'type');
     assert.equal(await page.getAttribute('#resultat', 'data-statut'), 'sans-format');
     assert.equal(await page.isDisabled('#btn-enregistrer'), true);
     assert.equal(await texte(page, '#enregistrer-raison'), 'Choisis un format pour enregistrer.');
-    await page.click('.cat[data-cat="intermediaire"]');
+    await choisirFormat(page, 'intermediaire');
     await page.waitForTimeout(20);
     assert.equal(await texte(page, '#resultat-prix'), prixAffiche(Calcul.prixTTC(12, 'intermediaire', CONFIG_E2E)));
     await page.click('#btn-enregistrer');
@@ -265,7 +268,7 @@ describe('Calculer V2', () => {
       `${prixAffiche(5)} → ${prixAffiche(10)} × 1,100 | ${prixAffiche(5 * 1.1)}`,
     ]);
     // Coefficients seulement dans le bloc « Détail du calcul ».
-    for (const sel of ['#resultat-prix', '#resultat-cat', '#resultat-etat', '#format-bouton']) {
+    for (const sel of ['#resultat-prix', '#resultat-cat', '#resultat-etat', '#selection']) {
       assert.equal((await texte(page, sel)).includes('×'), false, sel);
     }
     await context.close();
@@ -289,12 +292,19 @@ describe('Calculer V2', () => {
     const sans = JSON.parse(JSON.stringify(CONFIG_E2E));
     delete sans.categories['4_5l_mousseux'];
     delete sans.categories['5l_mousseux'];
+    delete sans.categories.intermediaire_50cl;
     let { page, context } = await app.appareil(null, { stockage: connecte({ pv_config: sans }) });
     await ouvrir(app, page, { connecter: false });
-    await page.click('#format-bouton');
+    // Tranquille : 4,5 l et 5 l historiques toujours proposés.
+    assert.equal(await page.isDisabled('#categories [data-format="450"] input'), false);
+    assert.equal(await page.isDisabled('#categories [data-format="500"] input'), false);
+    // Pétillant : 4,5 l et 5 l indisponibles sans leurs frais.
+    await page.click('#types [data-type="petillant"]');
+    assert.equal(await page.isDisabled('#categories [data-format="450"] input'), true);
+    assert.equal(await page.isDisabled('#categories [data-format="500"] input'), true);
     assert.equal(await page.$('.cat[data-cat="4_5l_mousseux"]'), null);
-    assert.equal(await page.$('.cat[data-cat="5l_mousseux"]'), null);
-    assert.ok(await page.$('.cat[data-cat="5l_tranquille"]'));      // formats historiques toujours proposés
+    // 50 cl (vin doux seulement) : masqué tant qu'il n'est pas dans la config.
+    assert.equal(await page.isHidden('#categories [data-format="50"]'), true);
     await context.close();
 
     const script = fauxScript();
