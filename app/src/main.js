@@ -16,6 +16,7 @@ import { toast } from './ui/toast.js';
 import { ouvrirPin, validerPin } from './ui/pin.js';
 import { afficherConfig, initCalculateur, quitterModification } from './ui/calculateur.js';
 import { renderList, openModal, afficherBadge } from './ui/produits.js';
+import { choisirCatalogue, importerFichier } from './ui/import-catalogue.js';
 import { switchTab } from './ui/onglets.js';
 import { setSyncStatus } from './ui/statut.js';
 import { etat } from './data/etat.js';
@@ -48,12 +49,14 @@ document.addEventListener('click', e => {
     case 'pin': ouvrirPin(); break;
     case 'fermer-pin': fermer('pin-modal'); break;
     case 'sync': syncNow(); break;
+    case 'importer': choisirCatalogue(); break;
   }
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') { fermer('modal'); fermer('pin-modal'); }
 });
 
+$('import-fichier').addEventListener('change', e => importerFichier(e.target));
 $('form-pin').addEventListener('submit', e => { e.preventDefault(); validerPin(); });
 
 let recherchePrevue = 0;
