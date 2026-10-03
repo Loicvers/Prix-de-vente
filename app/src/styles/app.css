@@ -560,3 +560,5 @@ nav.onglets {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+.import-catalogue { margin: 4px 0 12px; }
