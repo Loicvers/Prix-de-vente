@@ -31,10 +31,14 @@ export function lignesDetail(prixAchat, cle, config) {
   const acc = Calcul.accises(cle, config);
   if (acc) lignes.push(acc.erreur ? { type: 'accises', invalide: true } : { type: 'accises', montant: acc.montant });
   lignes.push({ type: 'cout', montant: cout });
+  // Montants TVAC (les coefficients incluent la TVA) ; ht ajouté quand la
+  // config donne le taux, pour afficher HTVA et TVAC côte à côte.
+  const tva = Calcul.tauxTVA(config);
+  const avecHT = (l) => tva.erreur ? l : Object.assign(l, { ht: l.montant / (1 + tva.taux) });
   for (const t of Calcul.detailTranches(cout, config)) {
-    lignes.push({ type: 'tranche', debut: t.debut, fin: t.fin, coef: t.coef, montant: t.montant });
+    lignes.push(avecHT({ type: 'tranche', debut: t.debut, fin: t.fin, coef: t.coef, montant: t.montant }));
   }
-  lignes.push({ type: 'total', montant: Calcul.prixTTC(prixAchat, cle, config) });
+  lignes.push(avecHT({ type: 'total', montant: Calcul.prixTTC(prixAchat, cle, config) }));
   const m = Calcul.marge(prixAchat, cle, config);
   if (m.erreur) {
     lignes.push({ type: 'marge-indisponible', raison: m.erreur });

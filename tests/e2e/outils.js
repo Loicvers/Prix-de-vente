@@ -38,6 +38,7 @@ const CONFIG_E2E = {
     '5l_tranquille': { frais: 20 },
     '4_5l_mousseux': { frais: 22 },
     '5l_mousseux': { frais: 24 },
+    cubi_10l: { frais: 30 },
     intermediaire_50cl: { frais: 4 },
   },
   tranches: [{ jusqua: 10, coef: 2 }, { jusqua: 30, coef: 1.5 }, { jusqua: null, coef: 1.25 }],
@@ -178,6 +179,7 @@ const TYPE_CONTENANCE = {
   '3l_tranquille': ['tranquille', '300'], '3l_mousseux': ['petillant', '300'],
   '4_5l_tranquille': ['tranquille', '450'], '5l_tranquille': ['tranquille', '500'],
   '4_5l_mousseux': ['petillant', '450'], '5l_mousseux': ['petillant', '500'],
+  cubi_10l: ['tranquille', '1000'],
   demie: [null, '37_5'], intermediaire: ['vdn', '75'], intermediaire_50cl: ['vdn', '50'],
 };
 

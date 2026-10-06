@@ -148,6 +148,11 @@ const RAISONS_MARGE = {
   'tva-invalide': 'indisponible : taux de TVA invalide dans la config',
 };
 
+// « 61,74 € HTVA · 74,70 € TVAC », ou le seul TVAC si la TVA est inconnue.
+// Sur écran étroit, les deux montants passent l'un sous l'autre.
+const deuxPrix = (l) => l.ht === undefined ? fmt(l.montant)
+  : `<span class="deux-prix"><span>${fmt(l.ht)} HTVA</span> · <span>${fmt(l.montant)} TVAC</span></span>`;
+
 function ligneHtml(l, balises) {
   const [a, b] = balises;
   const ligne = (classe, libelle, valeur) => `<div class="ligne${classe ? ' ' + classe : ''}"><${a}>${libelle}</${a}><${b}>${valeur}</${b}></div>`;
@@ -156,8 +161,8 @@ function ligneHtml(l, balises) {
     case 'frais': return ligne('', `Frais fixes${l.texte ? ' (' + esc(l.texte) + ')' : ''}`, '+ ' + fmt(l.montant));
     case 'accises': return ligne('sous', 'dont accises', l.invalide ? 'invalides dans la config' : fmt(l.montant));
     case 'cout': return ligne('', 'Coût de revient HT', fmt(l.montant));
-    case 'tranche': return ligne('', `${fmt(l.debut)} → ${fmt(l.fin)} × ${fmtCoef(l.coef)}`, fmt(l.montant));
-    case 'total': return ligne('total', 'Prix de vente TTC', fmt(l.montant));
+    case 'tranche': return ligne('', `${fmt(l.debut)} → ${fmt(l.fin)} × ${fmtCoef(l.coef)}`, deuxPrix(l));
+    case 'total': return ligne('total', l.ht === undefined ? 'Prix de vente TTC' : 'Prix de vente', deuxPrix(l));
     case 'prix-ht': return ligne('marge-debut', 'Prix de vente HT', fmt(l.montant));
     case 'marge': return ligne('', 'Marge', fmt(l.montant));
     case 'marge-pct': return ligne('', 'Marge %', fmtPct(l.valeur));

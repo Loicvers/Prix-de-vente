@@ -23,6 +23,7 @@ export const CATEGORIES = {
   '5l_tranquille':   { label: 'Jéroboam tranquille (5 l)',  nom: 'Jéroboam 5 l',   court: 'Jéroboam 5 l',      libelle: 'Jéroboam tranquille · 5 l',      famille: 'tranquille', info: 'tranquille' },
   '4_5l_mousseux':   { label: 'Réhoboam pétillant (4,5 l)', nom: 'Réhoboam',       court: 'Réhoboam 4,5 l',    libelle: 'Réhoboam pétillant · 4,5 l',     famille: 'petillant', info: 'pétillant', optionnel: true },
   '5l_mousseux':     { label: 'Pétillant (5 l)',            nom: 'Pétillant 5 l',  court: 'Pétillant 5 l',     libelle: 'Pétillant · 5 l',                famille: 'petillant', info: 'pétillant', optionnel: true },
+  cubi_10l:          { label: 'Cubi tranquille (10 l)',     nom: 'Cubi 10 l',      court: 'Cubi 10 l',         libelle: 'Cubi tranquille · 10 l',         famille: 'tranquille', info: 'tranquille', optionnel: true },
   demie:             { label: '37,5 cl',                    nom: 'Demi-bouteille', court: '37,5 cl',           libelle: 'Demi-bouteille · 37,5 cl',       famille: 'autre', info: '37,5 cl' },
   intermediaire:     { label: 'Produit intermédiaire 75cl', nom: 'Vin doux naturel', court: 'Vin doux 75 cl',  libelle: 'Vin doux naturel · 75 cl',       famille: 'autre', info: 'Maury, Porto, VDN…' },
   intermediaire_50cl: { label: 'Produit intermédiaire 50cl', nom: 'Vin doux naturel', court: 'Vin doux 50 cl', libelle: 'Vin doux naturel · 50 cl',       famille: 'autre', info: 'Maury, Porto, VDN…', optionnel: true },
@@ -32,6 +33,7 @@ export const GROUPES = [
   ['Magnum 1,5 l', ['magnum_tranquille', 'magnum_mousseux']],
   ['3 litres', ['3l_tranquille', '3l_mousseux']],
   ['4,5 et 5 litres', ['4_5l_tranquille', '5l_tranquille', '4_5l_mousseux', '5l_mousseux']],
+  ['Cubi 10 litres', ['cubi_10l']],
   ['Vins doux naturels', ['intermediaire', 'intermediaire_50cl']],
   ['Autres formats', ['demie']],
 ];
@@ -54,9 +56,10 @@ export const CONTENANCES = [
   { id: '300', nom: '3 l' },
   { id: '450', nom: '4,5 l' },
   { id: '500', nom: '5 l' },
+  { id: '1000', nom: '10 l' },
 ];
 export const GRILLE = {
-  tranquille: { '37_5': 'demie', '75': 'tranquille', '150': 'magnum_tranquille', '300': '3l_tranquille', '450': '4_5l_tranquille', '500': '5l_tranquille' },
+  tranquille: { '37_5': 'demie', '75': 'tranquille', '150': 'magnum_tranquille', '300': '3l_tranquille', '450': '4_5l_tranquille', '500': '5l_tranquille', '1000': 'cubi_10l' },
   petillant:  { '37_5': 'demie', '75': 'mousseux', '150': 'magnum_mousseux', '300': '3l_mousseux', '450': '4_5l_mousseux', '500': '5l_mousseux' },
   vdn:        { '37_5': 'demie', '50': 'intermediaire_50cl', '75': 'intermediaire' },
 };

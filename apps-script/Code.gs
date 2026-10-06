@@ -56,6 +56,7 @@ var LIBELLES = {
   '5l_tranquille': 'Jéroboam tranquille (5 l)',
   '4_5l_mousseux': 'Réhoboam pétillant (4,5 l)',
   '5l_mousseux': 'Pétillant (5 l)',
+  cubi_10l: 'Cubi tranquille (10 l)',
   intermediaire_50cl: 'Produit intermédiaire 50cl'
 };
 
@@ -649,7 +650,7 @@ function prixConfig_(base, config) {
     debut = borne;
   }
   var facteur = Math.round(1 / config.arrondi);
-  return Math.round(prix * facteur) / facteur;
+  return Math.ceil(prix * facteur - 1e-9) / facteur; // au pas supérieur, comme l'app
 }
 
 function deduireCategorie_(prixAchat, prixTTC, config) {
