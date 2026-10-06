@@ -15,7 +15,7 @@ const ACHATS = ['0,5', '8', '10', '12,34', '29,99', '30', '57,8', '250'];
 describe('calcul', () => {
   // V2 (spec Calculer §6, §8.2) : libellé V2 de la table unique ; le prix
   // n'est plus coloré selon le format (plus de data-cat sur le résultat).
-  it('les 12 formats donnent le prix de calcul.js, avec leur libellé V2', async () => {
+  it('les 13 formats donnent le prix de calcul.js, avec leur libellé V2', async () => {
     const { page, context } = await app.appareil(null, { stockage: connecte() });
     await ouvrir(app, page, { connecter: false });
     const libelles = Object.fromEntries(Object.entries(require('../../app/src/core/categories.js').CATEGORIES).map(([k, v]) => [k, v.libelle]));
@@ -59,10 +59,11 @@ describe('calcul', () => {
       `Frais fixes (bouchon et étiquette) | + ${prixAffiche(3)}`,
       `dont accises | ${prixAffiche(1)}`,
       `Coût de revient HT | ${prixAffiche(43)}`,
-      `${prixAffiche(0)} → ${prixAffiche(10)} × 2,000 | ${prixAffiche(20)}`,
-      `${prixAffiche(10)} → ${prixAffiche(30)} × 1,500 | ${prixAffiche(30)}`,
-      `${prixAffiche(30)} → ${prixAffiche(43)} × 1,250 | ${prixAffiche(16.25)}`,
-      `Prix de vente TTC | ${prixAffiche(66.3)}`,
+      // HTVA = TVAC / 1,2 (TVA fictive 20 %)
+      `${prixAffiche(0)} → ${prixAffiche(10)} × 2,000 | ${prixAffiche(16.67)} HTVA · ${prixAffiche(20)} TVAC`,
+      `${prixAffiche(10)} → ${prixAffiche(30)} × 1,500 | ${prixAffiche(25)} HTVA · ${prixAffiche(30)} TVAC`,
+      `${prixAffiche(30)} → ${prixAffiche(43)} × 1,250 | ${prixAffiche(13.54)} HTVA · ${prixAffiche(16.25)} TVAC`,
+      `Prix de vente | ${prixAffiche(55.25)} HTVA · ${prixAffiche(66.3)} TVAC`,
       // TVA fictive 20 % : 66,30 / 1,2 = 55,25 ; marge 55,25 − 43 = 12,25 ; 12,25 / 55,25 = 22,2 %
       `Prix de vente HT | ${prixAffiche(55.25)}`,
       `Marge | ${prixAffiche(12.25)}`,
@@ -220,7 +221,7 @@ describe('calcul', () => {
     assert.deepEqual(await page.$$eval('#types .choix-option', ls => ls.map(l => [l.dataset.type, l.textContent.trim()])),
       [['tranquille', 'Tranquille'], ['petillant', 'Pétillant'], ['vdn', 'Vin doux']]);
     assert.deepEqual(await page.$$eval('#categories .choix-option:not([hidden])', ls => ls.map(l => l.textContent.trim())),
-      ['37,5 cl', '50 cl', '75 cl', '1,5 l', '3 l', '4,5 l', '5 l']);
+      ['37,5 cl', '50 cl', '75 cl', '1,5 l', '3 l', '4,5 l', '5 l', '10 l']);
     // Format par défaut et ses frais.
     assert.equal(await texte(page, '#format-courant'), 'Tranquille · 75 cl');
     assert.equal(await texte(page, '#format-info'), `+${prixAffiche(3)} de frais`);

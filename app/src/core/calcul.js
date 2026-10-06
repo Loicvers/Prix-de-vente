@@ -51,9 +51,12 @@ export function detailTranches(base, config) {
   return rows;
 }
 
+// Arrondi au pas SUPÉRIEUR (74,71 → 74,80) : la marge n'est jamais rognée.
+// La tolérance évite qu'une erreur de virgule flottante (17,1400000001)
+// fasse monter d'un pas un prix déjà rond.
 function arrondir(prix, pas) {
   const facteur = Math.round(1 / pas);
-  return Math.round(prix * facteur) / facteur;
+  return Math.ceil(prix * facteur - 1e-9) / facteur;
 }
 
 export function calculerPrixTTC(base, config) {

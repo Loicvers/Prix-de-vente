@@ -26,8 +26,8 @@ test('contexte valide : prix = moteur, détail construit par le moteur (D4 révi
     { type: 'frais', montant: 3, texte: 'bouchon' },
     { type: 'accises', montant: 1 },
     { type: 'cout', montant: 43 },
-    ...tranches.map(t => ({ type: 'tranche', debut: t.debut, fin: t.fin, coef: t.coef, montant: t.montant })),
-    { type: 'total', montant: r.prixTTC },
+    ...tranches.map(t => ({ type: 'tranche', debut: t.debut, fin: t.fin, coef: t.coef, montant: t.montant, ht: t.montant / 1.2 })),
+    { type: 'total', montant: r.prixTTC, ht: r.prixTTC / 1.2 },
   ]);
   const [prixHT, m, pct] = r.lignes.slice(-3);
   assert.equal(prixHT.type, 'prix-ht');
@@ -36,6 +36,13 @@ test('contexte valide : prix = moteur, détail construit par le moteur (D4 révi
   assert.ok(Math.abs(m.montant - (ht - 43)) < 1e-9);
   assert.equal(pct.type, 'marge-pct');
   assert.ok(Math.abs(pct.valeur - (ht - 43) / ht * 100) < 1e-9);
+});
+
+test('arrondi au pas supérieur, sans faire monter un prix déjà rond', () => {
+  const c = { categories: { a: { frais: 0 } }, tranches: [{ jusqua: null, coef: 1 }], arrondi: 0.1 };
+  assert.equal(Calcul.calculerPrixTTC(74.71, c), 74.8);
+  assert.equal(Calcul.calculerPrixTTC(74.74, c), 74.8);
+  assert.equal(Calcul.calculerPrixTTC(17.1 + 0.04 - 0.04, c), 17.1);
 });
 
 test('marge : accises comptées une seule fois (comprises dans les frais), prix de vente inchangé', () => {
